@@ -1,0 +1,160 @@
+@import "reset"
+@import "font"
+
+@include font("concourse-t3", "regular")
+@include font("concourse-t3", "italic")
+@include font("concourse-c3", "regular")
+
+
+$black: #000
+$black6: #666
+$black9: #999
+$blackC: #ccc
+$blackE: #eee
+
+$blue: #3f96f0
+$blue6: rgba($blue, 1-(3/15))
+$blue9: rgba($blue, 1-(6/15))
+$blueC: rgba($blue, 1-(9/15))
+
+$white: #fff
+$white6: rgba($white, 1-(3/15))
+$white9: rgba($white, 1-(6/15))
+$whiteC: rgba($white, 1-(9/15))
+
+// NOTE: $transition-duration must match TRANSITION_DURATION in JS
+$transition-duration: 250ms
+
+$font-size: 14px
+$line-height: 19px
+
+$small-font-size: 12px
+$small-line-height: 16px
+$small-offset: -2px
+
+@function u($n)
+  @return $n * 8px
+
+
+*, *:before, *:after
+  box-sizing: border-box
+  -webkit-tap-highlight-color: transparent
+
+
+html
+  width: 100%
+  height: 100%
+  text-rendering: optimizeLegibility
+  text-size-adjust: 100%
+  color: $black
+  background: #fafafa
+
+body
+  width: 100%
+  height: 100%
+  font-family: "concourse-t3", sans-serif
+  font-size: $font-size
+  line-height: $line-height
+
+::selection
+  background-color: $blueC
+
+::-moz-selection
+  background-color: $blueC
+
+
+@mixin clickable
+  cursor: pointer
+
+.clickable
+  @include clickable
+
+@mixin unclickable
+  cursor: default
+  pointer-events: none
+
+@mixin selectable
+  user-select: text
+
+@mixin unselectable
+  user-select: none
+
+
+#main
+  width: 100%
+  height: 100%
+
+
+@mixin ellipsis
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+@mixin small-caps
+  font-family: "concourse-c3", sans-serif
+  vertical-align: top
+  position: relative
+  top: 1px
+
+@mixin label
+  @include ellipsis
+  @include small-caps
+  display: inline-block
+  color: $black9
+  .selected &
+    color: $white9
+
+
+.browser
+  @include unselectable
+
+
+.fade-enter
+  opacity: 0
+  &.fade-enter-active
+    opacity: 1
+    transition: all $transition-duration
+
+.fade-leave
+  opacity: 1
+  &.fade-leave-active
+    opacity: 0
+    transition: all $transition-duration
+
+
+.height-enter
+  // NOTE: JS code sets max-height: 0%
+  opacity: 0
+  overflow-y: hidden
+  &.height-enter-active
+    // NOTE: JS code sets max-height: 100%
+    opacity: 1
+    transition: all $transition-duration
+
+.height-leave
+  // NOTE: JS code sets max-height: 100%
+  opacity: 1
+  &.height-leave-active
+    // NOTE: JS code sets max-height: 0%
+    opacity: 0
+    overflow-y: hidden
+    transition: all $transition-duration
+
+
+.width-enter
+  // NOTE: JS code sets max-width: 0%
+  opacity: 0
+  overflow-x: hidden
+  &.width-enter-active
+    // NOTE: JS code sets max-width: 100%
+    opacity: 1
+    transition: all $transition-duration
+
+.width-leave
+  // NOTE: JS code sets max-width: 100%
+  opacity: 1
+  &.width-leave-active
+    // NOTE: JS code sets max-width: 0%
+    opacity: 0
+    overflow-x: hidden
+    transition: all $transition-duration
