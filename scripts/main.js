@@ -2,9 +2,12 @@
 
 var r = require('./common/react');
 var utils = require('./common/utils');
-var browser = require('./views/browser');
+
+var mainView = require('./views/main-view');
+var a = require('./actions');
 
 window.main = function () {
   utils.detectTouch();
-  r.render(browser(), document.getElementById('main'));
+  r.render(mainView(), document.getElementById('main'));
+  a.genCity();
 };
