@@ -3,7 +3,8 @@
 var Store = require('../common/store');
 var dispatcher = require('../common/dispatcher');
 var utils = require('../common/utils');
-var gen = require('../gen');
+
+var cityGen = require('../city-generator');
 
 function CityStore() {
   this.dispatchToken = dispatcher.register(function (action) {
@@ -18,11 +19,15 @@ function CityStore() {
 
 CityStore.prototype = utils.assign(new Store(), {
   genCity: function () {
-    utils.assign(this, gen.genCity());
+    utils.assign(this, cityGen.genCity());
   },
 
   getNodes: function () {
     return this.nodes;
+  },
+  
+  getEdges: function () {
+    return this.edges;
   }
 });
 
