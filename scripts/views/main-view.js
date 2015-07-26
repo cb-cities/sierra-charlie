@@ -204,6 +204,7 @@ var _ = {
   },
 
   render: function () {
+    var hasSelection = this.state.selectedNode || this.state.selectedEdge;
     var bounds = (
       (this.state.selectedNode &&
         vec.bound(this.state.selectedNode, cityGen.emptyArea)) ||
@@ -221,8 +222,8 @@ var _ = {
         }.bind(this)));
     return (
       r.div({
-          className: 'main-view',
-          onClick:   function (event) {
+          className: 'main-view' + (hasSelection ? ' clickable' : ''),
+          onClick:   hasSelection && function (event) {
             event.stopPropagation();
             a.deselect();
           }
