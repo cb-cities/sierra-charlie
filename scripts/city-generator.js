@@ -9,7 +9,7 @@ var _ = module.exports = {
   cityWidth:  1000,
   cityHeight: 1000,
   nodeCount:  1000,
-  edgeCount:  1000,
+  edgeCount:  10000,
   emptyArea:  10,
 
   acceptNode: function (nodes, node) {
@@ -20,14 +20,22 @@ var _ = module.exports = {
       });
   },
 
-  acceptEdge: function (nodes, edge) {
+  acceptEdge: function (nodes, otherEdges, edge) {
     var bounds = seg.bound(edge, _.emptyArea);
     var boundedNodes = sorted2d.between(nodes, bounds.p, bounds.q);
-    return boundedNodes.every(function (boundedNode) {
+    if (!(boundedNodes.every(function (boundedNode) {
         return (
           boundedNode === edge.p ||
           boundedNode === edge.q ||
           seg.dist(boundedNode, edge) > _.emptyArea);
+      }))) {
+      return false;
+    }
+    return otherEdges.every(function (otherEdge) {
+        if (edge.p === otherEdge.p || edge.p === otherEdge.q || edge.q === otherEdge.p || edge.q === otherEdge.q) {
+          return true;
+        }
+        return seg.intersect(edge, otherEdge).result === 'none';
       });
   },
 
@@ -54,16 +62,13 @@ var _ = module.exports = {
           }).sort(function (q1, q2) {
             return vec.dist(p, q1) - vec.dist(p, q2);
           });
-        p.edges = [];
+        p.friends = [];
       });
     for (var i = 0; i < _.edgeCount; i += 1) {
       var v = nodes[Math.floor(random.uniform() * nodes.length)];
-      if (v.edges.length > 0) {
-        continue;
-      }
       var w;
       for (var j = 0; j < v.nodes.length; j += 1) {
-        if (v.nodes[j].edges.length < 1) {
+        if (v.friends.indexOf(v.nodes[j]) === -1) {
           w = v.nodes[j];
           break;
         }
@@ -75,9 +80,9 @@ var _ = module.exports = {
         p: v,
         q: w
       };
-      if (_.acceptEdge(nodes, e)) {
-        v.edges.push(e);
-        w.edges.push(e);
+      if (_.acceptEdge(nodes, edges, e)) {
+        v.friends.push(w);
+        w.friends.push(v);
         edges.push(e);
       }
     }

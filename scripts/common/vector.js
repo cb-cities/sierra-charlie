@@ -19,6 +19,10 @@ var _ = module.exports = {
     return v.x * w.x + v.y * w.y;
   },
 
+  perp: function (v, w) {
+    return v.x * w.y - v.y * w.x;
+  },
+
   mul: function (a, v) {
     return {
       x: a * v.x,

@@ -220,14 +220,16 @@ var _ = {
               node !== this.state.selectedEdge.q)));
         }.bind(this)));
     return (
-      r.div('main-view',
+      r.div({
+          className: 'main-view',
+          onClick:   function (event) {
+            event.stopPropagation();
+            a.deselect();
+          }
+        },
         r.svg({
             className: 'content',
-            viewBox:   '0 0 1000 1000',
-            onClick:   function (event) {
-              event.stopPropagation();
-              a.deselect();
-            }
+            viewBox:   '0 0 1000 1000'
           },
           this.state.nodes.map(this.renderNodeShadow),
           this.state.edges.map(this.renderEdgeShadow),
