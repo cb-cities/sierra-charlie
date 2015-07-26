@@ -141,14 +141,17 @@ var _ = module.exports = {
       document.documentElement.classList.remove('hairline');
       document.documentElement.classList.add('no-hairline');
     }
+    return hairline;
   },
 
   detectTouch: function () {
-    if ('ontouchstart' in window) {
+    var touch = 'ontouchstart' in window;
+    if (touch) {
       document.documentElement.classList.add('touch');
       document.addEventListener('touchstart', function () {});
     } else {
       document.documentElement.classList.add('no-touch');
     }
+    return touch;
   }
 };

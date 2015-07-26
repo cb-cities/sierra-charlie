@@ -142,6 +142,10 @@ var _ = module.exports = {
 
   findDOMNode: window.React.findDOMNode,
 
+  initializeTouchEvents: function () {
+    window.React.initializeTouchEvents(true);
+  },
+
   propTypes: window.React.PropTypes,
 
   render: window.React.render,
