@@ -8,7 +8,6 @@ var seg = require('../common/segment');
 var a = require('../actions');
 var cityStore = require('../stores/city-store');
 var selectionStore = require('../stores/selection-store');
-var cityGen = require('../city-generator');
 
 var blue   = '#3f96f0';
 var orange = '#f0690f';
@@ -207,9 +206,9 @@ var _ = {
     var hasSelection = this.state.selectedNode || this.state.selectedEdge;
     var bounds = (
       (this.state.selectedNode &&
-        vec.bound(this.state.selectedNode, cityGen.emptyArea)) ||
+        vec.bound(this.state.selectedNode, 10)) ||
       (this.state.selectedEdge &&
-        seg.bound(this.state.selectedEdge, cityGen.emptyArea)));
+        seg.bound(this.state.selectedEdge, 10)));
     var boundedNodes = (
       bounds &&
       sorted2d.between(this.state.nodes, bounds.p, bounds.q).filter(function (node) {
