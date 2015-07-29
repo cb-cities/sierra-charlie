@@ -22,12 +22,24 @@ CityStore.prototype = utils.assign(new Store(), {
     utils.assign(this, cityGen.genCity());
   },
 
+  getBounds: function () {
+    return this.bounds;
+  },
+
   getNodes: function () {
     return this.nodes;
   },
-  
+
   getEdges: function () {
     return this.edges;
+  },
+
+  getNodesById: function () {
+    return this.nodesById;
+  },
+
+  getEdgesById: function () {
+    return this.edgesById;
   }
 });
 

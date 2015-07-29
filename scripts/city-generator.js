@@ -1,9 +1,13 @@
 'use strict';
 
+var utils = require('./common/utils');
 var random = require('./common/random');
 var sorted2d = require('./common/sorted2d');
 var vec = require('./common/vector');
 var seg = require('./common/segment');
+
+var NODE_ID = 0;
+var EDGE_ID = 0;
 
 var _ = module.exports = {
   acceptNode: function (nodes, edges, spacing, n) {
@@ -14,7 +18,7 @@ var _ = module.exports = {
           return vec.dist(n, n0) > spacing;
         }) &&
       edges.every(function (e) {
-          return seg.dist(n, e) > spacing;
+          return e.type === 'underground' || seg.dist(n, e) > spacing;
         }));
   },
 
@@ -22,11 +26,11 @@ var _ = module.exports = {
     var bounds       = seg.bound(e, spacing);
     var boundedNodes = sorted2d.between(nodes, bounds.p, bounds.q);
     return (
-      boundedNodes.every(function (n) {
+      boundedNodes.every(function (n0) {
           return (
-            e.p === n ||
-            e.q === n ||
-            seg.dist(n, e) > spacing);
+            e.p === n0 ||
+            e.q === n0 ||
+            seg.dist(n0, e) > spacing);
         }) &&
       edges.every(function (e0) {
           return (
@@ -34,72 +38,152 @@ var _ = module.exports = {
             e.p === e0.q ||
             e.q === e0.p ||
             e.q === e0.q ||
+            (e.type === 'underground') !== (e0.type === 'underground') ||
             seg.intersect(e, e0).result === 'none');
         }));
   },
 
-  addNodes: function (nodes, edges, count, scale, offset, spacing) {
-    for (var i = 0; i < count; i += 1) {
-      var n = {
-        x: random.normal() * scale.x + offset.x,
-        y: random.normal() * scale.y + offset.y
-      };
+  addNodes: function (nodes, edges, count, scale, center, spacing, base) {
+    var offset = {
+      x: center.x - scale / 2,
+      y: center.y - scale / 2
+    };
+    var maxRejects = count;
+    var rejects    = 0;
+    while (count && rejects < maxRejects) {
+      var n = utils.assign({
+          id:        NODE_ID,
+          x:         random.normal() * scale + offset.x,
+          y:         random.normal() * scale + offset.y,
+          neighbors: []
+        },
+        base);
       if (_.acceptNode(nodes, edges, spacing, n)) {
         nodes.push(n);
+        NODE_ID += 1;
+        count -= 1;
         sorted2d.sortX(nodes);
+      } else {
+        rejects += 1;
       }
+    }
+    if (count) {
+      console.log('Could not add nodes:', count);
     }
   },
 
-  addEdges: function (nodes, edges, count, spacing) {
-    nodes.forEach(function (n) {
-        n.closest = nodes.filter(function (n0) {
-            return n !== n0;
-          }).sort(function (n1, n2) {
-            return vec.dist(n, n1) - vec.dist(n, n2);
-          });
-        n.neighbors = [];
+  addEdges: function (nodes, edges, count, spacing, maxNeighbors, base) {
+    var potentialNodes = [];
+    nodes.forEach(function (n0) {
+        if (n0.neighbors.length < maxNeighbors) {
+          potentialNodes.push(n0);
+        }
       });
-    edges.forEach(function (e) {
-        e.p.neighbors.push(e.q);
-        e.q.neighbors.push(e.p);
-      });
-    for (var i = 0; i < count; i += 1) {
-      var n1 = nodes[Math.floor(random.uniform() * nodes.length)];
-      var n2;
-      for (var j = 0; j < n1.closest.length; j += 1) {
-        if (n1.neighbors.indexOf(n1.closest[j]) === -1) {
-          n2 = n1.closest[j];
+    var maxRejects = count;
+    var rejects    = 0;
+    while (count && rejects < maxRejects && potentialNodes.length) {
+      potentialNodes = potentialNodes.filter(function (n0) {
+          return n0.neighbors.length < maxNeighbors;
+        });
+      potentialNodes.sort(function (n1, n2) {
+          return n1.neighbors.length - n2.neighbors.length;
+        });
+      var n = potentialNodes[rejects % potentialNodes.length];
+      var closestNodes = potentialNodes.filter(function (n0) {
+          return (
+            n0 !== n &&
+            n0.neighbors.every(function (n1) {
+                return (
+                  n1 !== n &&
+                  n1.neighbors.indexOf(n) === -1);
+              }));
+        }).sort(function (n1, n2) {
+          return vec.dist(n, n1) - vec.dist(n, n2);
+        });
+      var accepted = false;
+      for (var j = 0; j < closestNodes.length; j += 1) {
+        var e = utils.assign({
+            id: EDGE_ID,
+            p:  n,
+            q:  closestNodes[j]
+          },
+          base);
+        if (_.acceptEdge(nodes, edges, spacing, e)) {
+          e.p.neighbors.push(e.q);
+          e.q.neighbors.push(e.p);
+          edges.push(e);
+          EDGE_ID += 1;
+          count -= 1;
+          accepted = true;
           break;
         }
       }
-      if (!n2) {
-        continue;
-      }
-      var e = {
-        p: n1,
-        q: n2
-      };
-      if (_.acceptEdge(nodes, edges, spacing, e)) {
-        e.p.neighbors.push(e.q);
-        e.q.neighbors.push(e.p);
-        edges.push(e);
+      if (!accepted) {
+        rejects += 1;
       }
     }
-    nodes.forEach(function (n) {
-        n.closest   = undefined;
-        n.neighbors = undefined;
-      });
+    if (count) {
+      console.log('Could not add edges:', count);
+    }
   },
 
   genCity: function () {
     var nodes = [];
     var edges = [];
-    _.addNodes(nodes, edges, 1000, {x: 1000, y: 1000}, {x: 0, y: 0}, 10);
-    _.addEdges(nodes, edges, 10000, 10);
+    var c0    = {
+      x: 0,
+      y: 0
+    };
+    _.addNodes(nodes, edges, 15, 1000, c0, 100);
+    _.addEdges(nodes, edges, 15, 100, 3, {type: 'underground'});
+    var centers = [];
+    nodes.forEach(function (n) {
+        centers.push({
+            x: n.x,
+            y: n.y
+          });
+      });
+    centers.forEach(function (c) {
+        _.addNodes(nodes, edges, 10, 1000, c, 50);
+      });
+    _.addEdges(nodes, edges, 100, 50, 3, {type: 'a-road'});
+    centers.forEach(function (c) {
+        _.addNodes(nodes, edges, 25, 1000, c, 25);
+      });
+    _.addEdges(nodes, edges, 250, 25, 3, {type: 'b-road'});
+    centers.forEach(function (c) {
+        _.addNodes(nodes, edges, 50, 1000, c, 10);
+      });
+    _.addEdges(nodes, edges, 1000, 10, 4);
+    var nodesById = {};
+    var edgesById = {};
+    nodes.forEach(function (n) {
+        nodesById[n.id] = n;
+      });
+    edges.forEach(function (e) {
+        edgesById[e.id] = e;
+      });
+    var sortedY = [];
+    nodes.forEach(function (n) {
+        sortedY.push(n);
+      });
+    sorted2d.sortY(sortedY);
+    var bounds = {
+      p: {
+        x: nodes[0].x,
+        y: sortedY[0].y
+      },
+      q: {
+        x: nodes[nodes.length - 1].x,
+        y: sortedY[sortedY.length - 1].y
+      }
+    };
     return {
-      nodes: nodes,
-      edges: edges
+      bounds:    bounds,
+      nodes:     nodes,
+      edges:     edges,
+      nodesById: nodesById,
+      edgesById: edgesById
     };
   }
 };

@@ -9,17 +9,17 @@ module.exports = {
       });
   },
 
-  selectNode: function (nodeIx) {
+  selectNode: function (nodeId) {
     dispatcher.dispatch({
         type:   'selectNode',
-        nodeIx: nodeIx
+        nodeId: nodeId
       });
   },
 
-  selectEdge: function (edgeIx) {
+  selectEdge: function (edgeId) {
     dispatcher.dispatch({
         type:   'selectEdge',
-        edgeIx: edgeIx
+        edgeId: edgeId
       });
   },
 

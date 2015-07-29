@@ -10,9 +10,9 @@ function encodeSelection(selection) {
   }
   switch (selection.type) {
     case 'node':
-      return '#n' + selection.ix;
+      return '#N' + selection.id;
     case 'edge':
-      return '#e' + selection.ix;
+      return '#E' + selection.id;
   }
 }
 
@@ -21,15 +21,15 @@ function decodeSelection(hash) {
     return undefined;
   }
   switch (hash[1]) {
-    case 'n':
+    case 'N':
       return {
         type: 'node',
-        ix:   parseInt(hash.slice(2))
+        id:   parseInt(hash.slice(2))
       };
-    case 'e':
+    case 'E':
       return {
         type: 'edge',
-        ix:   parseInt(hash.slice(2))
+        id:   parseInt(hash.slice(2))
       };
   }
 }
@@ -43,14 +43,14 @@ function SelectionStore() {
         case 'selectNode':
           this.selectObject({
               type: 'node',
-              ix:   action.nodeIx
+              id:   action.nodeId
             });
           this.publish();
           break;
         case 'selectEdge':
           this.selectObject({
               type: 'edge',
-              ix:   action.edgeIx
+              id:   action.edgeId
             });
           this.publish();
           break;
@@ -82,14 +82,14 @@ SelectionStore.prototype = utils.assign(new Store(), {
   getSelectedNode: function () {
     return (
       (this.selection && this.selection.type === 'node') ?
-        this.selection.ix :
+        this.selection.id :
         undefined);
   },
 
   getSelectedEdge: function () {
     return (
       (this.selection && this.selection.type === 'edge') ?
-        this.selection.ix :
+        this.selection.id :
         undefined);
   }
 });

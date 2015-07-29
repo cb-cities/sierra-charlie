@@ -15,8 +15,11 @@ var orange = '#f0690f';
 var _ = {
   getInitialState: function () {
     return {
+      bounds:       undefined,
       nodes:        [],
       edges:        [],
+      nodesById:    {},
+      edgesById:    {},
       selectedNode: undefined,
       selectedEdge: undefined
     };
@@ -33,86 +36,101 @@ var _ = {
   },
 
   onPublishCity: function () {
-    var nodes = cityStore.getNodes();
-    var edges = cityStore.getEdges();
+    var bounds    = cityStore.getBounds();
+    var nodes     = cityStore.getNodes();
+    var edges     = cityStore.getEdges();
+    var nodesById = cityStore.getNodesById();
+    var edgesById = cityStore.getEdgesById();
     this.setState({
+        bounds:       bounds,
+        width:        bounds.q.x - bounds.p.x,
+        height:       bounds.q.y - bounds.p.y,
         nodes:        nodes,
         edges:        edges,
-        selectedNode: nodes[this.state.selectedNodeIx],
-        selectedEdge: edges[this.state.selectedEdgeIx]
+        nodesById:    nodesById,
+        edgesById:    edgesById,
+        selectedNode: nodesById[this.state.selectedNodeId],
+        selectedEdge: edgesById[this.state.selectedEdgeId]
       });
   },
 
   onPublishSelection: function () {
-    var selectedNodeIx = selectionStore.getSelectedNode();
-    var selectedEdgeIx = selectionStore.getSelectedEdge();
+    var selectedNodeId = selectionStore.getSelectedNode();
+    var selectedEdgeId = selectionStore.getSelectedEdge();
     this.setState({
-        selectedNodeIx: selectedNodeIx,
-        selectedEdgeIx: selectedEdgeIx,
-        selectedNode:   this.state.nodes[selectedNodeIx],
-        selectedEdge:   this.state.edges[selectedEdgeIx]
+        selectedNodeId: selectedNodeId,
+        selectedEdgeId: selectedEdgeId,
+        selectedNode:   this.state.nodesById[selectedNodeId],
+        selectedEdge:   this.state.edgesById[selectedEdgeId]
       });
   },
 
-  renderEdgeShadow: function (edge, edgeIx) {
+  renderEdgeShadow: function (edge) {
     return (
       r.line({
-          key:         'es' + edgeIx,
+          key:         'es' + edge.id,
           x1:          edge.p.x,
           y1:          edge.p.y,
           x2:          edge.q.x,
           y2:          edge.q.y,
           stroke:      '#fff',
-          strokeWidth: 6,
+          strokeWidth: edge.type === 'a-road' ? 10 : (edge.type === 'b-road' ? 6 : 4),
           onClick:     function (event) {
             event.stopPropagation();
-            a.selectEdge(edgeIx);
+            a.selectEdge(edge.id);
           }
         }));
   },
 
-  renderEdge: function (edge, edgeIx) {
+  renderEdge: function (edge, _edgeIx, _edges, renderSelected) {
     var isSelected = edge === this.state.selectedEdge;
+    if (isSelected && !renderSelected) {
+      return null;
+    }
     return (
       r.line({
-          key:         'e' + edgeIx,
-          x1:          edge.p.x,
-          y1:          edge.p.y,
-          x2:          edge.q.x,
-          y2:          edge.q.y,
-          stroke:      isSelected ? orange : '#ccc',
-          strokeWidth: 2,
+          key:             'e' + edge.id,
+          x1:              edge.p.x,
+          y1:              edge.p.y,
+          x2:              edge.q.x,
+          y2:              edge.q.y,
+          stroke:          isSelected ? orange : '#ccc',
+          strokeWidth:     edge.type === 'a-road' ? 4 : (edge.type === 'b-road' ? 2 : 1),
+          strokeDasharray: edge.type === 'underground' ? '5 5' : null,
           onClick:     function (event) {
             event.stopPropagation();
-            a.selectEdge(edgeIx);
+            a.selectEdge(edge.id);
           }
         }));
   },
 
-  renderNodeShadow: function (node, nodeIx) {
+  renderNodeShadow: function (node) {
     return (
       r.circle({
-          key:         'ns' + nodeIx,
+          key:         'ns' + node.id,
           cx:          node.x,
           cy:          node.y,
           r:           5,
           fill:        '#fff',
           onClick:     function (event) {
             event.stopPropagation();
-            a.selectNode(nodeIx);
+            a.selectNode(node.id);
           }
         }));
   },
 
-  renderNode: function (node, nodeIx) {
+  renderNode: function (node, _nodeIx, _nodes, renderSelected) {
     var isSelected = node === this.state.selectedNode;
+    if (isSelected && !renderSelected) {
+      return null;
+    }
     var isRelated  = (
       this.state.selectedEdge && (
         node === this.state.selectedEdge.p ||
         node === this.state.selectedEdge.q));
     return (
       r.circle({
-          key:         'n' + nodeIx,
+          key:         'n' + node.id,
           cx:          node.x,
           cy:          node.y,
           r:           2,
@@ -121,7 +139,7 @@ var _ = {
           strokeWidth: 2,
           onClick:     function (event) {
             event.stopPropagation();
-            a.selectNode(nodeIx);
+            a.selectNode(node.id);
           }
         }));
   },
@@ -150,10 +168,10 @@ var _ = {
         })];
   },
 
-  renderBoundedNodeProjection: function (boundedNode, boundedNodeIx, projectedNode) {
+  renderBoundedNodeProjection: function (boundedNode, projectedNode) {
     return [
       r.line({
-          key:             'bps' + boundedNodeIx,
+          key:             'bps' + boundedNode.id,
           x1:              boundedNode.x,
           y1:              boundedNode.y,
           x2:              projectedNode.x,
@@ -162,7 +180,7 @@ var _ = {
           strokeLinecap:   'round'
         }),
       r.line({
-          key:             'bp' + boundedNodeIx,
+          key:             'bp' + boundedNode.id,
           x1:              boundedNode.x,
           y1:              boundedNode.y,
           x2:              projectedNode.x,
@@ -174,17 +192,17 @@ var _ = {
         })];
   },
 
-  renderBoundedNodeDistance: function (boundedNode, boundedNodeIx, distance) {
+  renderBoundedNodeDistance: function (boundedNode, distance) {
     return [
       r.text({
-          key:      'ns' + boundedNodeIx,
+          key:      'ns' + boundedNode.id,
           x:        boundedNode.x - 2,
           y:        boundedNode.y + 1,
           fontSize: 4,
           stroke:   '#fff'
         }, distance),
       r.text({
-          key:      'nt' + boundedNodeIx,
+          key:      'nt' + boundedNode.id,
           x:        boundedNode.x - 2,
           y:        boundedNode.y + 1,
           fontSize: 4,
@@ -192,17 +210,93 @@ var _ = {
         }, distance)];
   },
 
-  renderBoundedNode: function (boundedNode, boundedNodeIx) {
+  renderBoundedNode: function (boundedNode) {
     var projectedNode = (
       this.state.selectedNode ||
       seg.proj(boundedNode, this.state.selectedEdge));
     var distance = Math.ceil(vec.dist(boundedNode, projectedNode));
     return [
-      this.renderBoundedNodeProjection(boundedNode, boundedNodeIx, projectedNode),
-      this.renderBoundedNodeDistance(boundedNode, boundedNodeIx, distance)];
+      this.renderBoundedNodeProjection(boundedNode, projectedNode),
+      this.renderBoundedNodeDistance(boundedNode, distance)];
+  },
+
+  renderSelectedEdgeInfo: function (bounds) {
+    var type;
+    switch (this.state.selectedEdge.type) {
+      case 'underground':
+        type = 'Underground';
+        break;
+      case 'a-road':
+        type = 'A Road';
+        break;
+      case 'b-road':
+        type = 'B Road';
+        break;
+      default:
+        type = 'Road';
+    }
+    return [
+      r.text({
+          key:      'tis',
+          x:        bounds.q.x + 5,
+          y:        bounds.p.y + 10,
+          fontSize: 10,
+          stroke:   '#fff'
+        },
+        'E' + this.state.selectedEdge.id),
+      r.text({
+          key:      'tts',
+          x:        bounds.q.x + 5,
+          y:        bounds.p.y + 20,
+          fontSize: 10,
+          stroke:   '#fff'
+        },
+        type),
+      r.text({
+          key:      'ti',
+          x:        bounds.q.x + 5,
+          y:        bounds.p.y + 10,
+          fontSize: 10,
+          fill:     orange
+        },
+        'E' + this.state.selectedEdge.id),
+      r.text({
+          key:      'tt',
+          x:        bounds.q.x + 5,
+          y:        bounds.p.y + 20,
+          fontSize: 10,
+          fill:     orange
+        },
+        type)];
+  },
+
+  renderSelectedNodeInfo: function (bounds) {
+    return [
+      r.text({
+          key:      'tis',
+          x:        bounds.q.x + 5,
+          y:        bounds.p.y + 10,
+          fontSize: 10,
+          stroke:   '#fff'
+        },
+        'N' + this.state.selectedNode.id),
+      r.text({
+          key:      'ti',
+          x:        bounds.q.x + 5,
+          y:        bounds.p.y + 10,
+          fontSize: 10,
+          fill:     orange
+        },
+        'N' + this.state.selectedNode.id)];
   },
 
   render: function () {
+    var viewBox = (
+      this.state.bounds && [
+        this.state.bounds.p.x,
+        this.state.bounds.p.y,
+        this.state.width,
+        this.state.height].join(' '));
     var hasSelection = this.state.selectedNode || this.state.selectedEdge;
     var bounds = (
       (this.state.selectedNode &&
@@ -229,14 +323,24 @@ var _ = {
         },
         r.svg({
             className: 'content',
-            viewBox:   '0 0 1000 1000'
+            width:     this.state.width,
+            height:    this.state.height,
+            viewBox:   viewBox
           },
-          this.state.nodes.map(this.renderNodeShadow),
           this.state.edges.map(this.renderEdgeShadow),
+          this.state.nodes.map(this.renderNodeShadow),
           this.state.edges.map(this.renderEdge),
+          !this.state.selectedEdge ? null :
+            this.renderEdge(this.state.selectedEdge, null, null, true),
           this.state.nodes.map(this.renderNode),
+          !this.state.selectedNode ? null :
+            this.renderNode(this.state.selectedNode, null, null, true),
           !bounds ? null :
             this.renderBounds(bounds),
+          !this.state.selectedEdge ? null :
+            this.renderSelectedEdgeInfo(bounds),
+          !this.state.selectedNode ? null :
+            this.renderSelectedNodeInfo(bounds),
           !boundedNodes ? null :
             boundedNodes.map(this.renderBoundedNode))));
   }
