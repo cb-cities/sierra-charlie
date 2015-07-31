@@ -26,11 +26,9 @@ var _ = {
             (this.props.isClipped ? '#333' :
               (this.props.isSelected ? orange : '#ccc'))))));
     var strokeWidth = (
-      (this.props.isShadow ? 4 :
-        (this.props.isSelected ? 4 : 1)));
+      (this.props.isShadow ? 4 : 1));
     return (
       r.line({
-          key:         'e' + this.props.edge.id,
           x1:          this.props.edge.p1.x,
           y1:          this.props.edge.p1.y,
           x2:          this.props.edge.p2.x,
