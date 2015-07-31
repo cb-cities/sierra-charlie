@@ -302,9 +302,7 @@ clipP1Centre :: Rect -> Line -> Maybe Line
 clipP1Centre r l | l.p1.y < r.ybottom = clipP1CentreBottom r l
                  | l.p1.y > r.ytop    = clipP1CentreTop r l
                  | otherwise          = let p2 = clipP1CentreMiddle r l in
-                                        Just { p1 : { x : l.p1.x
-                                                    , y : l.p1.y
-                                                    }
+                                        Just { p1 : l.p1
                                              , p2 : p2
                                              }
 
@@ -334,9 +332,7 @@ clipP1CentreMiddle r l | l.p2.x < r.xleft   = clipP1CentreMiddleP2Left r l
                                               { x : l.p1.x + pbottom / d.y
                                               , y : r.ybottom
                                               }
-                       | otherwise          = { x : l.p2.x
-                                              , y : l.p2.y
-                                              }
+                       | otherwise          = l.p2
 
 -- P1 is between the left and right boundaries, and between the top and bottom boundaries
 -- P2 is beyond the left boundary
