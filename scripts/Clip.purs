@@ -165,6 +165,30 @@ bottomProduct r l d = (r.ybottom - l.p1.y) * d.x
 
 
 -- TODO
+p2t :: Rect -> Line -> Point -> Number -> Point
+p2t r l d ptop = { x : l.p1.x + ptop / d.y
+                 , y : r.ytop
+                 }
+
+-- TODO
+p2b :: Rect -> Line -> Point -> Number -> Point
+p2b r l d pbottom = { x : l.p1.x + pbottom / d.y
+                    , y : r.ybottom
+                    }
+
+-- TODO
+p2l :: Rect -> Line -> Point -> Number -> Point
+p2l r l d pleft = { x : r.xleft
+                  , y : l.p1.y + pleft / d.x
+                  }
+
+-- TODO
+p2r :: Rect -> Line -> Point -> Number -> Point
+p2r r l d pright = { x : r.xright
+                   , y : l.p1.y + pright / d.x
+                   }
+
+-- TODO
 clipAll :: Rect -> Array Line -> Array Line
 clipAll r ls = catMaybes $ map (clip r) ls
 
@@ -202,45 +226,30 @@ clipP1LeftTop' r l d ptop pleft | ptop > pleft = leftBottomRegion r l d pleft
 -- P2 is to the right of the vector from P1 to the left-top corner
 leftBottomRegion :: Rect -> Line -> Point -> Number -> Maybe Line
 leftBottomRegion r l d pleft | l.p2.y < r.ybottom = lbrP2Bottom r l d pleft (bottomProduct r l d)
-                             | otherwise          = let p2 = lbrP2Inside r l d pleft in
-                                                    Just { p1 : { x : r.xleft
-                                                                , y : l.p1.y + pleft / d.x
-                                                                }
-                                                         , p2 : p2
+                             | otherwise          = Just { p1 : p2l r l d pleft
+                                                         , p2 : lbrP2Inside r l d pleft
                                                          }
 
 -- P2 is above the bottom boundary
 lbrP2Inside :: Rect -> Line -> Point -> Number -> Point
-lbrP2Inside r l d pleft | l.p2.x > r.xright = let pright = rightProduct r l d in
-                                              { x : r.xright
-                                              , y : l.p1.y + pright / d.x
-                                              }
+lbrP2Inside r l d pleft | l.p2.x > r.xright = p2r r l d (rightProduct r l d)
                         | otherwise         = l.p2
 
 -- P2 is below the bottom boundary
 lbrP2Bottom :: Rect -> Line -> Point -> Number -> Number -> Maybe Line
 lbrP2Bottom r l d pleft pbottom | pbottom > pleft = Nothing
-                                | otherwise       = let p2 = lbrP2Bottom' r l d pbottom in
-                                                    Just { p1 : { x : r.xleft
-                                                                , y : l.p1.y + pleft / d.x
-                                                                }
-                                                         , p2 : p2
+                                | otherwise       = Just { p1 : p2l r l d pleft
+                                                         , p2 : lbrP2Bottom' r l d pbottom
                                                          }
 
 lbrP2Bottom' :: Rect -> Line -> Point -> Number -> Point
 lbrP2Bottom' r l d pbottom | l.p2.x > r.xright = lbrP2BottomRight r l d pbottom (rightProduct r l d)
-                           | otherwise         = { x : l.p1.x + pbottom / d.y
-                                                 , y : r.ybottom
-                                                 }
+                           | otherwise         = p2b r l d pbottom
 
 -- P2 is to the right of the right boundary
 lbrP2BottomRight :: Rect -> Line -> Point -> Number -> Number -> Point
-lbrP2BottomRight r l d pbottom pright | pbottom > pright = { x : l.p1.x + pbottom / d.y
-                                                           , y : r.ybottom
-                                                           }
-                                      | otherwise        = { x : r.xright
-                                                           , y : l.p1.y + pright / d.x
-                                                           }
+lbrP2BottomRight r l d pbottom pright | pbottom > pright = p2b r l d pbottom
+                                      | otherwise        = p2r r l d pright
 
 -- 1.2. "leftedge"
 -- P1 is in the left middle region
@@ -248,23 +257,16 @@ lbrP2BottomRight r l d pbottom pright | pbottom > pright = { x : l.p1.x + pbotto
 clipP1LeftMiddle :: Rect -> Line -> Maybe Line
 clipP1LeftMiddle r l | l.p2.y < r.ybottom = clipP1LeftMiddleP2Bottom r l
                      | l.p2.y > r.ytop    = reflectLineXAxis <$> clipP1LeftMiddleP2Bottom (reflectRectXAxis r) (reflectLineXAxis l)
-                     | otherwise          = let d     = delta l
-                                                pleft = leftProduct r l d
-                                                p2    = clipP1LeftMiddleP2Middle r l d in
-                                            Just { p1 : { x : r.xleft
-                                                        , y : l.p1.y + pleft / d.x
-                                                        }
-                                                 , p2 : p2
+                     | otherwise          = let d = delta l in
+                                            Just { p1 : p2l r l d (leftProduct r l d)
+                                                 , p2 : clipP1LeftMiddleP2Middle r l d
                                                  }
 
 -- P1 is in the left middle region
 -- P2 is not beyond the left boundary
 -- P2 is between the top and the bottom boundaries
 clipP1LeftMiddleP2Middle :: Rect -> Line -> Point -> Point
-clipP1LeftMiddleP2Middle r l d | l.p2.x > r.xright = let pright = rightProduct r l d in
-                                                     { x : r.xright
-                                                     , y : l.p1.y + pright / d.x
-                                                     }
+clipP1LeftMiddleP2Middle r l d | l.p2.x > r.xright = p2r r l d (rightProduct r l d)
                                | otherwise         = l.p2
 
 -- 1.2.1. P1 is in the left edge region, P2 is not beyond the left boundary, and P2 is beyond the bottom boundary
@@ -274,36 +276,26 @@ clipP1LeftMiddleP2Bottom r l = let d = delta l in
 
 clipP1LeftMiddleP2Bottom' :: Rect -> Line -> Point -> Number -> Number -> Maybe Line
 clipP1LeftMiddleP2Bottom' r l d pleft pbottom | pbottom > pleft = Nothing
-                                              | otherwise       = let p2 = clipP1LeftMiddleP2Bottom'' r l d pbottom in
-                                                                  Just { p1 : { x : r.xleft
-                                                                              , y : l.p1.y + pleft / d.x
-                                                                              }
-                                                                       , p2 : p2
+                                              | otherwise       = Just { p1 : p2l r l d pleft
+                                                                       , p2 : clipP1LeftMiddleP2Bottom'' r l d pbottom
                                                                        }
 
 clipP1LeftMiddleP2Bottom'' :: Rect -> Line -> Point -> Number -> Point
 clipP1LeftMiddleP2Bottom'' r l d pbottom | l.p2.x > r.xright = clipP1LeftMiddleP2RightBottom r l d pbottom (rightProduct r l d)
-                                         | otherwise         = { x : l.p1.x + pbottom / d.y
-                                                               , y : r.ybottom
-                                                               }
+                                         | otherwise         = p2b r l d pbottom
 
 -- P2 is to the right of the right boundary
 clipP1LeftMiddleP2RightBottom :: Rect -> Line -> Point -> Number -> Number -> Point
-clipP1LeftMiddleP2RightBottom r l d pbottom pright | pbottom > pright = { x : l.p1.x + pbottom / d.y
-                                                                        , y : r.ybottom
-                                                                        }
-                                                   | otherwise        = { x : r.xright
-                                                                        , y : l.p1.y + pright / d.x
-                                                                        }
+clipP1LeftMiddleP2RightBottom r l d pbottom pright | pbottom > pright = p2b r l d pbottom
+                                                   | otherwise        = p2r r l d pright
 
 -- 2. "centrecolumn"
 -- P1 is between the left and right boundaries
 clipP1Centre :: Rect -> Line -> Maybe Line
 clipP1Centre r l | l.p1.y < r.ybottom = clipP1CentreBottom r l
                  | l.p1.y > r.ytop    = clipP1CentreTop r l
-                 | otherwise          = let p2 = clipP1CentreMiddle r l in
-                                        Just { p1 : l.p1
-                                             , p2 : p2
+                 | otherwise          = Just { p1 : l.p1
+                                             , p2 : clipP1CentreMiddle r l
                                              }
 
 -- P1 is between the left and right boundaries, and below the bottom boundary
@@ -322,16 +314,10 @@ clipP1CentreTop r l | l.p2.y > r.ytop = Nothing
 clipP1CentreMiddle :: Rect -> Line -> Point
 clipP1CentreMiddle r l | l.p2.x < r.xleft   = clipP1CentreMiddleP2Left r l
                        | l.p2.x > r.xright  = rotatePoint180c $ clipP1CentreMiddleP2Left (rotateRect180c r) (rotateLine180c l)
-                       | l.p2.y > r.ytop    = let d    = delta l
-                                                  ptop = topProduct r l d in
-                                              { x : l.p1.x + ptop / d.y
-                                              , y : r.ytop
-                                              }
-                       | l.p2.y < r.ybottom = let d       = delta l
-                                                  pbottom = bottomProduct r l d in
-                                              { x : l.p1.x + pbottom / d.y
-                                              , y : r.ybottom
-                                              }
+                       | l.p2.y > r.ytop    = let d = delta l in
+                                              p2t r l d (topProduct r l d)
+                       | l.p2.y < r.ybottom = let d = delta l in
+                                              p2b r l d (bottomProduct r l d)
                        | otherwise          = l.p2
 
 -- P1 is between the left and right boundaries, and between the top and bottom boundaries
@@ -339,11 +325,8 @@ clipP1CentreMiddle r l | l.p2.x < r.xleft   = clipP1CentreMiddleP2Left r l
 clipP1CentreMiddleP2Left :: Rect -> Line -> Point
 clipP1CentreMiddleP2Left r l | l.p2.y > r.ytop    = clipP1CentreMiddleP2LeftTop r l
                              | l.p2.y < r.ybottom = rotatePoint270c $ clipP1CentreMiddleP2LeftTop (rotateRect90c r) (rotateLine90c l)
-                             | otherwise          = let d     = delta l
-                                                        pleft = leftProduct r l d in
-                                                    { x : r.xleft
-                                                    , y : l.p1.y + pleft / d.x
-                                                    }
+                             | otherwise          = let d = delta l in
+                                                    p2l r l d (leftProduct r l d)
 
 -- P1 is between the left and right boundaries, and between the top and bottom boundaries
 -- P2 is above the top boundary
@@ -352,9 +335,5 @@ clipP1CentreMiddleP2LeftTop r l = let d = delta l in
                                   clipP1CentreMiddleP2LeftTop' r l d (leftProduct r l d) (topProduct r l d)
 
 clipP1CentreMiddleP2LeftTop' :: Rect -> Line -> Point -> Number -> Number -> Point
-clipP1CentreMiddleP2LeftTop' r l d pleft ptop | ptop > pleft = { x : l.p1.x + ptop / d.y
-                                                               , y : r.ytop
-                                                               }
-                                              | otherwise    = { x : r.xleft
-                                                               , y : l.p1.y + pleft / d.x
-                                                               }
+clipP1CentreMiddleP2LeftTop' r l d pleft ptop | ptop > pleft = p2t r l d ptop
+                                              | otherwise    = p2l r l d pleft
