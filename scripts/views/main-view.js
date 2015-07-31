@@ -1,7 +1,6 @@
 'use strict';
 
 var r = require('../common/react');
-var vec = require('Vector');
 var clip = require('Clip').clip;
 var seg = require('../common/segment');
 var utils = require('../common/utils');
@@ -69,7 +68,7 @@ var _ = {
   updateSelection: function () {
     var selectedEdge    = this.state.edgesById[this.state.selectedEdgeId];
     var hasSelection    = !!selectedEdge;
-    var selectionBounds = selectedEdge && seg.bound(selectedEdge, 10);
+    var selectionBounds = selectedEdge && seg.bound(selectedEdge, 0);
      // TODO: Unify representation
     var clippingBounds = (
       selectionBounds && {
