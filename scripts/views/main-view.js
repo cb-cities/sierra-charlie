@@ -295,10 +295,10 @@ var _ = {
     return (
       r.line({
           key:    'ce' + edgeIx,
-          x1:     edge.x1,
-          y1:     edge.y1,
-          x2:     edge.x2,
-          y2:     edge.y2,
+          x1:     edge.p1.x,
+          y1:     edge.p1.y,
+          x2:     edge.p2.x,
+          y2:     edge.p2.y,
           stroke: '#666'
         }));
   },
@@ -341,10 +341,8 @@ var _ = {
           return edge !== this.state.selectedEdge;
         }.bind(this)).map(function (edge) {
           return {
-            x1: edge.p.x,
-            y1: edge.p.y,
-            x2: edge.q.x,
-            y2: edge.q.y
+            p1: edge.p,
+            p2: edge.q
           };
         }));
     var clippedEdges = (
