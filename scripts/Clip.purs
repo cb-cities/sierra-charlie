@@ -6,7 +6,7 @@ T.M. Nicholl, D.T. Lee, R.A. Nicholl, “An efficient new algorithm for 2D line 
 ---------------+---------------+---------------
  left middle   | centre middle | right middle
 ---------------+---------------+---------------
- left bottom   | center bottom | right bottom
+ left bottom   | centre bottom | right bottom
 
 -}
 
@@ -141,199 +141,181 @@ reflectRectXAxis r = { xleft   :  r.xleft
                      }
 
 
--- TODO
 delta :: Line -> Point
 delta l = { x : l.p2.x - l.p1.x
           , y : l.p2.y - l.p1.y
           }
 
--- TODO
 leftProduct :: Rect -> Line -> Point -> Number
 leftProduct r l d = (r.xleft - l.p1.x) * d.y
 
--- TODO
 topProduct :: Rect -> Line -> Point -> Number
 topProduct r l d = (r.ytop - l.p1.y) * d.x
 
--- TODO
 rightProduct :: Rect -> Line -> Point -> Number
 rightProduct r l d = (r.xright - l.p1.x) * d.y
 
--- TODO
 bottomProduct :: Rect -> Line -> Point -> Number
 bottomProduct r l d = (r.ybottom - l.p1.y) * d.x
 
 
--- TODO
-p2t :: Rect -> Line -> Point -> Number -> Point
-p2t r l d ptop = { x : l.p1.x + ptop / d.y
-                 , y : r.ytop
-                 }
+clipTop :: Rect -> Line -> Point -> Number -> Point
+clipTop r l d topp = { x : l.p1.x + topp / d.y
+                     , y : r.ytop
+                     }
 
--- TODO
-p2b :: Rect -> Line -> Point -> Number -> Point
-p2b r l d pbottom = { x : l.p1.x + pbottom / d.y
-                    , y : r.ybottom
-                    }
+clipBottom :: Rect -> Line -> Point -> Number -> Point
+clipBottom r l d bottomp = { x : l.p1.x + bottomp / d.y
+                           , y : r.ybottom
+                           }
 
--- TODO
-p2l :: Rect -> Line -> Point -> Number -> Point
-p2l r l d pleft = { x : r.xleft
-                  , y : l.p1.y + pleft / d.x
-                  }
+clipLeft :: Rect -> Line -> Point -> Number -> Point
+clipLeft r l d leftp = { x : r.xleft
+                       , y : l.p1.y + leftp / d.x
+                       }
 
--- TODO
-p2r :: Rect -> Line -> Point -> Number -> Point
-p2r r l d pright = { x : r.xright
-                   , y : l.p1.y + pright / d.x
-                   }
+clipRight :: Rect -> Line -> Point -> Number -> Point
+clipRight r l d rightp = { x : r.xright
+                         , y : l.p1.y + rightp / d.x
+                         }
 
--- TODO
 clipAll :: Rect -> Array Line -> Array Line
 clipAll r ls = catMaybes $ map (clip r) ls
 
 -- Clip line l to rect r
 clip :: Rect -> Line -> Maybe Line
-clip r l | l.p1.x < r.xleft  = clipP1Left r l
-         | l.p1.x > r.xright = rotateLine180c <$> clipP1Left (rotateRect180c r) (rotateLine180c l)
-         | otherwise         = clipP1Centre r l
+clip r l | l.p1.x < r.xleft  = _p1Left r l
+         | l.p1.x > r.xright = rotateLine180c <$> _p1Left (rotateRect180c r) (rotateLine180c l)
+         | otherwise         = _p1Centre r l
 
 -- 1. "leftcolumn"
--- P1 is beyond the left boundary
-clipP1Left :: Rect -> Line -> Maybe Line
-clipP1Left r l | l.p2.x < r.xleft   = Nothing
-               | l.p1.y > r.ytop    = clipP1LeftTop r l
-               | l.p1.y < r.ybottom = reflectLineXAxis <$> clipP1LeftTop (reflectRectXAxis r) (reflectLineXAxis l)
-               | otherwise          = clipP1LeftMiddle r l
+-- P1 is in one of the left regions
+_p1Left :: Rect -> Line -> Maybe Line
+_p1Left r l | l.p2.x < r.xleft   = Nothing
+            | l.p1.y > r.ytop    = _p1LeftTop_p2NotLeft r l
+            | l.p1.y < r.ybottom = reflectLineXAxis <$> _p1LeftTop_p2NotLeft (reflectRectXAxis r) (reflectLineXAxis l)
+            | otherwise          = _p1LeftMiddle_p2NotLeft r l
 
 -- 1.1. "topleftcorner"
--- P1 is in the left-top corner
--- P2 is not beyond the left boundary
-clipP1LeftTop :: Rect -> Line -> Maybe Line
-clipP1LeftTop r l | l.p2.y > r.ytop = Nothing
-                  | otherwise       = let d = delta l in
-                                      clipP1LeftTop' r l d (topProduct r l d) (leftProduct r l d)
+-- P1 is in the left-top region, and P2 is not in any of the left regions
+_p1LeftTop_p2NotLeft :: Rect -> Line -> Maybe Line
+_p1LeftTop_p2NotLeft r l | l.p2.y > r.ytop = Nothing
+                         | otherwise       = let d = delta l in
+                                             _p1LeftTop_p2NotLeftTop r l d (topProduct r l d) (leftProduct r l d)
 
--- P1 is in the left-top corner
--- P2 is not beyond the left or top boundaries
-clipP1LeftTop' :: Rect -> Line -> Point -> Number -> Number -> Maybe Line
-clipP1LeftTop' r l d ptop pleft | ptop > pleft = leftBottomRegion r l d pleft
-                                | otherwise    = reflectLineXMinusY <$> leftBottomRegion (reflectRectXMinusY r) (reflectLineXMinusY l) (reflectPointXMinusY d) ptop
+-- P1 is in the left-top region, and P2 is not in any of the left or top regions
+_p1LeftTop_p2NotLeftTop :: Rect -> Line -> Point -> Number -> Number -> Maybe Line
+_p1LeftTop_p2NotLeftTop r l d topp leftp | topp > leftp = _p1LeftTop_p2NotLeftTop' r l d leftp
+                                         | otherwise    = reflectLineXMinusY <$> _p1LeftTop_p2NotLeftTop' (reflectRectXMinusY r) (reflectLineXMinusY l) (reflectPointXMinusY d) topp
 
 -- 1.1.1. "leftbottomregion"
--- P1 is in the left-top corner
--- P2 is not beyond the left or top boundaries
--- P2 is to the right of the vector from P1 to the left-top corner
-leftBottomRegion :: Rect -> Line -> Point -> Number -> Maybe Line
-leftBottomRegion r l d pleft | l.p2.y < r.ybottom = lbrP2Bottom r l d pleft (bottomProduct r l d)
-                             | otherwise          = Just { p1 : p2l r l d pleft
-                                                         , p2 : lbrP2Inside r l d pleft
-                                                         }
+-- P1 is in the left-top region, and P2 is not in any of the left or top regions, and above the vector from P1 to the left-top corner
+_p1LeftTop_p2NotLeftTop' :: Rect -> Line -> Point -> Number -> Maybe Line
+_p1LeftTop_p2NotLeftTop' r l d leftp | l.p2.y < r.ybottom = _p1LeftTop_p2Bottom r l d leftp (bottomProduct r l d)
+                                     | otherwise          = Just { p1 : clipLeft r l d leftp
+                                                                 , p2 : _p1LeftTop_p2Middle r l d leftp
+                                                                 }
 
--- P2 is above the bottom boundary
-lbrP2Inside :: Rect -> Line -> Point -> Number -> Point
-lbrP2Inside r l d pleft | l.p2.x > r.xright = p2r r l d (rightProduct r l d)
-                        | otherwise         = l.p2
+-- P1 is in the left-top region, and P2 is the centre-middle or right-middle region
+_p1LeftTop_p2Middle :: Rect -> Line -> Point -> Number -> Point
+_p1LeftTop_p2Middle r l d leftp | l.p2.x > r.xright = clipRight r l d (rightProduct r l d)
+                                | otherwise         = l.p2
 
--- P2 is below the bottom boundary
-lbrP2Bottom :: Rect -> Line -> Point -> Number -> Number -> Maybe Line
-lbrP2Bottom r l d pleft pbottom | pbottom > pleft = Nothing
-                                | otherwise       = Just { p1 : p2l r l d pleft
-                                                         , p2 : lbrP2Bottom' r l d pbottom
-                                                         }
+-- P1 is in the left-top region, and P2 is in the centre-bottom or right-bottom region
+_p1LeftTop_p2Bottom :: Rect -> Line -> Point -> Number -> Number -> Maybe Line
+_p1LeftTop_p2Bottom r l d leftp bottomp | bottomp > leftp = Nothing
+                                        | otherwise       = Just { p1 : clipLeft r l d leftp
+                                                                 , p2 : _p1LeftTop_p2Bottom' r l d bottomp
+                                                                 }
 
-lbrP2Bottom' :: Rect -> Line -> Point -> Number -> Point
-lbrP2Bottom' r l d pbottom | l.p2.x > r.xright = lbrP2BottomRight r l d pbottom (rightProduct r l d)
-                           | otherwise         = p2b r l d pbottom
+_p1LeftTop_p2Bottom' :: Rect -> Line -> Point -> Number -> Point
+_p1LeftTop_p2Bottom' r l d bottomp | l.p2.x > r.xright = _p1LeftTop_p2BottomRight r l d bottomp (rightProduct r l d)
+                                   | otherwise         = clipBottom r l d bottomp
 
--- P2 is to the right of the right boundary
-lbrP2BottomRight :: Rect -> Line -> Point -> Number -> Number -> Point
-lbrP2BottomRight r l d pbottom pright | pbottom > pright = p2b r l d pbottom
-                                      | otherwise        = p2r r l d pright
+-- P1 is in the left-top region, and P2 is in the right-bottom region
+_p1LeftTop_p2BottomRight :: Rect -> Line -> Point -> Number -> Number -> Point
+_p1LeftTop_p2BottomRight r l d bottomp rightp | bottomp > rightp = clipBottom r l d bottomp
+                                              | otherwise        = clipRight r l d rightp
 
 -- 1.2. "leftedge"
--- P1 is in the left middle region
--- P2 is not beyond the left boundary
-clipP1LeftMiddle :: Rect -> Line -> Maybe Line
-clipP1LeftMiddle r l | l.p2.y < r.ybottom = clipP1LeftMiddleP2Bottom r l
-                     | l.p2.y > r.ytop    = reflectLineXAxis <$> clipP1LeftMiddleP2Bottom (reflectRectXAxis r) (reflectLineXAxis l)
-                     | otherwise          = let d = delta l in
-                                            Just { p1 : p2l r l d (leftProduct r l d)
-                                                 , p2 : clipP1LeftMiddleP2Middle r l d
-                                                 }
+-- P1 is in the left-middle region, and P2 is not in any of the left regions
+_p1LeftMiddle_p2NotLeft :: Rect -> Line -> Maybe Line
+_p1LeftMiddle_p2NotLeft r l | l.p2.y < r.ybottom = _p1LeftMiddle_p2BottomNotLeft r l
+                            | l.p2.y > r.ytop    = reflectLineXAxis <$> _p1LeftMiddle_p2BottomNotLeft (reflectRectXAxis r) (reflectLineXAxis l)
+                            | otherwise          = let d = delta l in
+                                                   Just { p1 : clipLeft r l d (leftProduct r l d)
+                                                        , p2 : _p1LeftMiddle_p2MiddleNotLeft r l d
+                                                        }
 
--- P1 is in the left middle region
--- P2 is not beyond the left boundary
--- P2 is between the top and the bottom boundaries
-clipP1LeftMiddleP2Middle :: Rect -> Line -> Point -> Point
-clipP1LeftMiddleP2Middle r l d | l.p2.x > r.xright = p2r r l d (rightProduct r l d)
-                               | otherwise         = l.p2
+-- P1 is in the left-middle region, and P2 is the centre-middle or right-middle region
+_p1LeftMiddle_p2MiddleNotLeft :: Rect -> Line -> Point -> Point
+_p1LeftMiddle_p2MiddleNotLeft r l d | l.p2.x > r.xright = clipRight r l d (rightProduct r l d)
+                                    | otherwise         = l.p2
 
--- 1.2.1. P1 is in the left edge region, P2 is not beyond the left boundary, and P2 is beyond the bottom boundary
-clipP1LeftMiddleP2Bottom :: Rect -> Line -> Maybe Line
-clipP1LeftMiddleP2Bottom r l = let d = delta l in
-                               clipP1LeftMiddleP2Bottom' r l d (leftProduct r l d) (bottomProduct r l d)
+-- 1.2.1. "p2bottom"
+-- P1 is in the left-middle region, and P2 is in the centre-bottom or right-bottom region
+_p1LeftMiddle_p2BottomNotLeft :: Rect -> Line -> Maybe Line
+_p1LeftMiddle_p2BottomNotLeft r l = let d = delta l in
+                                    _p1LeftMiddle_p2BottomNotLeft' r l d (leftProduct r l d) (bottomProduct r l d)
 
-clipP1LeftMiddleP2Bottom' :: Rect -> Line -> Point -> Number -> Number -> Maybe Line
-clipP1LeftMiddleP2Bottom' r l d pleft pbottom | pbottom > pleft = Nothing
-                                              | otherwise       = Just { p1 : p2l r l d pleft
-                                                                       , p2 : clipP1LeftMiddleP2Bottom'' r l d pbottom
-                                                                       }
+_p1LeftMiddle_p2BottomNotLeft' :: Rect -> Line -> Point -> Number -> Number -> Maybe Line
+_p1LeftMiddle_p2BottomNotLeft' r l d leftp bottomp | bottomp > leftp = Nothing
+                                                   | otherwise       = Just { p1 : clipLeft r l d leftp
+                                                                            , p2 : _p1LeftMiddle_p2BottomNotLeft'' r l d bottomp
+                                                                            }
 
-clipP1LeftMiddleP2Bottom'' :: Rect -> Line -> Point -> Number -> Point
-clipP1LeftMiddleP2Bottom'' r l d pbottom | l.p2.x > r.xright = clipP1LeftMiddleP2RightBottom r l d pbottom (rightProduct r l d)
-                                         | otherwise         = p2b r l d pbottom
+_p1LeftMiddle_p2BottomNotLeft'' :: Rect -> Line -> Point -> Number -> Point
+_p1LeftMiddle_p2BottomNotLeft'' r l d bottomp | l.p2.x > r.xright = _p1LeftMiddle_p2RightBottom r l d bottomp (rightProduct r l d)
+                                              | otherwise         = clipBottom r l d bottomp
 
--- P2 is to the right of the right boundary
-clipP1LeftMiddleP2RightBottom :: Rect -> Line -> Point -> Number -> Number -> Point
-clipP1LeftMiddleP2RightBottom r l d pbottom pright | pbottom > pright = p2b r l d pbottom
-                                                   | otherwise        = p2r r l d pright
+-- P2 is beyond the right boundary
+_p1LeftMiddle_p2RightBottom :: Rect -> Line -> Point -> Number -> Number -> Point
+_p1LeftMiddle_p2RightBottom r l d bottomp rightp | bottomp > rightp = clipBottom r l d bottomp
+                                                 | otherwise        = clipRight r l d rightp
 
 -- 2. "centrecolumn"
--- P1 is between the left and right boundaries
-clipP1Centre :: Rect -> Line -> Maybe Line
-clipP1Centre r l | l.p1.y < r.ybottom = clipP1CentreBottom r l
-                 | l.p1.y > r.ytop    = clipP1CentreTop r l
-                 | otherwise          = Just { p1 : l.p1
-                                             , p2 : clipP1CentreMiddle r l
-                                             }
+-- P1 is in one of the centre regions
+_p1Centre :: Rect -> Line -> Maybe Line
+_p1Centre r l | l.p1.y < r.ybottom = _p1CentreBottom r l
+              | l.p1.y > r.ytop    = _p1CentreTop r l
+              | otherwise          = Just { p1 : l.p1
+                                          , p2 : _p1CentreMiddle r l
+                                          }
 
--- P1 is between the left and right boundaries, and below the bottom boundary
-clipP1CentreBottom :: Rect -> Line -> Maybe Line
-clipP1CentreBottom r l | l.p2.y < r.ybottom = Nothing
-                       | otherwise          = rotateLine270c <$> clipP1LeftMiddle (rotateRect90c r) (rotateLine90c l)
+-- P1 is in the centre-bottom region
+_p1CentreBottom :: Rect -> Line -> Maybe Line
+_p1CentreBottom r l | l.p2.y < r.ybottom = Nothing
+                    | otherwise          = rotateLine270c <$> _p1LeftMiddle_p2NotLeft (rotateRect90c r) (rotateLine90c l)
 
--- P1 is between the left and right boundaries, and above the top boundary
-clipP1CentreTop :: Rect -> Line -> Maybe Line
-clipP1CentreTop r l | l.p2.y > r.ytop = Nothing
-                    | otherwise       = rotateLine90c <$> clipP1LeftMiddle (rotateRect270c r) (rotateLine270c l)
+-- P1 is in the centre-top region
+_p1CentreTop :: Rect -> Line -> Maybe Line
+_p1CentreTop r l | l.p2.y > r.ytop = Nothing
+                 | otherwise       = rotateLine90c <$> _p1LeftMiddle_p2NotLeft (rotateRect270c r) (rotateLine270c l)
 
 
 -- 2.1. "inside"
--- P1 is between the left and right boundaries, and between the top and bottom boundaries
-clipP1CentreMiddle :: Rect -> Line -> Point
-clipP1CentreMiddle r l | l.p2.x < r.xleft   = clipP1CentreMiddleP2Left r l
-                       | l.p2.x > r.xright  = rotatePoint180c $ clipP1CentreMiddleP2Left (rotateRect180c r) (rotateLine180c l)
-                       | l.p2.y > r.ytop    = let d = delta l in
-                                              p2t r l d (topProduct r l d)
-                       | l.p2.y < r.ybottom = let d = delta l in
-                                              p2b r l d (bottomProduct r l d)
-                       | otherwise          = l.p2
+-- P1 is in the centre-middle region
+_p1CentreMiddle :: Rect -> Line -> Point
+_p1CentreMiddle r l | l.p2.x < r.xleft   = _p1CentreMiddle_p2Left r l
+                    | l.p2.x > r.xright  = rotatePoint180c $ _p1CentreMiddle_p2Left (rotateRect180c r) (rotateLine180c l)
+                    | l.p2.y > r.ytop    = let d = delta l in
+                                           clipTop r l d (topProduct r l d)
+                    | l.p2.y < r.ybottom = let d = delta l in
+                                           clipBottom r l d (bottomProduct r l d)
+                    | otherwise          = l.p2
 
--- P1 is between the left and right boundaries, and between the top and bottom boundaries
--- P2 is beyond the left boundary
-clipP1CentreMiddleP2Left :: Rect -> Line -> Point
-clipP1CentreMiddleP2Left r l | l.p2.y > r.ytop    = clipP1CentreMiddleP2LeftTop r l
-                             | l.p2.y < r.ybottom = rotatePoint270c $ clipP1CentreMiddleP2LeftTop (rotateRect90c r) (rotateLine90c l)
-                             | otherwise          = let d = delta l in
-                                                    p2l r l d (leftProduct r l d)
+-- P1 is in the centre-middle region, and P2 is in one of the left regions
+_p1CentreMiddle_p2Left :: Rect -> Line -> Point
+_p1CentreMiddle_p2Left r l | l.p2.y > r.ytop    = _p1CentreMiddle_p2LeftTop r l
+                           | l.p2.y < r.ybottom = rotatePoint270c $ _p1CentreMiddle_p2LeftTop (rotateRect90c r) (rotateLine90c l)
+                           | otherwise          = let d = delta l in
+                                                  clipLeft r l d (leftProduct r l d)
 
--- P1 is between the left and right boundaries, and between the top and bottom boundaries
--- P2 is above the top boundary
-clipP1CentreMiddleP2LeftTop :: Rect -> Line -> Point
-clipP1CentreMiddleP2LeftTop r l = let d = delta l in
-                                  clipP1CentreMiddleP2LeftTop' r l d (leftProduct r l d) (topProduct r l d)
+-- P1 is in the centre-middle region, and P2 is in the left-top region
+_p1CentreMiddle_p2LeftTop :: Rect -> Line -> Point
+_p1CentreMiddle_p2LeftTop r l = let d = delta l in
+                                _p1CentreMiddle_p2LeftTop' r l d (leftProduct r l d) (topProduct r l d)
 
-clipP1CentreMiddleP2LeftTop' :: Rect -> Line -> Point -> Number -> Number -> Point
-clipP1CentreMiddleP2LeftTop' r l d pleft ptop | ptop > pleft = p2t r l d ptop
-                                              | otherwise    = p2l r l d pleft
+_p1CentreMiddle_p2LeftTop' :: Rect -> Line -> Point -> Number -> Number -> Point
+_p1CentreMiddle_p2LeftTop' r l d leftp topp | topp > leftp = clipTop r l d topp
+                                            | otherwise    = clipLeft r l d leftp
