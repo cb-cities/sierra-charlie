@@ -44,11 +44,11 @@ var _ = module.exports = {
 
   bound: function (v, d) {
     return {
-      p: {
+      p1: {
         x: v.x - d,
         y: v.y - d
       },
-      q: {
+      p2: {
         x: v.x + d,
         y: v.y + d
       }

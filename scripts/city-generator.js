@@ -13,23 +13,23 @@ var _ = module.exports = {
       y: center.y - scale / 2
     };
     while (count) {
-      var p = {
+      var p1 = {
         id: NODE_ID,
         x:  random.normal() * scale + offset.x,
         y:  random.normal() * scale + offset.y
       };
-      var q = {
+      var p2 = {
         id: NODE_ID + 1,
         x:  random.normal() * scale + offset.x,
         y:  random.normal() * scale + offset.y
       };
       var e = {
         id: EDGE_ID,
-        p:  p,
-        q:  q
+        p1: p1,
+        p2: p2
       };
-      nodes.push(p);
-      nodes.push(q);
+      nodes.push(p1);
+      nodes.push(p2);
       edges.push(e);
       NODE_ID += 2;
       EDGE_ID += 1;
@@ -62,11 +62,11 @@ var _ = module.exports = {
     sorted2d.sortX(sortedX);
     sorted2d.sortY(sortedY);
     var bounds = {
-      p: {
+      p1: {
         x: sortedX[0].x,
         y: sortedY[0].y
       },
-      q: {
+      p2: {
         x: sortedX[nodes.length - 1].x,
         y: sortedY[nodes.length - 1].y
       }

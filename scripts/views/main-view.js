@@ -3,6 +3,7 @@
 var r = require('../common/react');
 var vec = require('Vector');
 var clip = require('Clip');
+var accept = require('Accept');
 var seg = require('../common/segment');
 var sorted2d = require('../common/sorted2d');
 
@@ -44,8 +45,8 @@ var _ = {
     var edgesById = cityStore.getEdgesById();
     this.setState({
         bounds:       bounds,
-        width:        bounds.q.x - bounds.p.x,
-        height:       bounds.q.y - bounds.p.y,
+        width:        bounds.p2.x - bounds.p1.x,
+        height:       bounds.p2.y - bounds.p1.y,
         nodes:        nodes,
         edges:        edges,
         nodesById:    nodesById,
@@ -70,10 +71,10 @@ var _ = {
     return (
       r.line({
           key:         'es' + edge.id,
-          x1:          edge.p.x,
-          y1:          edge.p.y,
-          x2:          edge.q.x,
-          y2:          edge.q.y,
+          x1:          edge.p1.x,
+          y1:          edge.p1.y,
+          x2:          edge.p2.x,
+          y2:          edge.p2.y,
           stroke:      '#fff',
           strokeWidth: edge.type === 'a-road' ? 10 : (edge.type === 'b-road' ? 6 : 4),
           onClick:     function (event) {
@@ -91,10 +92,10 @@ var _ = {
     return (
       r.line({
           key:             'e' + edge.id,
-          x1:              edge.p.x,
-          y1:              edge.p.y,
-          x2:              edge.q.x,
-          y2:              edge.q.y,
+          x1:              edge.p1.x,
+          y1:              edge.p1.y,
+          x2:              edge.p2.x,
+          y2:              edge.p2.y,
           stroke:          isSelected ? orange : '#ccc',
           strokeWidth:     edge.type === 'a-road' ? 4 : (edge.type === 'b-road' ? 2 : 1),
           strokeDasharray: edge.type === 'underground' ? '5 5' : null,
@@ -127,8 +128,8 @@ var _ = {
     }
     var isRelated  = (
       this.state.selectedEdge && (
-        node === this.state.selectedEdge.p ||
-        node === this.state.selectedEdge.q));
+        node === this.state.selectedEdge.p1 ||
+        node === this.state.selectedEdge.p2));
     return (
       r.circle({
           key:         'n' + node.id,
@@ -149,19 +150,19 @@ var _ = {
     return [
       r.rect({
           key:             'bs',
-          x:               bounds.p.x,
-          y:               bounds.p.y,
-          width:           bounds.q.x - bounds.p.x,
-          height:          bounds.q.y - bounds.p.y,
+          x:               bounds.p1.x,
+          y:               bounds.p1.y,
+          width:           bounds.p2.x - bounds.p1.x,
+          height:          bounds.p2.y - bounds.p1.y,
           fill:            'none',
           stroke:          '#fff'
         }),
       r.rect({
           key:             'b',
-          x:               bounds.p.x,
-          y:               bounds.p.y,
-          width:           bounds.q.x - bounds.p.x,
-          height:          bounds.q.y - bounds.p.y,
+          x:               bounds.p1.x,
+          y:               bounds.p1.y,
+          width:           bounds.p2.x - bounds.p1.x,
+          height:          bounds.p2.y - bounds.p1.y,
           fill:            'none',
           stroke:          orange,
           strokeWidth:     0.5,
@@ -239,32 +240,32 @@ var _ = {
     return [
       r.text({
           key:      'tis',
-          x:        bounds.q.x + 5,
-          y:        bounds.p.y + 10,
+          x:        bounds.p2.x + 5,
+          y:        bounds.p1.y + 10,
           fontSize: 10,
           stroke:   '#fff'
         },
         'E' + this.state.selectedEdge.id),
       r.text({
           key:      'tts',
-          x:        bounds.q.x + 5,
-          y:        bounds.p.y + 20,
+          x:        bounds.p2.x + 5,
+          y:        bounds.p1.y + 20,
           fontSize: 10,
           stroke:   '#fff'
         },
         type),
       r.text({
           key:      'ti',
-          x:        bounds.q.x + 5,
-          y:        bounds.p.y + 10,
+          x:        bounds.p2.x + 5,
+          y:        bounds.p1.y + 10,
           fontSize: 10,
           fill:     orange
         },
         'E' + this.state.selectedEdge.id),
       r.text({
           key:      'tt',
-          x:        bounds.q.x + 5,
-          y:        bounds.p.y + 20,
+          x:        bounds.p2.x + 5,
+          y:        bounds.p1.y + 20,
           fontSize: 10,
           fill:     orange
         },
@@ -275,20 +276,32 @@ var _ = {
     return [
       r.text({
           key:      'tis',
-          x:        bounds.q.x + 5,
-          y:        bounds.p.y + 10,
+          x:        bounds.p2.x + 5,
+          y:        bounds.p1.y + 10,
           fontSize: 10,
           stroke:   '#fff'
         },
         'N' + this.state.selectedNode.id),
       r.text({
           key:      'ti',
-          x:        bounds.q.x + 5,
-          y:        bounds.p.y + 10,
+          x:        bounds.p2.x + 5,
+          y:        bounds.p1.y + 10,
           fontSize: 10,
           fill:     orange
         },
         'N' + this.state.selectedNode.id)];
+  },
+
+  renderAcceptedEdge: function (edge, edgeIx) {
+    return (
+      r.line({
+          key:    'ce' + edgeIx,
+          x1:     edge.p1.x,
+          y1:     edge.p1.y,
+          x2:     edge.p2.x,
+          y2:     edge.p2.y,
+          stroke: '#999'
+        }));
   },
 
   renderClippedEdge: function (edge, edgeIx) {
@@ -319,8 +332,8 @@ var _ = {
   render: function () {
     var viewBox = (
       this.state.bounds && [
-        this.state.bounds.p.x,
-        this.state.bounds.p.y,
+        this.state.bounds.p1.x,
+        this.state.bounds.p1.y,
         this.state.width,
         this.state.height].join(' '));
     var hasSelection = this.state.selectedNode || this.state.selectedEdge;
@@ -331,24 +344,21 @@ var _ = {
         seg.bound(this.state.selectedEdge, 10)));
     var clipBounds = (
       bounds && {
-          xleft:   bounds.p.x,
-          ytop:    bounds.q.y,
-          xright:  bounds.q.x,
-          ybottom: bounds.p.y
+          xleft:   bounds.p1.x,
+          ytop:    bounds.p2.y,
+          xright:  bounds.p2.x,
+          ybottom: bounds.p1.y
         });
     var clipEdges = (
       bounds && this.state.edges.filter(function (edge) {
           return edge !== this.state.selectedEdge;
-        }.bind(this)).map(function (edge) {
-          return {
-            p1: edge.p,
-            p2: edge.q
-          };
-        }));
+        }.bind(this)));
+    var acceptedEdges = (
+      bounds && accept.acceptAll(clipBounds)(clipEdges));
     var clippedEdges = (
       bounds && clip.clipAll(clipBounds)(clipEdges));
     var clippedNodes = (
-      bounds && sorted2d.between(this.state.nodes, bounds.p, bounds.q));
+      bounds && sorted2d.between(this.state.nodes, bounds.p1, bounds.p2));
     return (
       r.div({
           className: 'main-view' + (hasSelection ? ' clickable' : ''),
@@ -366,6 +376,8 @@ var _ = {
           this.state.edges.map(this.renderEdgeShadow),
           this.state.nodes.map(this.renderNodeShadow),
           this.state.edges.map(this.renderEdge),
+          !acceptedEdges ? null :
+            acceptedEdges.map(this.renderAcceptedEdge),
           !clippedEdges ? null :
             clippedEdges.map(this.renderClippedEdge),
           !this.state.selectedEdge ? null :

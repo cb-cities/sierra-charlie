@@ -43,11 +43,11 @@ proj a b = (a `dot` b) / len b
 dist :: Vector -> Vector -> Number
 dist a b = len (a `sub` b)
 
-bound :: Vector -> Number -> { p :: Vector, q :: Vector }
-bound v n = { p : { x : v.x - n
-                  , y : v.y - n
-                  }
-            , q : { x : v.x + n
-                  , y : v.y + n
-                  }
+bound :: Vector -> Number -> { p1 :: Vector, p2 :: Vector }
+bound v n = { p1 : { x : v.x - n
+                   , y : v.y - n
+                   }
+            , p2 : { x : v.x + n
+                   , y : v.y + n
+                   }
             }
