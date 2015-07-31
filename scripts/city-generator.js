@@ -3,7 +3,6 @@
 var random = require('./common/random');
 var sorted2d = require('./common/sorted2d');
 
-var NODE_ID = 0;
 var EDGE_ID = 0;
 
 var _ = module.exports = {
@@ -14,14 +13,12 @@ var _ = module.exports = {
     };
     while (count) {
       var p1 = {
-        id: NODE_ID,
-        x:  random.normal() * scale + offset.x,
-        y:  random.normal() * scale + offset.y
+        x: random.normal() * scale + offset.x,
+        y: random.normal() * scale + offset.y
       };
       var p2 = {
-        id: NODE_ID + 1,
-        x:  random.normal() * scale + offset.x,
-        y:  random.normal() * scale + offset.y
+        x: random.normal() * scale + offset.x,
+        y: random.normal() * scale + offset.y
       };
       var e = {
         id: EDGE_ID,
@@ -31,7 +28,6 @@ var _ = module.exports = {
       nodes.push(p1);
       nodes.push(p2);
       edges.push(e);
-      NODE_ID += 2;
       EDGE_ID += 1;
       count -= 1;
     }
@@ -45,11 +41,7 @@ var _ = module.exports = {
       y: 0
     };
     _.addEdges(nodes, edges, 500, 1000, c0);
-    var nodesById = {};
     var edgesById = {};
-    nodes.forEach(function (n) {
-        nodesById[n.id] = n;
-      });
     edges.forEach(function (e) {
         edgesById[e.id] = e;
       });
@@ -73,9 +65,7 @@ var _ = module.exports = {
     };
     return {
       bounds:    bounds,
-      nodes:     sortedX,
       edges:     edges,
-      nodesById: nodesById,
       edgesById: edgesById
     };
   }

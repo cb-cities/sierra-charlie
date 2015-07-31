@@ -2,28 +2,31 @@
 
 var r = require('../common/react');
 var vec = require('Vector');
-var clip = require('Clip');
-var accept = require('Accept');
+var clip = require('Clip').clip;
 var seg = require('../common/segment');
-var sorted2d = require('../common/sorted2d');
+var utils = require('../common/utils');
 
 var a = require('../actions');
 var cityStore = require('../stores/city-store');
 var selectionStore = require('../stores/selection-store');
-
-var blue   = '#3f96f0';
-var orange = '#f0690f';
+var edgeView = require('./edge-view');
 
 var _ = {
   getInitialState: function () {
     return {
-      bounds:       undefined,
-      nodes:        [],
-      edges:        [],
-      nodesById:    {},
-      edgesById:    {},
-      selectedNode: undefined,
-      selectedEdge: undefined
+      bounds:          undefined,
+      width:           undefined,
+      height:          undefined,
+      viewBox:         undefined,
+      edges:           [],
+      edgesById:       {},
+      selectedEdgeId:  undefined,
+      selectedEdge:    undefined,
+      hasSelection:    false,
+      selectionBounds: undefined,
+      rejectedEdges:   [],
+      acceptedEdges:   [],
+      clippedEdges:    []
     };
   },
 
@@ -39,356 +42,154 @@ var _ = {
 
   onPublishCity: function () {
     var bounds    = cityStore.getBounds();
-    var nodes     = cityStore.getNodes();
+    var width     = bounds.p2.x - bounds.p1.x;
+    var height    = bounds.p2.y - bounds.p1.y;
+    var viewBox   = [bounds.p1.x, bounds.p1.y, width, height].join(' ');
     var edges     = cityStore.getEdges();
-    var nodesById = cityStore.getNodesById();
     var edgesById = cityStore.getEdgesById();
     this.setState({
         bounds:       bounds,
-        width:        bounds.p2.x - bounds.p1.x,
-        height:       bounds.p2.y - bounds.p1.y,
-        nodes:        nodes,
+        width:        width,
+        height:       height,
+        viewBox:      viewBox,
         edges:        edges,
-        nodesById:    nodesById,
-        edgesById:    edgesById,
-        selectedNode: nodesById[this.state.selectedNodeId],
-        selectedEdge: edgesById[this.state.selectedEdgeId]
+        edgesById:    edgesById
       });
+    this.updateSelection();
   },
 
   onPublishSelection: function () {
-    var selectedNodeId = selectionStore.getSelectedNode();
     var selectedEdgeId = selectionStore.getSelectedEdge();
     this.setState({
-        selectedNodeId: selectedNodeId,
-        selectedEdgeId: selectedEdgeId,
-        selectedNode:   this.state.nodesById[selectedNodeId],
-        selectedEdge:   this.state.edgesById[selectedEdgeId]
+        selectedEdgeId: selectedEdgeId
+      });
+    this.updateSelection();
+  },
+
+  updateSelection: function () {
+    var selectedEdge    = this.state.edgesById[this.state.selectedEdgeId];
+    var hasSelection    = !!selectedEdge;
+    var selectionBounds = selectedEdge && seg.bound(selectedEdge, 10);
+     // TODO: Unify representation
+    var clippingBounds = (
+      selectionBounds && {
+          xleft:   selectionBounds.p1.x,
+          ytop:    selectionBounds.p2.y,
+          xright:  selectionBounds.p2.x,
+          ybottom: selectionBounds.p1.y
+        });
+    var rejectedEdges = [];
+    var acceptedEdges = [];
+    var clippedEdges  = [];
+    if (clippingBounds) {
+      this.state.edges.forEach(function (edge) {
+          if (edge !== selectedEdge) {
+            var result = clip(clippingBounds)(edge);
+            if (result.value0) {
+              var clippedEdge = utils.assign(result.value0, {
+                  id: edge.id
+                });
+              acceptedEdges.push(edge);
+              clippedEdges.push(clippedEdge);
+            } else {
+              rejectedEdges.push(edge);
+            }
+          }
+        }.bind(this));
+    }
+    this.setState({
+        selectedEdge:    selectedEdge,
+        hasSelection:    hasSelection,
+        selectionBounds: selectionBounds,
+        rejectedEdges:   rejectedEdges,
+        acceptedEdges:   acceptedEdges,
+        clippedEdges:    clippedEdges
       });
   },
 
-  renderEdgeShadow: function (edge) {
+  renderEdgeShadows: function () {
     return (
-      r.line({
-          key:         'es' + edge.id,
-          x1:          edge.p1.x,
-          y1:          edge.p1.y,
-          x2:          edge.p2.x,
-          y2:          edge.p2.y,
-          stroke:      '#fff',
-          strokeWidth: edge.type === 'a-road' ? 10 : (edge.type === 'b-road' ? 6 : 4),
-          onClick:     function (event) {
-            event.stopPropagation();
-            a.selectEdge(edge.id);
-          }
+      this.state.edges.map(function (edge) {
+          return (
+            edgeView({
+                edge:     edge,
+                isShadow: true
+              }));
         }));
   },
 
-  renderEdge: function (edge, _edgeIx, _edges, renderSelected) {
-    var isSelected = edge === this.state.selectedEdge;
-    if (isSelected && !renderSelected) {
-      return null;
-    }
+  renderEdges: function () {
     return (
-      r.line({
-          key:             'e' + edge.id,
-          x1:              edge.p1.x,
-          y1:              edge.p1.y,
-          x2:              edge.p2.x,
-          y2:              edge.p2.y,
-          stroke:          isSelected ? orange : '#ccc',
-          strokeWidth:     edge.type === 'a-road' ? 4 : (edge.type === 'b-road' ? 2 : 1),
-          strokeDasharray: edge.type === 'underground' ? '5 5' : null,
-          onClick:     function (event) {
-            event.stopPropagation();
-            a.selectEdge(edge.id);
-          }
+      this.state.hasSelection ? null :
+        this.state.edges.map(function (edge) {
+            return (
+              edgeView({
+                  edge: edge
+                }));
+          }));
+  },
+
+  renderRejectedEdges: function () {
+    return (
+      this.state.rejectedEdges.map(function (edge) {
+          return (
+            edgeView({
+                edge:       edge,
+                isRejected: true
+              }));
         }));
   },
 
-  renderNodeShadow: function (node) {
+  renderAcceptedEdges: function () {
     return (
-      r.circle({
-          key:         'ns' + node.id,
-          cx:          node.x,
-          cy:          node.y,
-          r:           5,
-          fill:        '#fff',
-          onClick:     function (event) {
-            event.stopPropagation();
-            a.selectNode(node.id);
-          }
+      this.state.acceptedEdges.map(function (edge) {
+          return (
+            edgeView({
+                edge:       edge,
+                isAccepted: true
+              }));
         }));
   },
 
-  renderNode: function (node, _nodeIx, _nodes, renderSelected) {
-    var isSelected = node === this.state.selectedNode;
-    if (isSelected && !renderSelected) {
-      return null;
-    }
-    var isRelated  = (
-      this.state.selectedEdge && (
-        node === this.state.selectedEdge.p1 ||
-        node === this.state.selectedEdge.p2));
+  renderClippedEdges: function () {
     return (
-      r.circle({
-          key:         'n' + node.id,
-          cx:          node.x,
-          cy:          node.y,
-          r:           2,
-          fill:        '#fff',
-          stroke:      isSelected ? orange : (isRelated ? '#666' : '#ccc'),
-          strokeWidth: 2,
-          onClick:     function (event) {
-            event.stopPropagation();
-            a.selectNode(node.id);
-          }
+      this.state.clippedEdges.map(function (edge) {
+          return (
+            edgeView({
+                edge:      edge,
+                isClipped: true
+              }));
         }));
   },
 
-  renderBounds: function (bounds) {
-    return [
-      r.rect({
-          key:             'bs',
-          x:               bounds.p1.x,
-          y:               bounds.p1.y,
-          width:           bounds.p2.x - bounds.p1.x,
-          height:          bounds.p2.y - bounds.p1.y,
-          fill:            'none',
-          stroke:          '#fff'
-        }),
-      r.rect({
-          key:             'b',
-          x:               bounds.p1.x,
-          y:               bounds.p1.y,
-          width:           bounds.p2.x - bounds.p1.x,
-          height:          bounds.p2.y - bounds.p1.y,
-          fill:            'none',
-          stroke:          orange,
-          strokeWidth:     0.5,
-          strokeDasharray: '2 1'
-        })];
-  },
-
-  renderBoundedNodeProjection: function (boundedNode, projectedNode) {
-    return [
-      r.line({
-          key:             'bps' + boundedNode.id,
-          x1:              boundedNode.x,
-          y1:              boundedNode.y,
-          x2:              projectedNode.x,
-          y2:              projectedNode.y,
-          stroke:          '#fff',
-          strokeLinecap:   'round'
-        }),
-      r.line({
-          key:             'bp' + boundedNode.id,
-          x1:              boundedNode.x,
-          y1:              boundedNode.y,
-          x2:              projectedNode.x,
-          y2:              projectedNode.y,
-          stroke:          blue,
-          strokeWidth:     0.5,
-          strokeDasharray: '0.5 1',
-          strokeLinecap:   'round'
-        })];
-  },
-
-  renderBoundedNodeDistance: function (boundedNode, distance) {
-    return [
-      r.text({
-          key:      'ns' + boundedNode.id,
-          x:        boundedNode.x - 2,
-          y:        boundedNode.y + 1,
-          fontSize: 4,
-          stroke:   '#fff'
-        }, distance),
-      r.text({
-          key:      'nt' + boundedNode.id,
-          x:        boundedNode.x - 2,
-          y:        boundedNode.y + 1,
-          fontSize: 4,
-          fill:     blue
-        }, distance)];
-  },
-
-  renderBoundedNode: function (boundedNode) {
-    var projectedNode = (
-      this.state.selectedNode ||
-      seg.proj(boundedNode, this.state.selectedEdge));
-    var distance = Math.ceil(vec.dist(boundedNode)(projectedNode));
-    return [
-      this.renderBoundedNodeProjection(boundedNode, projectedNode),
-      this.renderBoundedNodeDistance(boundedNode, distance)];
-  },
-
-  renderSelectedEdgeInfo: function (bounds) {
-    var type;
-    switch (this.state.selectedEdge.type) {
-      case 'underground':
-        type = 'Underground';
-        break;
-      case 'a-road':
-        type = 'A Road';
-        break;
-      case 'b-road':
-        type = 'B Road';
-        break;
-      default:
-        type = 'Road';
-    }
-    return [
-      r.text({
-          key:      'tis',
-          x:        bounds.p2.x + 5,
-          y:        bounds.p1.y + 10,
-          fontSize: 10,
-          stroke:   '#fff'
-        },
-        'E' + this.state.selectedEdge.id),
-      r.text({
-          key:      'tts',
-          x:        bounds.p2.x + 5,
-          y:        bounds.p1.y + 20,
-          fontSize: 10,
-          stroke:   '#fff'
-        },
-        type),
-      r.text({
-          key:      'ti',
-          x:        bounds.p2.x + 5,
-          y:        bounds.p1.y + 10,
-          fontSize: 10,
-          fill:     orange
-        },
-        'E' + this.state.selectedEdge.id),
-      r.text({
-          key:      'tt',
-          x:        bounds.p2.x + 5,
-          y:        bounds.p1.y + 20,
-          fontSize: 10,
-          fill:     orange
-        },
-        type)];
-  },
-
-  renderSelectedNodeInfo: function (bounds) {
-    return [
-      r.text({
-          key:      'tis',
-          x:        bounds.p2.x + 5,
-          y:        bounds.p1.y + 10,
-          fontSize: 10,
-          stroke:   '#fff'
-        },
-        'N' + this.state.selectedNode.id),
-      r.text({
-          key:      'ti',
-          x:        bounds.p2.x + 5,
-          y:        bounds.p1.y + 10,
-          fontSize: 10,
-          fill:     orange
-        },
-        'N' + this.state.selectedNode.id)];
-  },
-
-  renderAcceptedEdge: function (edge, edgeIx) {
+  renderSelectedEdge: function () {
     return (
-      r.line({
-          key:    'ce' + edgeIx,
-          x1:     edge.p1.x,
-          y1:     edge.p1.y,
-          x2:     edge.p2.x,
-          y2:     edge.p2.y,
-          stroke: '#999'
-        }));
-  },
-
-  renderClippedEdge: function (edge, edgeIx) {
-    return (
-      r.line({
-          key:    'ce' + edgeIx,
-          x1:     edge.p1.x,
-          y1:     edge.p1.y,
-          x2:     edge.p2.x,
-          y2:     edge.p2.y,
-          stroke: '#666'
-        }));
-  },
-
-  renderClippedNode: function (node, nodeIx) {
-    return (
-      r.circle({
-          key:         'cn' + nodeIx,
-          cx:          node.x,
-          cy:          node.y,
-          r:           2,
-          fill:        '#fff',
-          stroke:      '#666',
-          strokeWidth: 2
-        }));
+      !this.state.selectedEdge ? null :
+        edgeView({
+            edge:       this.state.selectedEdge,
+            isSelected: true
+          }));
   },
 
   render: function () {
-    var viewBox = (
-      this.state.bounds && [
-        this.state.bounds.p1.x,
-        this.state.bounds.p1.y,
-        this.state.width,
-        this.state.height].join(' '));
-    var hasSelection = this.state.selectedNode || this.state.selectedEdge;
-    var bounds = (
-      (this.state.selectedNode &&
-        vec.bound(this.state.selectedNode)(10)) ||
-      (this.state.selectedEdge &&
-        seg.bound(this.state.selectedEdge, 10)));
-    var clipBounds = (
-      bounds && {
-          xleft:   bounds.p1.x,
-          ytop:    bounds.p2.y,
-          xright:  bounds.p2.x,
-          ybottom: bounds.p1.y
-        });
-    var clipEdges = (
-      bounds && this.state.edges.filter(function (edge) {
-          return edge !== this.state.selectedEdge;
-        }.bind(this)));
-    var acceptedEdges = (
-      bounds && accept.acceptAll(clipBounds)(clipEdges));
-    var clippedEdges = (
-      bounds && clip.clipAll(clipBounds)(clipEdges));
-    var clippedNodes = (
-      bounds && sorted2d.between(this.state.nodes, bounds.p1, bounds.p2));
     return (
       r.div({
-          className: 'main-view' + (hasSelection ? ' clickable' : ''),
-          onClick:   hasSelection && function (event) {
+          className: 'main-view' + (this.state.hasSelection ? ' clickable' : ''),
+          onClick:   this.state.hasSelection && function (event) {
             event.stopPropagation();
             a.deselect();
           }
         },
         r.svg({
             className: 'content',
-            width:     this.state.width,
-            height:    this.state.height,
-            viewBox:   viewBox
+            viewBox:   this.state.viewBox
           },
-          this.state.edges.map(this.renderEdgeShadow),
-          this.state.nodes.map(this.renderNodeShadow),
-          this.state.edges.map(this.renderEdge),
-          !acceptedEdges ? null :
-            acceptedEdges.map(this.renderAcceptedEdge),
-          !clippedEdges ? null :
-            clippedEdges.map(this.renderClippedEdge),
-          !this.state.selectedEdge ? null :
-            this.renderEdge(this.state.selectedEdge, null, null, true),
-          this.state.nodes.map(this.renderNode),
-          !clippedNodes ? null :
-            clippedNodes.map(this.renderClippedNode),
-          !this.state.selectedNode ? null :
-            this.renderNode(this.state.selectedNode, null, null, true),
-          !bounds ? null :
-            this.renderBounds(bounds))));
+          this.renderEdgeShadows(),
+          this.renderEdges(),
+          this.renderRejectedEdges(),
+          this.renderAcceptedEdges(),
+          this.renderClippedEdges(),
+          this.renderSelectedEdge())));
   }
 };
 

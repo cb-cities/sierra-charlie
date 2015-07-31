@@ -9,13 +9,6 @@ module.exports = {
       });
   },
 
-  selectNode: function (nodeId) {
-    dispatcher.dispatch({
-        type:   'selectNode',
-        nodeId: nodeId
-      });
-  },
-
   selectEdge: function (edgeId) {
     dispatcher.dispatch({
         type:   'selectEdge',

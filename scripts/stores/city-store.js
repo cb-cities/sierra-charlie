@@ -26,16 +26,8 @@ CityStore.prototype = utils.assign(new Store(), {
     return this.bounds;
   },
 
-  getNodes: function () {
-    return this.nodes;
-  },
-
   getEdges: function () {
     return this.edges;
-  },
-
-  getNodesById: function () {
-    return this.nodesById;
   },
 
   getEdgesById: function () {
