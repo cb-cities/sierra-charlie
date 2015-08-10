@@ -3,6 +3,34 @@
 <head>
 <meta charset="utf-8">
 <title>React and Webpack</title>
+<style type="text/css">
+html {
+  height: 100%;
+}
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+#root {
+  height: 100%;
+}
+.fade-enter {
+  background-color: #f00;
+}
+.fade-enter.fade-enter-active {
+  background-color: #00f;
+  transition: background-color 1s;
+}
+.fade-leave {
+  background-color: #00f;
+}
+.fade-leave.fade-leave-active {
+  background-color: #f00;
+  transition: background-color 1s;
+}
+</style>
 </head>
 <body>
 <div id="root">

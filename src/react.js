@@ -16,29 +16,26 @@ var _ = module.exports = {
 
   render: r.render,
 
-  makeComponents: function (mod) {
-    Object.keys(mod.exports).forEach(function (key) {
-        var spec = mod.exports[key];
-        if (!spec.displayName) {
-          spec.displayName = key;
-        }
-        if (!spec.mixins) {
-          spec.mixins = [r.addons.PureRenderMixin];
-        }
-        var com = r.createClass(spec);
-        if (mod.makeHot) {
-          com = mod.makeHot(com);
-        }
-        mod.exports[key] = com;
-      });
+  makeComponent: function (displayName, mod) {
+    if (!mod.exports.displayName) {
+      mod.exports.displayName = displayName;
+    }
+    if (!mod.exports.mixins) {
+      mod.exports.mixins = [r.addons.PureRenderMixin];
+    }
+    var com = r.createClass(mod.exports);
+    if (mod.makeHot) {
+      com = mod.makeHot(com);
+    }
+    mod.exports = com;
   },
 
   wrap: function (com) {
     return function (thing) {
       var props;
-      if (typeof thing === 'object') {
+      if (typeof thing === "object") {
         props = thing;
-      } else if (typeof thing === 'string') {
+      } else if (typeof thing === "string") {
         props = {
           className: thing
         };
