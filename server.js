@@ -15,7 +15,7 @@ app.use(webpackDevMiddleware(compiler, {
   }));
 app.use(webpackHotMiddleware(compiler));
 
-app.use("/static", express.static("static"));
+app.use("/json", express.static("json"));
 
 app.get("/", function (req, res) {
     res.sendFile(__dirname + "/index.html");

@@ -39,7 +39,7 @@ module.exports = {
           polylines: polylines
         });
     } else {
-      http.sendRequest("GET", "/static/" + polylinesId + ".json", null, function (receivedPolylines, err) {
+      http.sendRequest("GET", "/json/" + polylinesId + ".json", null, function (receivedPolylines, err) {
           if (receivedPolylines && !err) {
             var polylines = parseJson(receivedPolylines) || [];
             sessionStorage.setItem(polylinesId, receivedPolylines);
@@ -59,7 +59,7 @@ module.exports = {
           points: points
         });
     } else {
-      http.sendRequest("GET", "/static/" + pointsId + ".json", null, function (receivedPoints, err) {
+      http.sendRequest("GET", "/json/" + pointsId + ".json", null, function (receivedPoints, err) {
           if (receivedPoints && !err) {
             var points = parseJson(receivedPoints) || [];
             sessionStorage.setItem(pointsId, receivedPoints);
