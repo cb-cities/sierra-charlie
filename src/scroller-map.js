@@ -25,7 +25,7 @@ module.exports = {
       gridWidth = Math.ceil(5 * this.props.columnWidth / this.props.rowHeight);
       gridHeight = 5;
     }
-    var borderThickness = 2;
+    var borderThickness = 1;
     var cellWidth = gridWidth - borderThickness;
     var cellHeight = gridHeight - borderThickness;
     return (
@@ -36,8 +36,10 @@ module.exports = {
             height: this.props.rowCount * gridHeight + borderThickness * 3 + "px",
             position: "absolute",
             left: "10px",
-            top: "10px",
-            border: borderThickness + "px #f0690f dashed",
+            bottom: "10px",
+            border: borderThickness + "px #ccc solid",
+            background: "#fff",
+            opacity: 0.85,
             boxSizing: "border-box"
           }
         },
@@ -57,7 +59,9 @@ module.exports = {
                     position: "absolute",
                     left: cell.columnIx * gridWidth + 2 + "px",
                     top: cell.rowIx * gridHeight + 2 + "px",
-                    background: isVisible ? "#333" : "#999"
+                    border: borderThickness + "px " + (isVisible ? "#999" : "#ccc") + " solid",
+                    background: "#fff",
+                    zIndex: isVisible ? 1 : 0
                   }
                 }));
           }.bind(this))));

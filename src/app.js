@@ -8,10 +8,10 @@ module.exports = {
   render: function () {
     return (
       scroller({
-          columnCount: 50,
-          columnWidth: 500,
-          rowCount: 50,
-          rowHeight: 500,
+          columnCount: 89,
+          columnWidth: 1000,
+          rowCount: 56,
+          rowHeight: 1000,
           cellChild: dummy
         }));
   }

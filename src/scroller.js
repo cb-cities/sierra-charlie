@@ -65,7 +65,7 @@ module.exports = {
     var columnCount = this.getVisibleColumnCount(node, firstColumn);
     var firstRow = this.getFirstVisibleRow(node);
     var rowCount = this.getVisibleRowCount(node, firstRow);
-    var margin = 1;
+    var margin = 0;
     if (firstColumn - margin >= 0) {
       firstColumn -= margin;
       columnCount += margin;
@@ -102,11 +102,13 @@ module.exports = {
     var metrics = this.getVisibleMetrics(node);
     var visibleCells = this.getVisibleCells(metrics);
     var cells = isStretching ? u.copyUniqueElements(this.state.cells, visibleCells) : visibleCells;
-    this.setState({
-        metrics: metrics,
-        cells: cells,
-        visibleCells: visibleCells
-      });
+    if (this.isMounted()) {
+      this.setState({
+          metrics: metrics,
+          cells: cells,
+          visibleCells: visibleCells
+        });
+    }
   },
 
   latch: function (node) {
@@ -134,9 +136,11 @@ module.exports = {
     this.lastScrollTop = undefined;
     this.lastScrollChangeX = undefined;
     this.lastScrollChangeY = undefined;
-    this.setState({
-        cells: this.state.visibleCells
-      });
+    if (this.isMounted()) {
+      this.setState({
+          cells: this.state.visibleCells
+        });
+    }
   },
 
   onScroll: function (event) {

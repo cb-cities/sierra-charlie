@@ -22,8 +22,7 @@ module.exports = {
           style: {
             width: this.props.columnCount * this.props.columnWidth,
             height: this.props.rowCount * this.props.rowHeight,
-            position: "relative",
-            background: "#fff"
+            position: "relative"
           }
         },
         this.props.cells.map(function (cell) {
