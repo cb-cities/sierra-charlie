@@ -4,27 +4,35 @@ _sierra-charlie_
 TODO
 
 
-### Instructions
+Usage
+-----
 
 Install dependencies:
 
 ```
+brew install advancecomp node s3cmd
 npm install
 ```
 
-Start local development server:
+
+### Development
+
+Start local server:
 
 ```
 npm start
 ```
 
-Build production bundle:
+
+### Deployment
+
+Build bundle:
 
 ```
 npm run build
 ```
 
-Deploy to remote production server:
+Upload to Amazon S3:
 
 ```
 s3cmd put src/index.html dist/bundle.js \
@@ -33,13 +41,7 @@ s3cmd put src/index.html dist/bundle.js \
 ```
 
 
-#### Compressed data files
-
-Install dependencies:
-
-```
-brew install advancecomp
-```
+#### Deployment of data files
 
 Compress data files:
 
@@ -51,13 +53,14 @@ for i in json/*.json; do
 done
 ```
 
-Upload compressed data files:
+Upload to Amazon S3:
 
 ```
 s3cmd sync json \
-    s3://sierracharlie.mietek.io/json/ \
+    s3://sierracharlie.mietek.io \
     --acl-public --no-preserve \
     --exclude='*' --include='*.json.gz' \
+    --add-header="Cache-Control:max-age=3600" \
     --add-header='Content-Type:application/json' \
     --add-header='Content-Encoding:gzip'
 ```
