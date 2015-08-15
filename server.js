@@ -23,6 +23,7 @@ function endsWith(s, t) {
 }
 
 app.use("/json", express.static("json", {
+    maxAge: "1h",
     setHeaders: function (res, path, stat) {
       if (endsWith(path, ".json")) {
         res.setHeader("Content-Type", "application/json");
