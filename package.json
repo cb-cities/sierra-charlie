@@ -1,23 +1,26 @@
 {
-  "name": "react-and-webpack",
+  "name": "sierra-charlie",
   "version": "1.0.0",
   "description": "TODO",
   "author": "Miëtek Bak <hello@mietek.io>",
-  "license": "MIT X11",
   "private": true,
-  "scripts": {
-    "start": "( sleep 1 ; open http://localhost:3000 ) & node server.js",
-    "build": "./node_modules/.bin/webpack",
-    "clean": "rm -rf dist node_modules npm-debug.log"
-  },
+  "license": "MIT",
   "dependencies": {
-    "react": "^0.13.3"
   },
   "devDependencies": {
-    "express": "^4.13.1",
+    "css-loader": "^0.16.0",
+    "express": "^4.13.3",
+    "react": "^0.13.3",
     "react-hot-loader": "^1.2.8",
-    "webpack": "^1.10.5",
+    "react-wrapper": "^0.13.3",
+    "style-loader": "^0.12.3",
+    "webpack": "^1.11.0",
     "webpack-dev-middleware": "^1.2.0",
-    "webpack-hot-middleware": "^1.1.0"
+    "webpack-hot-middleware": "^1.2.0"
+  },
+  "scripts": {
+    "start": "( sleep 1 ; open http://localhost:3000 ) & node server.js",
+    "build": "node_modules/.bin/webpack --config=webpack.prod.config.js",
+    "clean": "rm -rf dist node_modules npm-debug.log"
   }
 }

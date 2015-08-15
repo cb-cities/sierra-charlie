@@ -1,6 +1,6 @@
 "use strict";
 
-var r = require("./react");
+var r = require("react-wrapper");
 var scrollerCell = r.wrap(require("./scroller-cell"));
 
 module.exports = {

@@ -1,6 +1,6 @@
 "use strict";
 
-var r = require("./react");
+var r = require("react-wrapper");
 var u = require("./utils");
 var scrollerContent = r.wrap(require("./scroller-content"));
 var scrollerMap = r.wrap(require("./scroller-map"));

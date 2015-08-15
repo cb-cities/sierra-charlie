@@ -1,6 +1,6 @@
 "use strict";
 
-var r = require("./react");
+var r = require("react-wrapper");
 var http = require("./http");
 
 var TX_START = 488;
