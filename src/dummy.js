@@ -21,8 +21,8 @@ function parseJson(json) {
 module.exports = {
   propTypes: function () {
     return {
-      columnIx: r.propTypes.number.isRequired,
-      rowIx: r.propTypes.number.isRequired
+      x: r.propTypes.number.isRequired,
+      y: r.propTypes.number.isRequired
     };
   },
 
@@ -34,8 +34,8 @@ module.exports = {
   },
 
   componentDidMount: function () {
-    var tx = TX_START + this.props.columnIx;
-    var ty = TY_END - this.props.rowIx;
+    var tx = TX_START + this.props.x;
+    var ty = TY_END - this.props.y;
     var tileId = "tile-" + tx + "-" + ty;
     http.sendRequest("GET", "/json/" + tileId + ".json.gz", null, function (receivedTile, err) {
         if (this.isMounted() && receivedTile && !err) {
@@ -49,14 +49,14 @@ module.exports = {
   },
 
   render: function () {
-    var tx = TX_START + this.props.columnIx;
-    var ty = TY_END - this.props.rowIx;
+    var tx = TX_START + this.props.x;
+    var ty = TY_END - this.props.y;
     var dx = tx * 1000;
     var dy = ty * 1000;
     return (
       r.svg({
           width: "100%",
-          height: "100%",
+          height: "100%"
         },
         r.rect({
             x: 0,
