@@ -3,11 +3,6 @@
 var r = require("react-wrapper");
 var http = require("./http");
 
-var TX_START = 488;
-// var TX_END   = 574;
-// var TY_START = 146;
-var TY_END   = 211;
-
 function parseJson(json) {
   var result;
   try {
@@ -21,6 +16,8 @@ function parseJson(json) {
 module.exports = {
   propTypes: function () {
     return {
+      tileSize: r.propTypes.number.isRequired,
+      toTileCoords: r.propTypes.func.isRequired,
       x: r.propTypes.number.isRequired,
       y: r.propTypes.number.isRequired
     };
@@ -34,9 +31,8 @@ module.exports = {
   },
 
   componentDidMount: function () {
-    var tx = TX_START + this.props.x;
-    var ty = TY_END - this.props.y;
-    var tileId = "tile-" + tx + "-" + ty;
+    var t = this.props.toTileCoords(this.props.x, this.props.y);
+    var tileId = "tile-" + t.x + "-" + t.y;
     http.sendRequest("GET", "/json/" + tileId + ".json.gz", null, function (receivedTile, err) {
         if (this.isMounted() && receivedTile && !err) {
           var tile = parseJson(receivedTile) || {};
@@ -49,10 +45,19 @@ module.exports = {
   },
 
   render: function () {
-    var tx = TX_START + this.props.x;
-    var ty = TY_END - this.props.y;
-    var dx = tx * 1000;
-    var dy = ty * 1000;
+    var s = this.props.tileSize;
+    var t = this.props.toTileCoords(this.props.x, this.props.y);
+    var dx = s * t.x;
+    var dy = s * t.y;
+    function toWorldX(p) {
+      return p.x - dx;
+    }
+    function toWorldY(p) {
+      return s - (p.y - dy);
+    }
+    function toWorldCoords(p) {
+      return toWorldX(p) + "," + toWorldY(p);
+    }
     return (
       r.svg({
           width: "100%",
@@ -61,8 +66,8 @@ module.exports = {
         r.rect({
             x: 0,
             y: 0,
-            width: 1000,
-            height: 1000,
+            width: this.props.tileSize,
+            height: this.props.tileSize,
             fill: "none",
             stroke: "#ccc",
             strokeWidth: 1
@@ -73,16 +78,13 @@ module.exports = {
             fontSize: 12,
             fill: "#f0690f"
           },
-          "(" + tx + "," + ty + ")"
+          "(" + t.x + "," + t.y + ")"
         ),
         this.state.polylines.map(function (polyline, polylineIx) {
             return (
               r.polyline({
                   key: "l-" + polylineIx,
-                  points: polyline.map(function (point) {
-                      return (
-                        (point.x - dx) + "," + (1000 - (point.y - dy)));
-                    }).join(" "),
+                  points: polyline.map(toWorldCoords).join(" "),
                   fill: "none",
                   stroke: "#999",
                   strokeWidth: 2
@@ -92,8 +94,8 @@ module.exports = {
             return (
               r.circle({
                   key: "n-" + pointIx,
-                  cx: point.x - dx,
-                  cy: 1000 - (point.y - dy),
+                  cx: toWorldX(point),
+                  cy: toWorldY(point),
                   r: 2,
                   fill: "#fff",
                   stroke: "#999",
