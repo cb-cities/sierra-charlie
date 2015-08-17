@@ -5,13 +5,9 @@ var webpack = require("webpack");
 module.exports = {
   context: __dirname + "/src",
   devtool: "eval",
-  entry: [
-    "webpack/hot/only-dev-server",
-    "webpack-hot-middleware/client",
-    "./index"
-  ],
+  entry: "./index",
   output: {
-    path: __dirname + "/dist",
+    path: __dirname,
     filename: "bundle.js",
     publicPath: "/"
   },
@@ -23,18 +19,11 @@ module.exports = {
   },
   module: {
     loaders: [{
-      include: __dirname + "/src",
-      test: /\.js$/,
-      loader: "react-hot"
-    }, {
-      include: __dirname + "/src",
       test: /\.css$/,
       loader: "style-loader!css-loader"
     }]
   },
   plugins: [
-    new webpack.optimize.OccurenceOrderPlugin(),
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin()
+    new webpack.optimize.OccurenceOrderPlugin()
   ]
 };

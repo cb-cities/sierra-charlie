@@ -17,25 +17,27 @@ npm install
 
 ### Development
 
-Start local server:
+Build and start local server:
 
 ```
+npm run build
 npm start
 ```
 
 
-### Deployment
+### Production
 
-Build bundle:
+Build and start local server:
 
 ```
-npm run build
+npm run build.prod
+npm start
 ```
 
 Upload to Amazon S3:
 
 ```
-s3cmd put src/index.html dist/bundle.js \
+s3cmd put index.html bundle.js \
     s3://sierracharlie.mietek.io \
     --acl-public --no-preserve
 ```
@@ -69,4 +71,4 @@ s3cmd sync json \
 About
 -----
 
-Made by [Miëtek Bak](https://mietek.io).  Published under the [MIT X11 license](LICENSE.md).
+Made by [Miëtek Bak](https://mietek.io/).  Published under the [MIT X11 license](LICENSE.md).

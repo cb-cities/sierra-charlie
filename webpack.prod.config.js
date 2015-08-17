@@ -6,7 +6,7 @@ module.exports = {
   context: __dirname + "/src",
   entry: "./index",
   output: {
-    path: __dirname + "/dist",
+    path: __dirname,
     filename: "bundle.js",
     publicPath: "/"
   },
@@ -18,7 +18,6 @@ module.exports = {
   },
   module: {
     loaders: [{
-      include: __dirname + "/src",
       test: /\.css$/,
       loader: "style-loader!css-loader"
     }]
@@ -35,8 +34,6 @@ module.exports = {
         compressor: {
           warnings: false
         }
-      }),
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin()
+      })
   ]
 };

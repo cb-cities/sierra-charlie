@@ -1,27 +1,18 @@
 "use strict";
 
 var express = require("express");
-var webpack = require("webpack");
-var webpackDevMiddleware = require("webpack-dev-middleware");
-var webpackHotMiddleware = require("webpack-hot-middleware");
-var config = require("./webpack.config");
-
-var app = express();
-var compiler = webpack(config);
-
-app.use(webpackDevMiddleware(compiler, {
-    noInfo: true,
-    publicPath: config.output.publicPath,
-    stats: {
-      colors: true
-    }
-  }));
-app.use(webpackHotMiddleware(compiler));
 
 function endsWith(s, t) {
   return s.indexOf(t, s.length - t.length) !== -1;
 }
 
+var app = express();
+app.get("/", function (req, res) {
+    res.sendFile(__dirname + "/index.html");
+  });
+app.get("/bundle.js", function (req, res) {
+    res.sendFile(__dirname + "/bundle.js");
+  });
 app.use("/json", express.static("json", {
     maxAge: "1h",
     setHeaders: function (res, path, stat) {
@@ -33,11 +24,6 @@ app.use("/json", express.static("json", {
       }
     }
   }));
-
-app.get("/", function (req, res) {
-    res.sendFile(__dirname + "/src/index.html");
-  });
-
 app.listen(3000, "0.0.0.0", function (err) {
     console.log(err ? err : "Listening at http://0.0.0.0:3000");
   });
