@@ -1,10 +1,9 @@
-_clipping_
-==========
+```
+brew install node
+npm install
+npm start
+```
 
-TODO
-
-
-About
------
-
-Made by [Miëtek Bak](https://mietek.io/).  Published under the [MIT X11 license](LICENSE.md).
+```
+npm run clean
+```
