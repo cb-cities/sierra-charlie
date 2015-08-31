@@ -15,7 +15,14 @@ app.use(webpackDevMiddleware(compiler, {
   }));
 app.use(webpackHotMiddleware(compiler));
 
-app.use("/json", express.static("json"));
+app.use("/json", express.static("json", {
+    setHeaders: function (res, path, stat) {
+      res.setHeader("Content-Type", "application/json");
+      if (path.indexOf(".gz", path.length - 3) !== -1) {
+        res.setHeader("Content-Encoding", "gzip");
+      }
+    }
+  }));
 
 app.get("/", function (req, res) {
     res.sendFile(__dirname + "/index.html");
