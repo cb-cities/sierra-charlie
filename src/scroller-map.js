@@ -19,11 +19,11 @@ module.exports = {
     var gridWidth;
     var gridHeight;
     if (this.props.columnWidth < this.props.rowHeight) {
-      gridWidth = 5;
-      gridHeight = Math.ceil(5 * this.props.rowHeight / this.props.columnWidth);
+      gridWidth = 3;
+      gridHeight = Math.ceil(3 * this.props.rowHeight / this.props.columnWidth);
     } else {
-      gridWidth = Math.ceil(5 * this.props.columnWidth / this.props.rowHeight);
-      gridHeight = 5;
+      gridWidth = Math.ceil(3 * this.props.columnWidth / this.props.rowHeight);
+      gridHeight = 3;
     }
     var borderThickness = 1;
     var cellWidth = gridWidth - borderThickness;
@@ -32,8 +32,8 @@ module.exports = {
       r.div({
           className: "scroller-map",
           style: {
-            width: this.props.columnCount * gridWidth + borderThickness * 3 + "px",
-            height: this.props.rowCount * gridHeight + borderThickness * 3 + "px",
+            width: this.props.columnCount * gridWidth + borderThickness * 5 + "px",
+            height: this.props.rowCount * gridHeight + borderThickness * 5 + "px",
             position: "absolute",
             left: "10px",
             bottom: "10px",
@@ -57,8 +57,8 @@ module.exports = {
                     width: cellWidth,
                     height: cellHeight,
                     position: "absolute",
-                    left: cell.columnIx * gridWidth + 2 + "px",
-                    top: cell.rowIx * gridHeight + 2 + "px",
+                    left: cell.columnIx * gridWidth + borderThickness + "px",
+                    top: cell.rowIx * gridHeight + borderThickness + "px",
                     border: borderThickness + "px " + (isVisible ? "#999" : "#ccc") + " solid",
                     background: "#fff",
                     zIndex: isVisible ? 1 : 0

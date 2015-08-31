@@ -3,6 +3,11 @@
 var r = require("./react");
 var http = require("./http");
 
+var TX_START = 488;
+// var TX_END   = 574;
+// var TY_START = 146;
+var TY_END   = 211;
+
 function parseJson(json) {
   var result;
   try {
@@ -29,53 +34,23 @@ module.exports = {
   },
 
   componentDidMount: function () {
-    var tx = 489 + this.props.columnIx;
-    var ty = 148 + this.props.rowIx;
-    var polylinesId = "polylines-" + tx + "-" + ty;
-    var storedPolylines = sessionStorage.getItem(polylinesId);
-    if (storedPolylines) {
-      var polylines = parseJson(storedPolylines) || [];
-      this.setState({
-          polylines: polylines
-        });
-    } else {
-      http.sendRequest("GET", "/json/" + polylinesId + ".json", null, function (receivedPolylines, err) {
-          if (receivedPolylines && !err) {
-            var polylines = parseJson(receivedPolylines) || [];
-            sessionStorage.setItem(polylinesId, receivedPolylines);
-            if (this.isMounted()) {
-              this.setState({
-                  polylines: polylines
-                });
-            }
-          }
-        }.bind(this));
-    }
-    var pointsId = "points-" + tx + "-" + ty;
-    var storedPoints = sessionStorage.getItem(pointsId);
-    if (storedPoints) {
-      var points = parseJson(storedPoints) || [];
-      this.setState({
-          points: points
-        });
-    } else {
-      http.sendRequest("GET", "/json/" + pointsId + ".json", null, function (receivedPoints, err) {
-          if (receivedPoints && !err) {
-            var points = parseJson(receivedPoints) || [];
-            sessionStorage.setItem(pointsId, receivedPoints);
-            if (this.isMounted()) {
-              this.setState({
-                  points: points
-                });
-            }
-          }
-        }.bind(this));
-    }
+    var tx = TX_START + this.props.columnIx;
+    var ty = TY_END - this.props.rowIx;
+    var tileId = "tile-" + tx + "-" + ty;
+    http.sendRequest("GET", "/json/" + tileId + ".json.gz", null, function (receivedTile, err) {
+        if (this.isMounted() && receivedTile && !err) {
+          var tile = parseJson(receivedTile) || {};
+          this.setState({
+              polylines: tile.polylines || [],
+              points:    tile.points || []
+            });
+        }
+      }.bind(this));
   },
 
   render: function () {
-    var tx = 489 + this.props.columnIx;
-    var ty = 148 + this.props.rowIx;
+    var tx = TX_START + this.props.columnIx;
+    var ty = TY_END - this.props.rowIx;
     var dx = tx * 1000;
     var dy = ty * 1000;
     return (
@@ -106,7 +81,7 @@ module.exports = {
                   key: "l-" + polylineIx,
                   points: polyline.map(function (point) {
                       return (
-                        (point.x - dx) + "," + (point.y - dy));
+                        (point.x - dx) + "," + (1000 - (point.y - dy)));
                     }).join(" "),
                   fill: "none",
                   stroke: "#999",
@@ -118,7 +93,7 @@ module.exports = {
               r.circle({
                   key: "n-" + pointIx,
                   cx: point.x - dx,
-                  cy: point.y - dy,
+                  cy: 1000 - (point.y - dy),
                   r: 2,
                   fill: "#fff",
                   stroke: "#999",

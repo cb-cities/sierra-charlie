@@ -8,9 +8,9 @@ module.exports = {
   render: function () {
     return (
       scroller({
-          columnCount: 89,
+          columnCount: 86,
           columnWidth: 1000,
-          rowCount: 56,
+          rowCount: 65,
           rowHeight: 1000,
           cellChild: dummy
         }));
