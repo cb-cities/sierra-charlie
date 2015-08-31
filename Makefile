@@ -91,10 +91,26 @@ define pub-copy-optimized-css
 endef
 
 
+# PureScript files
+# ----------------
+
+purs-files          := $(call find-files,scripts,*.purs)
+purs-dependencies   := $(call find-files,bower_components,*.purs)
+compiled-purs-files := $(addprefix out/,$(patsubst %.purs,%.js,$(purs-files)))
+
+define compile-purs
+  psc-make --output out/scripts $(purs-dependencies) $(purs-files)
+endef
+
+out/scripts/%.js : scripts/%.purs ; mkdir -p $(@D) && $(compile-purs)
+
+compiled-purs-files : $(compiled-purs-files)
+
+
 # Scripts
 # -------
 
-scripts := scripts/main.js $(call find-files,scripts,*.js)
+scripts := scripts/main.js $(call find-files,scripts,*.js) $(compiled-purs-files)
 
 dev-webpack-flags := --debug --output-pathinfo
 pub-webpack-flags := --optimize-minimize --optimize-occurence-order

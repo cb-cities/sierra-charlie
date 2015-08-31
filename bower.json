@@ -1,0 +1,14 @@
+{
+  "name": "clipping",
+  "version": "1.0.0",
+  "authors": [
+    "Miëtek Bak <hello@mietek.io>"
+  ],
+  "description": "TODO",
+  "license": "MIT X11",
+  "devDependencies": {
+    "purescript-math": "^0.1.0",
+    "purescript-maybe": "^0.2.2",
+    "purescript-arrays": "0.3.7"
+  }
+}

@@ -1,9 +1,10 @@
 'use strict';
 
 var r = require('../common/react');
-var sorted2d = require('../common/sorted2d');
-var vec = require('../common/vector');
+var vec = require('Vector');
+var clip = require('Clip');
 var seg = require('../common/segment');
+var sorted2d = require('../common/sorted2d');
 
 var a = require('../actions');
 var cityStore = require('../stores/city-store');
@@ -135,7 +136,7 @@ var _ = {
           cy:          node.y,
           r:           2,
           fill:        '#fff',
-          stroke:      isSelected ? orange : (isRelated ? '#999' : '#ccc'),
+          stroke:      isSelected ? orange : (isRelated ? '#666' : '#ccc'),
           strokeWidth: 2,
           onClick:     function (event) {
             event.stopPropagation();
@@ -214,7 +215,7 @@ var _ = {
     var projectedNode = (
       this.state.selectedNode ||
       seg.proj(boundedNode, this.state.selectedEdge));
-    var distance = Math.ceil(vec.dist(boundedNode, projectedNode));
+    var distance = Math.ceil(vec.dist(boundedNode)(projectedNode));
     return [
       this.renderBoundedNodeProjection(boundedNode, projectedNode),
       this.renderBoundedNodeDistance(boundedNode, distance)];
@@ -290,6 +291,31 @@ var _ = {
         'N' + this.state.selectedNode.id)];
   },
 
+  renderClippedEdge: function (edge, edgeIx) {
+    return (
+      r.line({
+          key:    'ce' + edgeIx,
+          x1:     edge.x1,
+          y1:     edge.y1,
+          x2:     edge.x2,
+          y2:     edge.y2,
+          stroke: '#666'
+        }));
+  },
+
+  renderClippedNode: function (node, nodeIx) {
+    return (
+      r.circle({
+          key:         'cn' + nodeIx,
+          cx:          node.x,
+          cy:          node.y,
+          r:           2,
+          fill:        '#fff',
+          stroke:      '#666',
+          strokeWidth: 2
+        }));
+  },
+
   render: function () {
     var viewBox = (
       this.state.bounds && [
@@ -300,19 +326,31 @@ var _ = {
     var hasSelection = this.state.selectedNode || this.state.selectedEdge;
     var bounds = (
       (this.state.selectedNode &&
-        vec.bound(this.state.selectedNode, 10)) ||
+        vec.bound(this.state.selectedNode)(10)) ||
       (this.state.selectedEdge &&
         seg.bound(this.state.selectedEdge, 10)));
-    var boundedNodes = (
-      bounds &&
-      sorted2d.between(this.state.nodes, bounds.p, bounds.q).filter(function (node) {
-          return (
-            (!this.state.selectedNode ||
-              node !== this.state.selectedNode) &&
-            (!this.state.selectedEdge || (
-              node !== this.state.selectedEdge.p &&
-              node !== this.state.selectedEdge.q)));
-        }.bind(this)));
+    var clipBounds = (
+      bounds && {
+          xleft:   bounds.p.x,
+          ytop:    bounds.q.y,
+          xright:  bounds.q.x,
+          ybottom: bounds.p.y
+        });
+    var clipEdges = (
+      bounds && this.state.edges.filter(function (edge) {
+          return edge !== this.state.selectedEdge;
+        }.bind(this)).map(function (edge) {
+          return {
+            x1: edge.p.x,
+            y1: edge.p.y,
+            x2: edge.q.x,
+            y2: edge.q.y
+          };
+        }));
+    var clippedEdges = (
+      bounds && clip.clipAll(clipBounds)(clipEdges));
+    var clippedNodes = (
+      bounds && sorted2d.between(this.state.nodes, bounds.p, bounds.q));
     return (
       r.div({
           className: 'main-view' + (hasSelection ? ' clickable' : ''),
@@ -330,19 +368,17 @@ var _ = {
           this.state.edges.map(this.renderEdgeShadow),
           this.state.nodes.map(this.renderNodeShadow),
           this.state.edges.map(this.renderEdge),
+          !clippedEdges ? null :
+            clippedEdges.map(this.renderClippedEdge),
           !this.state.selectedEdge ? null :
             this.renderEdge(this.state.selectedEdge, null, null, true),
           this.state.nodes.map(this.renderNode),
+          !clippedNodes ? null :
+            clippedNodes.map(this.renderClippedNode),
           !this.state.selectedNode ? null :
             this.renderNode(this.state.selectedNode, null, null, true),
           !bounds ? null :
-            this.renderBounds(bounds),
-          !this.state.selectedEdge ? null :
-            this.renderSelectedEdgeInfo(bounds),
-          !this.state.selectedNode ? null :
-            this.renderSelectedNodeInfo(bounds),
-          !boundedNodes ? null :
-            boundedNodes.map(this.renderBoundedNode))));
+            this.renderBounds(bounds))));
   }
 };
 

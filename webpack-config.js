@@ -1,9 +1,10 @@
 module.exports = {
   resolve: {
     modulesDirectories: [
-      'scripts',
       'bower_components',
-      'node_modules'
+      'node_modules',
+      'scripts',
+      'out/scripts'
     ]
   }
 };

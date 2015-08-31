@@ -1,12 +1,12 @@
 {
-  "name": "sierra-charlie",
+  "name": "clipping",
   "version": "1.0.0",
   "description": "TODO",
   "author": "Miëtek Bak <hello@mietek.io>",
   "license": "MIT X11",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mietek/sierra-charlie.git"
+    "url": "https://github.com/mietek/clipping.git"
   },
   "dependencies": {
     "flux": "^2.0.1",

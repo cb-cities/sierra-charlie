@@ -1,5 +1,5 @@
-_sierra-charlie_
-================
+_clipping_
+==========
 
 TODO
 
