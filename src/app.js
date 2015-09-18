@@ -53,7 +53,7 @@ function pointToLocalY(py, zoomRatio) {
 module.exports = {
   getInitialState: function () {
     return {
-      zoom: 10
+      zoomLevel: 20
     };
   },
 
@@ -70,7 +70,7 @@ module.exports = {
     this.startLoader();
     this.prepareRenderer();
     this.computeVisibleTiles();
-    // this.forceQueueAllTiles();
+    this.forceQueueAllTiles();
     this.loadVisibleTiles();
     this.paint();
   },
@@ -109,7 +109,7 @@ module.exports = {
 
 
   computeVisibleTiles: function () {
-    var zoomRatio = 1 / this.state.zoom;
+    var zoomRatio = 1 / this.state.zoomLevel;
     this.fvlx = pointToLocalX(this.scrollLeft, zoomRatio);
     this.lvlx = pointToLocalX(this.scrollLeft + this.clientWidth - 1, zoomRatio);
     this.fvly = pointToLocalY(this.scrollTop, zoomRatio);
@@ -139,13 +139,13 @@ module.exports = {
     var txyz = imageId.split("-");
     var tx = parseInt(txyz[0]);
     var ty = parseInt(txyz[1]);
-    var zoom = parseInt(txyz[2]);
-    return this.isImageVisibleSplit(tx, ty, zoom);
+    var zoomLevel = parseInt(txyz[2]);
+    return this.isImageVisibleSplit(tx, ty, zoomLevel);
   },
 
-  isImageVisibleSplit: function (tx, ty, zoom) {
+  isImageVisibleSplit: function (tx, ty, zoomLevel) {
     return (
-      zoom === this.state.zoom &&
+      zoomLevel === this.state.zoomLevel &&
       this.isTileVisibleSplit(tx, ty));
   },
 
@@ -188,7 +188,7 @@ module.exports = {
 
   loadVisibleTiles: function () {
     clearTimeout(this.pendingLoad);
-    this.pendingLoad = setTimeout(this.loadVisibleTilesNow, 100); // TODO: timeout?
+    this.pendingLoad = setTimeout(this.loadVisibleTilesNow, 0);
   },
 
   loadVisibleTilesNow: function () { // TODO: split in half
@@ -201,7 +201,7 @@ module.exports = {
               tileId:  tileId
             });
         } else { // TODO: split off
-          var imageId = tileId + "-" + this.state.zoom;
+          var imageId = tileId + "-" + this.state.zoomLevel;
           if (!(imageId in this.imageData)) {
             this.queueImage(imageId);
           }
@@ -217,9 +217,10 @@ module.exports = {
   tileDidLoad: function (tileId, tileData) {
     this.tileData[tileId] = tileData;
     if (this.isTileVisible(tileId)) {
-      var imageId = tileId + "-" + this.state.zoom;
+      var imageId = tileId + "-" + this.state.zoomLevel;
       this.queueImage(imageId);
-      setTimeout(this.renderNextImage, 0); // TODO: timeout?
+      this.renderNextImage();
+      // setTimeout(this.renderNextImage, 0); // TODO: timeout?
     }
   },
 
@@ -256,26 +257,26 @@ module.exports = {
     var imageData = this.renderImage(pendingImageId);
     this.imageData[pendingImageId] = imageData;
     this.paint();
-    setTimeout(this.renderNextImage, 0); // TODO: timeout
+    setTimeout(this.renderNextImage, 0);
   },
 
   renderImage: function (imageId) {
     var txyz = imageId.split("-"); // TODO: refactor
     var tx = parseInt(txyz[0]);
     var ty = parseInt(txyz[1]);
-    var zoom = parseInt(txyz[2]);
+    var zoomLevel = parseInt(txyz[2]);
     var tileId = tx + "-" + ty;
     var tileData = this.tileData[tileId];
-    var zoomRatio = 1 / zoom;
+    var zoomRatio = 1 / zoomLevel;
     var canvas = document.createElement("canvas");
-    canvas.width = (TILE_SIZE / zoom) * window.devicePixelRatio;
-    canvas.height = (TILE_SIZE / zoom) * window.devicePixelRatio;
+    canvas.width = TILE_SIZE * zoomRatio * window.devicePixelRatio;
+    canvas.height = TILE_SIZE * zoomRatio * window.devicePixelRatio;
     var c = canvas.getContext("2d");
     c.scale(zoomRatio * window.devicePixelRatio, zoomRatio * window.devicePixelRatio);
     c.translate(-(tx * TILE_SIZE), -(ty * TILE_SIZE));
     c.strokeStyle = ROAD_LINK_COLOR;
     c.fillStyle = ROAD_NODE_COLOR;
-    c.lineWidth = ROAD_LINK_SCALE * zoom;
+    c.lineWidth = ROAD_LINK_SCALE * zoomLevel;
     c.globalCompositeOperation = "screen";
     for (var i = 0; i < tileData.roadLinks.length; i++) {
       var ps = tileData.roadLinks[i].ps;
@@ -286,7 +287,7 @@ module.exports = {
       }
       c.stroke();
     }
-    var rectSize = ROAD_NODE_SCALE * zoom;
+    var rectSize = ROAD_NODE_SCALE * zoomLevel;
     for (var i = 0; i < tileData.roadNodes.length; i++) {
       var p = tileData.roadNodes[i].p;
       c.fillRect(p.x - rectSize, p.y - rectSize, rectSize * 2, rectSize * 2);
@@ -305,7 +306,7 @@ module.exports = {
   renderVisibleImagesNow: function () {
     for (var ty = this.lvty; ty <= this.fvty; ty++) {
       for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
-        var imageId = tx + "-" + ty + "-" + this.state.zoom;
+        var imageId = tx + "-" + ty + "-" + this.state.zoomLevel;
         if (!(imageId in this.imageData)) {
           this.queueImage(imageId);
         }
@@ -340,7 +341,7 @@ module.exports = {
     c.scale(window.devicePixelRatio, window.devicePixelRatio);
     c.scale(zoomRatio, -zoomRatio);
     c.translate(-(FIRST_TILE_X * TILE_SIZE), -(FIRST_TILE_Y * TILE_SIZE));
-    c.translate(-(this.scrollLeft / zoomRatio), -(TILE_Y_COUNT * TILE_SIZE - (this.scrollTop / zoomRatio)));
+    c.translate(-(this.scrollLeft * this.state.zoomLevel), -(TILE_Y_COUNT * TILE_SIZE - (this.scrollTop * this.state.zoomLevel)));
     this.paintTileContents(c);
     this.pendingPaint = false;
   },
@@ -361,7 +362,7 @@ module.exports = {
     c.fillRect(0, 0, width, height);
     c.fillStyle = "#333";
     c.strokeStyle = "#333";
-    c.lineWidth = this.state.zoom;
+    c.lineWidth = this.state.zoomLevel;
     c.font = '10px "Helvetica Neue", Helvetica, Arial, sans-serif';
     c.textAlign = "left";
     c.textBaseline = "top";
@@ -373,7 +374,7 @@ module.exports = {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
         var tx = localToTileX(lx);
         var ty = localToTileY(ly);
-        if (this.state.zoom <= 1) {
+        if (this.state.zoomLevel <= 1) {
           c.fillText(tx + "×" + ty, lx * TILE_SIZE + 5, ly * TILE_SIZE + 5);
         }
         c.strokeRect(lx * TILE_SIZE, ly * TILE_SIZE, TILE_SIZE, TILE_SIZE);
@@ -396,7 +397,7 @@ module.exports = {
   paintTileContents: function (c) {
     for (var ty = this.lvty; ty <= this.fvty; ty++) {
       for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
-        var imageId = tx + "-" + ty + "-" + this.state.zoom;
+        var imageId = tx + "-" + ty + "-" + this.state.zoomLevel;
         if (imageId in this.imageData) {
           c.drawImage(this.imageData[imageId], tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         }
@@ -410,11 +411,11 @@ module.exports = {
     // console.log("keyDown", event.keyCode);
     if (event.keyCode >= 49 && event.keyCode <= 58) {
       this.setState({
-          zoom: ZOOM_LEVELS[event.keyCode - 49]
+          zoomLevel: ZOOM_LEVELS[event.keyCode - 49]
         });
     } else if (event.keyCode === 48) {
       this.setState({
-          zoom: ZOOM_LEVELS[event.keyCode - 48 + 9]
+          zoomLevel: ZOOM_LEVELS[event.keyCode - 48 + 9]
         });
     }
   },
@@ -424,7 +425,7 @@ module.exports = {
   },
 
   render: function () {
-    var zoomRatio = 1 / this.state.zoom;
+    var zoomRatio = 1 / this.state.zoomLevel;
     return (
       r.div("map-frame",
         r.canvas("map-picture"),

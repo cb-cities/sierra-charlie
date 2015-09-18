@@ -6,7 +6,7 @@ var origin;
 var tileQueue = [];
 var queuedTiles = {};
 var pendingTileId;
-var loadedTiles = {}; // TODO: necessary?
+var loadedTiles = {};
 
 function tileUrl(tileId) {
   return (
@@ -27,7 +27,7 @@ function forceQueueAllTiles(ftx, ltx, fty, lty) {
 }
 
 function queueTile(tileId) {
-  if (tileId === pendingTileId || tileId in loadedTiles) { // TODO: loaded tiles necessary?
+  if (tileId === pendingTileId || tileId in loadedTiles) {
     return;
   }
   tileQueue.push(tileId);
@@ -63,7 +63,7 @@ function loadNextTile() {
           });
       }
       pendingTileId = null;
-      loadNextTile(); // TODO: setTimeout?
+      loadNextTile();
     });
 }
 
