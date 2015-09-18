@@ -237,14 +237,13 @@ module.exports = {
         break;
       }
     }
-    if (!pendingImageId) {
-      return;
+    if (pendingImageId) {
+      var imageData = this.renderImage(pendingImageId);
+      this.imageData[pendingImageId] = imageData;
+      this.paint();
+      clearTimeout(this.pendingRender);
+      this.pendingRender = setTimeout(this.renderNextImage, 0);
     }
-    var imageData = this.renderImage(pendingImageId);
-    this.imageData[pendingImageId] = imageData;
-    this.paint();
-    clearTimeout(this.pendingRender);
-    this.pendingRender = setTimeout(this.renderNextImage, 0);
   },
 
   renderImage: function (imageId) {
@@ -286,11 +285,10 @@ module.exports = {
 
 
   paint: function () {
-    if (this.pendingPaint) {
-      return;
+    if (!this.pendingPaint) {
+      this.pendingPaint = true;
+      window.requestAnimationFrame(this.paintNow);
     }
-    this.pendingPaint = true;
-    window.requestAnimationFrame(this.paintNow);
   },
 
   paintNow: function () {

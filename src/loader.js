@@ -30,11 +30,10 @@ function forceQueueAllTiles(ftx, ltx, fty, lty) {
 }
 
 function queueTile(tileId) {
-  if (tileId === pendingTileId || tileId in loadedTiles) {
-    return;
+  if (tileId !== pendingTileId && !(tileId in loadedTiles)) {
+    tileQueue.push(tileId);
+    queuedTiles[tileId] = true;
   }
-  tileQueue.push(tileId);
-  queuedTiles[tileId] = true;
 }
 
 function queueTiles(tileIds) {
@@ -44,36 +43,34 @@ function queueTiles(tileIds) {
 }
 
 function loadNextTile() {
-  if (pendingTileId) {
-    return;
-  }
-  while (tileQueue.length) {
-    var tileId = tileQueue.pop();
-    delete queuedTiles[tileId];
-    if (!(tileId in loadedTiles)) {
-      pendingTileId = tileId;
-      break;
+  if (!pendingTileId) {
+    while (tileQueue.length) {
+      var tileId = tileQueue.pop();
+      delete queuedTiles[tileId];
+      if (!(tileId in loadedTiles)) {
+        pendingTileId = tileId;
+        break;
+      }
+    }
+    if (pendingTileId) {
+      http.getJsonResource(tileUrl(pendingTileId), function (res, err) {
+          if (!err || err.type === "clientError") {
+            loadedTiles[pendingTileId] = true;
+            res = res || {};
+            postMessage({
+                message:  "tileDidLoad",
+                tileId:   pendingTileId,
+                tileData: {
+                  roadLinks: res.roadLinks || [],
+                  roadNodes: res.roadNodes || []
+                }
+              });
+          }
+          pendingTileId = null;
+          loadNextTile();
+        });
     }
   }
-  if (!pendingTileId) {
-    return;
-  }
-  http.getJsonResource(tileUrl(pendingTileId), function (res, err) {
-      if (!err || err.type === "clientError") {
-        loadedTiles[pendingTileId] = true;
-        res = res || {};
-        postMessage({
-            message:  "tileDidLoad",
-            tileId:   pendingTileId,
-            tileData: {
-              roadLinks: res.roadLinks || [],
-              roadNodes: res.roadNodes || []
-            }
-          });
-      }
-      pendingTileId = null;
-      loadNextTile();
-    });
 }
 
 onmessage = function (event) {
