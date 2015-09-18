@@ -13,9 +13,6 @@ app.get("/", function (req, res) {
 app.get("/bundle.js", function (req, res) {
     res.sendFile(__dirname + "/bundle.js");
   });
-app.get("/ccf8dc5c2468329586ba.worker.js", function (req, res) {
-    res.sendFile(__dirname + "/ccf8dc5c2468329586ba.worker.js");
-  });
 app.use("/json", express.static("json", {
     maxAge: "1h",
     setHeaders: function (res, path, stat) {
