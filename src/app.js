@@ -59,17 +59,17 @@ module.exports = {
   },
 
   componentDidMount: function () {
-    this.node = r.domNode(this);
-    this.canvas = this.node.firstChild;
-    this.scrollLeft = this.node.scrollLeft;
-    this.scrollTop = this.node.scrollTop;
-    this.clientWidth = this.node.clientWidth;
+    this.node         = r.domNode(this);
+    this.canvas       = this.node.firstChild;
+    this.scrollLeft   = this.node.scrollLeft;
+    this.scrollTop    = this.node.scrollTop;
+    this.clientWidth  = this.node.clientWidth;
     this.clientHeight = this.node.clientHeight;
     this.node.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
-    this.tileData = {};
-    this.imageData = {};
+    this.tileData   = {};
+    this.imageData  = {};
     this.imageQueue = [];
     this.startLoader();
     this.computeVisibleTiles();
@@ -93,14 +93,14 @@ module.exports = {
 
   onScroll: function (event) {
     this.scrollLeft = this.node.scrollLeft;
-    this.scrollTop = this.node.scrollTop;
+    this.scrollTop  = this.node.scrollTop;
     this.computeVisibleTiles();
     this.loadVisibleTiles();
     this.paint();
   },
 
   onResize: function (event) {
-    this.clientWidth = this.node.clientWidth;
+    this.clientWidth  = this.node.clientWidth;
     this.clientHeight = this.node.clientHeight;
     this.computeVisibleTiles();
     this.loadVisibleTiles();
