@@ -1,6 +1,7 @@
 "use strict";
 
 var http = require("http-request-wrapper");
+var MISSING_TILE_IDS = require("./missing-tile-ids.js");
 
 var origin;
 var tileQueue = [];
@@ -20,8 +21,10 @@ function forceQueueAllTiles(ftx, ltx, fty, lty) {
   for (var ty = fty; ty <= lty; ty++) {
     for (var tx = ltx; tx >= ftx; tx--) {
       var tileId = tx + "-" + ty;
-      tileQueue.push(tileId);
-      queuedTiles[tileId] = true;
+      if (!(tileId in MISSING_TILE_IDS)) {
+        tileQueue.push(tileId);
+        queuedTiles[tileId] = true;
+      }
     }
   }
 }

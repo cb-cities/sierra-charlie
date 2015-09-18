@@ -2,6 +2,7 @@
 
 var r = require("react-wrapper");
 var Loader = require("worker?inline!./loader");
+var MISSING_TILE_IDS = require("./missing-tile-ids.js");
 
 var ROAD_LINK_COLOR = "#f63";
 var ROAD_NODE_COLOR = "#f93";
@@ -67,8 +68,10 @@ module.exports = {
     this.node.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
+    this.tileData = {};
+    this.imageData = {};
+    this.imageQueue = [];
     this.startLoader();
-    this.prepareRenderer();
     this.computeVisibleTiles();
     this.forceQueueAllTiles();
     this.loadVisibleTiles();
@@ -154,7 +157,6 @@ module.exports = {
 
 
   startLoader: function () {
-    this.tileData = {};
     this.loader = new Loader();
     this.loader.addEventListener("message", this.onMessage);
     this.loader.postMessage({
@@ -191,19 +193,21 @@ module.exports = {
     this.pendingLoad = setTimeout(this.loadVisibleTilesNow, 0);
   },
 
-  loadVisibleTilesNow: function () { // TODO: split in half
+  loadVisibleTilesNow: function () {
     for (var ty = this.lvty; ty <= this.fvty; ty++) {
       for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
         var tileId = tx + "-" + ty;
-        if (!(tileId in this.tileData)) {
-          this.loader.postMessage({ // TODO: post one message
-              message: "queueTile",
-              tileId:  tileId
-            });
-        } else { // TODO: split off
-          var imageId = tileId + "-" + this.state.zoomLevel;
-          if (!(imageId in this.imageData)) {
-            this.queueImage(imageId);
+        if (!(tileId in MISSING_TILE_IDS)) {
+          if (!(tileId in this.tileData)) {
+            this.loader.postMessage({ // TODO: post one message
+                message: "queueTile",
+                tileId:  tileId
+              });
+          } else {
+            var imageId = tileId + "-" + this.state.zoomLevel;
+            if (!(imageId in this.imageData)) {
+              this.imageQueue.push(imageId);
+            }
           }
         }
       }
@@ -218,34 +222,17 @@ module.exports = {
     this.tileData[tileId] = tileData;
     if (this.isTileVisible(tileId)) {
       var imageId = tileId + "-" + this.state.zoomLevel;
-      this.queueImage(imageId);
+      this.imageQueue.push(imageId);
       this.renderNextImage();
-      // setTimeout(this.renderNextImage, 0); // TODO: timeout?
     }
   },
 
 
-
-
-  prepareRenderer: function () {
-    this.imageData = {};
-    this.imageQueue = [];
-    this.queuedImages = {};
-  },
-
-  queueImage: function (imageId) {
-    if (imageId in this.imageData) {
-      return;
-    }
-    this.imageQueue.push(imageId);
-    this.queuedImages[imageId] = true;
-  },
 
   renderNextImage: function () {
     var pendingImageId;
     while (this.imageQueue.length) {
       var imageId = this.imageQueue.pop();
-      delete this.queuedImages[imageId];
       if (!(imageId in this.imageData) && this.isImageVisible(imageId)) {
         pendingImageId = imageId;
         break;
@@ -294,30 +281,6 @@ module.exports = {
     }
     return canvas;
   },
-
-
-/*
-
-  renderVisibleImages: function () {
-    clearTimeout(this.pendingRender);
-    this.pendingRender = setTimeout(this.renderVisibleImagesNow, 100); // TODO: timeout?
-  },
-
-  renderVisibleImagesNow: function () {
-    for (var ty = this.lvty; ty <= this.fvty; ty++) {
-      for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
-        var imageId = tx + "-" + ty + "-" + this.state.zoomLevel;
-        if (!(imageId in this.imageData)) {
-          this.queueImage(imageId);
-        }
-      }
-    }
-    this.renderNextImage();
-  },
-*/
-
-
-
 
 
 

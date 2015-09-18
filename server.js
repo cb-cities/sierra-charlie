@@ -24,6 +24,9 @@ app.use("/json", express.static("json", {
       }
     }
   }));
+app.get("/index.appcache", function (req, res) {
+    res.sendFile(__dirname + "/index.appcache");
+  });
 app.listen(3000, "0.0.0.0", function (err) {
     console.log(err ? err : "Listening at http://0.0.0.0:3000");
   });
