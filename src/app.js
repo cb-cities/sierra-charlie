@@ -194,15 +194,13 @@ module.exports = {
   },
 
   loadVisibleTilesNow: function () {
+    var tileIds = [];
     for (var ty = this.lvty; ty <= this.fvty; ty++) {
       for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
         var tileId = tx + "-" + ty;
         if (!(tileId in MISSING_TILE_IDS)) {
           if (!(tileId in this.tileData)) {
-            this.loader.postMessage({ // TODO: post one message
-                message: "queueTile",
-                tileId:  tileId
-              });
+            tileIds.push(tileId);
           } else {
             var imageId = tileId + "-" + this.state.zoomLevel;
             if (!(imageId in this.imageData)) {
@@ -213,7 +211,8 @@ module.exports = {
       }
     }
     this.loader.postMessage({
-        message: "loadTiles"
+        message: "loadTiles",
+        tileIds: tileIds
       });
     this.renderNextImage();
   },
@@ -244,11 +243,12 @@ module.exports = {
     var imageData = this.renderImage(pendingImageId);
     this.imageData[pendingImageId] = imageData;
     this.paint();
-    setTimeout(this.renderNextImage, 0);
+    clearTimeout(this.pendingRender);
+    this.pendingRender = setTimeout(this.renderNextImage, 0);
   },
 
   renderImage: function (imageId) {
-    var txyz = imageId.split("-"); // TODO: refactor
+    var txyz = imageId.split("-");
     var tx = parseInt(txyz[0]);
     var ty = parseInt(txyz[1]);
     var zoomLevel = parseInt(txyz[2]);

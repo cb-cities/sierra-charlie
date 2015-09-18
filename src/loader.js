@@ -37,6 +37,12 @@ function queueTile(tileId) {
   queuedTiles[tileId] = true;
 }
 
+function queueTiles(tileIds) {
+  for (var i = 0; i < tileIds.length; i++) {
+    queueTile(tileIds[i]);
+  }
+}
+
 function loadNextTile() {
   if (pendingTileId) {
     return;
@@ -78,10 +84,8 @@ onmessage = function (event) {
     case "forceQueueAllTiles":
       forceQueueAllTiles(event.data.ftx, event.data.ltx, event.data.fty, event.data.lty);
       break;
-    case "queueTile":
-      queueTile(event.data.tileId);
-      break;
     case "loadTiles":
+      queueTiles(event.data.tileIds);
       loadNextTile();
       break;
   }
