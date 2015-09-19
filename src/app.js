@@ -328,7 +328,7 @@ module.exports = {
     c.textAlign    = "left";
     c.textBaseline = "top";
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
-      for (var ly = this.fvly; ly <= this.lvly; ly++) {
+    for (var ly = this.fvly; ly <= this.lvly; ly++) {
         var tx = localToTileX(lx);
         var ty = localToTileY(ly);
         if (zoomLevel < 8) {
@@ -355,20 +355,15 @@ module.exports = {
     var zoomLevel = this.state.zoomLevel;
     var zoomRatio = 1 / zoomLevel;
     c.translate(-this.scrollLeft, -this.scrollTop);
-    c.scale(IMAGE_SIZE / TILE_SIZE * zoomRatio, -IMAGE_SIZE / TILE_SIZE * zoomRatio);
-    c.translate(-FIRST_TILE_X * TILE_SIZE, -(FIRST_TILE_Y + TILE_Y_COUNT) * TILE_SIZE);
-    // c.scale(zoomRatio, -zoomRatio);
-    // c.translate(-(this.scrollLeft * zoomLevel), -(TILE_Y_COUNT * TILE_SIZE - (this.scrollTop * zoomLevel)));
-    for (var ty = this.lvty; ty <= this.fvty; ty++) {
-      for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
-    // for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
-    //   for (var ly = this.fvly; ly <= this.lvly; ly++) {
-    //     var tx = localToTileX(lx);
-    //     var ty = localToTileY(ly);
+    c.scale(zoomRatio, -zoomRatio  );
+    c.translate(0, -TILE_Y_COUNT * IMAGE_SIZE);
+    for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
+      for (var ly = this.fvly; ly <= this.lvly; ly++) {
+        var tx = localToTileX(lx);
+        var ty = localToTileY(ly);
         var imageId = tx + "-" + ty + "-" + this.state.zoomLevel;
         if (imageId in this.imageData) {
-          c.drawImage(this.imageData[imageId], tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-          // c.drawImage(this.imageData[imageId], lx * IMAGE_SIZE, ly * IMAGE_SIZE, IMAGE_SIZE, -IMAGE_SIZE);
+          c.drawImage(this.imageData[imageId], lx * IMAGE_SIZE, (TILE_Y_COUNT - ly - 1) * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
         }
       }
     }
