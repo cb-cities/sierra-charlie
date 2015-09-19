@@ -6,11 +6,9 @@ var MISSING_TILE_IDS = require("./missing-tile-ids.js");
 
 var ROAD_LINK_COLOR = "#f63";
 var ROAD_NODE_COLOR = "#f93";
-var ROAD_LINK_SCALE = 0.5;
-var ROAD_NODE_SCALE = 1.25;
 
 var TILE_SIZE    = 1000;
-var IMAGE_SIZE   = 500;
+var IMAGE_SIZE   = 1024;
 var FIRST_TILE_X = 490;
 var LAST_TILE_X  = 572;
 var FIRST_TILE_Y = 148;
@@ -19,8 +17,6 @@ var TILE_X_COUNT = LAST_TILE_X - FIRST_TILE_X + 1;
 var TILE_Y_COUNT = LAST_TILE_Y - FIRST_TILE_Y + 1;
 // var INITIAL_TILE_X = 530;
 // var INITIAL_TILE_Y = 180;
-
-var ZOOM_LEVELS = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512];
 
 // function tileToLocalX(tx) {
 //   return tx - FIRST_TILE_X;
@@ -55,7 +51,7 @@ function pointToLocalY(py, zoomRatio) {
 module.exports = {
   getInitialState: function () {
     return {
-      zoomLevel: 20
+      zoomLevel: 8
     };
   },
 
@@ -247,6 +243,27 @@ module.exports = {
     }
   },
 
+  renderRoadLinks: function (c, zoomLevel, roadLinks) {
+    c.lineWidth = 2 * Math.sqrt(zoomLevel) * (TILE_SIZE / IMAGE_SIZE);
+    for (var i = 0; i < roadLinks.length; i++) {
+      var ps = roadLinks[i].ps;
+      c.beginPath();
+      c.moveTo(ps[0].x, ps[0].y);
+      for (var j = 1; j < ps.length; j++) {
+        c.lineTo(ps[j].x, ps[j].y);
+      }
+      c.stroke();
+    }
+  },
+
+  renderRoadNodes: function (c, zoomLevel, roadNodes) {
+    var rectSize = 4 * Math.sqrt(zoomLevel) * (TILE_SIZE / IMAGE_SIZE);
+    for (var i = 0; i < roadNodes.length; i++) {
+      var p = roadNodes[i].p;
+      c.fillRect(p.x - rectSize, p.y - rectSize, rectSize * 2, rectSize * 2);
+    }
+  },
+
   renderImage: function (imageId) {
     var txyz = imageId.split("-");
     var tx = parseInt(txyz[0]);
@@ -264,40 +281,10 @@ module.exports = {
     c.translate(-tx * TILE_SIZE, -ty * TILE_SIZE);
     c.fillStyle   = ROAD_NODE_COLOR;
     c.strokeStyle = ROAD_LINK_COLOR;
-    c.lineWidth   = ROAD_LINK_SCALE * zoomLevel;
     c.globalCompositeOperation = "screen";
-    for (var i = 0; i < tileData.roadLinks.length; i++) {
-      var ps = tileData.roadLinks[i].ps;
-      c.beginPath();
-      c.moveTo(ps[0].x, ps[0].y);
-      for (var j = 1; j < ps.length; j++) {
-        c.lineTo(ps[j].x, ps[j].y);
-      }
-      c.stroke();
-    }
-    var rectSize = ROAD_NODE_SCALE * zoomLevel;
-    for (var i = 0; i < tileData.roadNodes.length; i++) {
-      var p = tileData.roadNodes[i].p;
-      c.fillRect(p.x - rectSize, p.y - rectSize, rectSize * 2, rectSize * 2);
-    }
+    this.renderRoadLinks(c, zoomLevel, tileData.roadLinks);
+    this.renderRoadNodes(c, zoomLevel, tileData.roadNodes);
     return canvas;
-  },
-
-  paintTileContents: function (c) {
-    var zoomLevel = this.state.zoomLevel;
-    var zoomRatio = 1 / zoomLevel;
-    c.translate(-this.scrollLeft + 0.5, -this.scrollTop + 0.5);
-    c.scale(IMAGE_SIZE / TILE_SIZE * zoomRatio, -IMAGE_SIZE / TILE_SIZE * zoomRatio);
-    c.translate(-FIRST_TILE_X * TILE_SIZE, -(FIRST_TILE_Y + TILE_Y_COUNT) * TILE_SIZE);
-    // c.translate(-(this.scrollLeft * zoomLevel), -(TILE_Y_COUNT * TILE_SIZE - (this.scrollTop * zoomLevel)));
-    for (var ty = this.lvty; ty <= this.fvty; ty++) {
-      for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
-        var imageId = tx + "-" + ty + "-" + this.state.zoomLevel;
-        if (imageId in this.imageData) {
-          c.drawImage(this.imageData[imageId], tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        }
-      }
-    }
   },
 
 
@@ -309,6 +296,8 @@ module.exports = {
   },
 
   paintNow: function () {
+    var zoomLevel = this.state.zoomLevel;
+    var zoomRatio = 1 / zoomLevel;
     var width  = this.clientWidth * window.devicePixelRatio;
     var height = this.clientHeight * window.devicePixelRatio;
     var canvas = this.canvas;
@@ -319,30 +308,31 @@ module.exports = {
     var c = canvas.getContext("2d", {alpha: false});
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.scale(window.devicePixelRatio, window.devicePixelRatio);
+    c.save();
     c.fillStyle = "#000";
     c.fillRect(0, 0, this.clientWidth, this.clientHeight);
+    c.translate(-this.scrollLeft + 0.25, -this.scrollTop + 0.25);
+    c.scale(zoomRatio, zoomRatio);
     this.paintTileBorders(c);
+    c.restore();
     this.paintTileContents(c);
     this.pendingPaint = false;
   },
 
   paintTileBorders: function (c) {
     var zoomLevel = this.state.zoomLevel;
-    var zoomRatio = 1 / zoomLevel;
     c.fillStyle    = "#333";
     c.strokeStyle  = "#333";
-    c.lineWidth    = zoomLevel;
-    c.font         = '12px "Helvetica Neue", Helvetica, Arial, sans-serif';
+    c.lineWidth    = 0.5 * zoomLevel;
+    c.font         = 24 * Math.sqrt(zoomLevel) + 'px "HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif';
     c.textAlign    = "left";
     c.textBaseline = "top";
-    c.translate(-this.scrollLeft + 0.5, -this.scrollTop + 0.5);
-    c.scale(zoomRatio, zoomRatio);
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
         var tx = localToTileX(lx);
         var ty = localToTileY(ly);
-        if (zoomLevel <= 1) {
-          c.fillText(tx + "×" + ty, lx * IMAGE_SIZE + 8, ly * IMAGE_SIZE + 5);
+        if (zoomLevel < 8) {
+          c.fillText(tx + "×" + ty, lx * IMAGE_SIZE + 4 * Math.sqrt(zoomLevel), ly * IMAGE_SIZE);
         }
         c.strokeRect(lx * IMAGE_SIZE, ly * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
         if (tx === LAST_TILE_X) {
@@ -359,21 +349,37 @@ module.exports = {
         }
       }
     }
-    c.setTransform(1, 0, 0, 1, 0, 0);
-    c.scale(window.devicePixelRatio, window.devicePixelRatio);
   },
 
+  paintTileContents: function (c) {
+    var zoomLevel = this.state.zoomLevel;
+    var zoomRatio = 1 / zoomLevel;
+    c.translate(-this.scrollLeft, -this.scrollTop);
+    c.scale(IMAGE_SIZE / TILE_SIZE * zoomRatio, -IMAGE_SIZE / TILE_SIZE * zoomRatio);
+    c.translate(-FIRST_TILE_X * TILE_SIZE, -(FIRST_TILE_Y + TILE_Y_COUNT) * TILE_SIZE);
+    // c.scale(zoomRatio, -zoomRatio);
+    // c.translate(-(this.scrollLeft * zoomLevel), -(TILE_Y_COUNT * TILE_SIZE - (this.scrollTop * zoomLevel)));
+    for (var ty = this.lvty; ty <= this.fvty; ty++) {
+      for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
+    // for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
+    //   for (var ly = this.fvly; ly <= this.lvly; ly++) {
+    //     var tx = localToTileX(lx);
+    //     var ty = localToTileY(ly);
+        var imageId = tx + "-" + ty + "-" + this.state.zoomLevel;
+        if (imageId in this.imageData) {
+          c.drawImage(this.imageData[imageId], tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          // c.drawImage(this.imageData[imageId], lx * IMAGE_SIZE, ly * IMAGE_SIZE, IMAGE_SIZE, -IMAGE_SIZE);
+        }
+      }
+    }
+  },
 
 
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
     if (event.keyCode >= 49 && event.keyCode <= 58) {
       this.setState({
-          zoomLevel: ZOOM_LEVELS[event.keyCode - 49]
-        });
-    } else if (event.keyCode === 48) {
-      this.setState({
-          zoomLevel: ZOOM_LEVELS[event.keyCode - 48 + 9]
+          zoomLevel: 1 << (event.keyCode - 49)
         });
     }
   },
