@@ -296,8 +296,6 @@ module.exports = {
   },
 
   paintNow: function () {
-    var zoomLevel = this.state.zoomLevel;
-    var zoomRatio = 1 / zoomLevel;
     var width  = this.clientWidth * window.devicePixelRatio;
     var height = this.clientHeight * window.devicePixelRatio;
     var canvas = this.canvas;
@@ -308,54 +306,44 @@ module.exports = {
     var c = canvas.getContext("2d", {alpha: false});
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.scale(window.devicePixelRatio, window.devicePixelRatio);
-    c.save();
-    c.fillStyle = "#000";
+    c.fillStyle   = "#000";
+    c.strokeStyle = "#0f0";
     c.fillRect(0, 0, this.clientWidth, this.clientHeight);
-    c.translate(-this.scrollLeft + 0.25, -this.scrollTop + 0.25);
-    c.scale(zoomRatio, zoomRatio);
     this.paintTileBorders(c);
-    c.restore();
     this.paintTileContents(c);
     this.pendingPaint = false;
   },
 
   paintTileBorders: function (c) {
     var zoomLevel = this.state.zoomLevel;
+    var zoomRatio = 1 / zoomLevel;
+    c.save();
+    c.translate(-this.scrollLeft + 0.25, -this.scrollTop + 0.25);
+    c.scale(zoomRatio, zoomRatio);
+    c.lineWidth    = 0.5 * zoomLevel;
     c.fillStyle    = "#333";
     c.strokeStyle  = "#333";
-    c.lineWidth    = 0.5 * zoomLevel;
     c.font         = 24 * Math.sqrt(zoomLevel) + 'px "HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif';
     c.textAlign    = "left";
     c.textBaseline = "top";
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
-    for (var ly = this.fvly; ly <= this.lvly; ly++) {
+      for (var ly = this.fvly; ly <= this.lvly; ly++) {
         var tx = localToTileX(lx);
         var ty = localToTileY(ly);
         if (zoomLevel < 8) {
           c.fillText(tx + "×" + ty, lx * IMAGE_SIZE + 4 * Math.sqrt(zoomLevel), ly * IMAGE_SIZE);
         }
         c.strokeRect(lx * IMAGE_SIZE, ly * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
-        if (tx === LAST_TILE_X) {
-          c.beginPath();
-          c.moveTo((lx + 1) * IMAGE_SIZE - 1, ly * IMAGE_SIZE);
-          c.lineTo((lx + 1) * IMAGE_SIZE - 1, (ly + 1) * IMAGE_SIZE);
-          c.stroke();
-        }
-        if (ty === FIRST_TILE_Y) {
-          c.beginPath();
-          c.moveTo(lx * IMAGE_SIZE, (ly + 1) * IMAGE_SIZE - 1);
-          c.lineTo((lx + 1) * IMAGE_SIZE, (ly + 1) * IMAGE_SIZE - 1);
-          c.stroke();
-        }
       }
     }
+    c.restore();
   },
 
   paintTileContents: function (c) {
     var zoomLevel = this.state.zoomLevel;
     var zoomRatio = 1 / zoomLevel;
     c.translate(-this.scrollLeft, -this.scrollTop);
-    c.scale(zoomRatio, -zoomRatio  );
+    c.scale(zoomRatio, -zoomRatio);
     c.translate(0, -TILE_Y_COUNT * IMAGE_SIZE);
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
