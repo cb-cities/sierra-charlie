@@ -1,6 +1,5 @@
 bundle.js
 *.worker.js
-*.js.map
 node_modules
 npm-debug.log
 json

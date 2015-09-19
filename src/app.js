@@ -277,7 +277,6 @@ module.exports = {
       this.canvas.width = width;
       this.canvas.height = height;
     }
-    console.log(this.clientWidth, this.clientHeight, this.node.clientWidth, this.node.clientHeight);
     var c = this.canvas.getContext("2d", {
         alpha: false
       });
