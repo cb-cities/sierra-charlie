@@ -4,9 +4,6 @@ var r = require("react-wrapper");
 var Loader = require("worker?inline!./loader");
 var MISSING_TILE_IDS = require("./missing-tile-ids.js");
 
-var ROAD_LINK_COLOR = "#f63";
-var ROAD_NODE_COLOR = "#f93";
-
 var TILE_SIZE    = 1000;
 var IMAGE_SIZE   = 1024;
 var FIRST_TILE_X = 490;
@@ -279,8 +276,11 @@ module.exports = {
     var c = canvas.getContext("2d");
     c.scale(imageSize / TILE_SIZE, imageSize / TILE_SIZE);
     c.translate(-tx * TILE_SIZE, -ty * TILE_SIZE);
-    c.fillStyle   = ROAD_NODE_COLOR;
-    c.strokeStyle = ROAD_LINK_COLOR;
+    c.fillStyle   = "#f93";
+    c.strokeStyle = "#f63";
+    c.font         = 18 * Math.sqrt(zoomLevel) + 'px "HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif';
+    c.textAlign    = "left";
+    c.textBaseline = "top";
     c.globalCompositeOperation = "screen";
     this.renderRoadLinks(c, zoomLevel, tileData.roadLinks);
     this.renderRoadNodes(c, zoomLevel, tileData.roadNodes);
@@ -320,11 +320,11 @@ module.exports = {
     c.save();
     c.translate(-this.scrollLeft + 0.25, -this.scrollTop + 0.25);
     c.scale(zoomRatio, zoomRatio);
-    c.lineWidth    = 0.5 * zoomLevel;
-    c.fillStyle    = "#333";
-    c.strokeStyle  = "#333";
-    c.font         = 24 * Math.sqrt(zoomLevel) + 'px "HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif';
-    c.textAlign    = "left";
+    c.lineWidth   = 0.5 * zoomLevel;
+    c.fillStyle   = "#333";
+    c.strokeStyle = "#333";
+    c.font        = 24 * Math.sqrt(zoomLevel) + 'px "HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif';
+    c.textAlign   = "left";
     c.textBaseline = "top";
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
