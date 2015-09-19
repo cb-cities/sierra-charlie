@@ -1,9 +1,8 @@
 "use strict";
 
-/* global Path2D */
-
 var r = require("react-wrapper");
-var Loader = require("worker?inline!./loader.js");
+// var LoaderWorker = require("worker?inline!./loader-worker");
+var LoaderWorker = require("worker!./loader-worker");
 
 require("./app.css");
 
@@ -16,7 +15,13 @@ var LAST_TILE_Y  = 208;
 // var INITIAL_TILE_Y = 180;
 var TILE_X_COUNT = LAST_TILE_X - FIRST_TILE_X + 1;
 var TILE_Y_COUNT = LAST_TILE_Y - FIRST_TILE_Y + 1;
-var EXTRA_TILES  = 1;
+var ROAD_LINK_COLOR = "#f63";
+var ROAD_NODE_COLOR = "#f93";
+var ROAD_LINK_SCALE = 0.5;
+var ROAD_NODE_SCALE = 1.25;
+
+
+var ZOOM_LEVELS = [1, 2, 4, 5, 8, 10, 20, 25, 40, 50];
 
 function localToGlobalTileX(lx) {
   return FIRST_TILE_X + lx;
@@ -26,17 +31,13 @@ function localToGlobalTileY(ly) {
   return LAST_TILE_Y - ly;
 }
 
-function globalToLocalTileX(gx) {
-  return gx - FIRST_TILE_X;
-}
-
-function globalToLocalTileY(gy) {
-  return LAST_TILE_Y - gy;
-}
-
-function globalToTileId(gx, gy) {
-  return "tile-" + gx + "-" + gy;
-}
+// function globalToLocalTileX(gx) {
+//   return gx - FIRST_TILE_X;
+// }
+//
+// function globalToLocalTileY(gy) {
+//   return LAST_TILE_Y - gy;
+// }
 
 function deviceIndependent(n) {
   return n * window.devicePixelRatio;
@@ -50,237 +51,263 @@ function resetContextTransform(c) {
 module.exports = {
   getInitialState: function () {
     return {
-      zoomLevel: 4
+      zoomLevel: 10
     };
   },
 
   componentDidMount: function () {
-    var node = r.domNode(this);
-    this.tileData = {};
-    this.maxRoadLinkCount = 0;
-    this.maxRoadNodeCount = 0;
-    this.loader = new Loader();
-    this.loader.addEventListener("message", this.onTileLoad);
-    node.addEventListener("scroll", this.onScroll);
+    this.tileUrlBase = location.origin + "/json/";
+    this.loaderData = {};
+    this.loaderWorker = new LoaderWorker();
+    this.loaderWorker.addEventListener("message", this.onTileLoaded);
+    this.rendererData = {};
+    this.renderer_queuedReqs = {};
+    this.renderer_queuedReqIds = [];
+    this.node = r.domNode(this);
+    this.canvas = this.node.firstChild;
+    this.scrollLeft = this.node.scrollLeft;
+    this.scrollTop = this.node.scrollTop;
+    this.clientWidth = this.node.clientWidth;
+    this.clientHeight = this.node.clientHeight;
+    this.node.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
-    this.paint();
+    this.computeVisibleTiles();
+    this.requestAllTiles();
+    this.requestVisibleTiles();
+    this.requestPaint();
+  },
+
+  renderer_queueRequest: function (req) {
+    if (req.id in this.rendererData) {
+      return;
+    }
+    this.renderer_queuedReqs[req.id] = req;
+    this.renderer_queuedReqIds.push(req.id);
+  },
+
+  renderer_performNextRequest: function () {
+    var reqId;
+    var req;
+    while (true) {
+      reqId = this.renderer_queuedReqIds.pop();
+      if (!reqId) {
+        return;
+      }
+      req = this.renderer_queuedReqs[reqId];
+      if (!req) {
+        return;
+      }
+      this.renderer_queuedReqs[reqId] = undefined;
+      if (!(req.id in this.rendererData)) {
+        if (this.isTileVisible(req.tile.gx, req.tile.gy, req.zoomLevel)) {
+          break;
+        }
+      }
+    }
+    var canvas = this.renderImageCanvas(req.tile, req.zoomLevel);
+    var image = {
+      tile: req.tile,
+      zoomLevel: req.zoomLevel,
+      id: req.id,
+      canvas: canvas
+    };
+    this.rendererData[req.id] = image;
+    this.requestPaint();
+    setTimeout(this.renderer_performNextRequest, 0);
   },
 
   componentWillUnmount: function () {
-    var node = r.domNode(this);
-    this.loader.removeEventListener("message", this.onTileLoad);
-    this.loader.terminate();
-    node.removeEventListener("scroll", this.onScroll);
+    this.loaderWorker.terminate();
+    this.loaderWorker.removeEventListener("message", this.onTileLoaded);
+    this.node.removeEventListener("scroll", this.onScroll);
     removeEventListener("resize", this.onResize);
     removeEventListener("keydown", this.onKeyDown);
   },
 
   componentDidUpdate: function () {
-    window.requestAnimationFrame(this.paint);
+    this.computeVisibleTiles();
+    this.requestVisibleTiles();
+    this.requestPaint();
   },
 
-  loadVisibleTiles: function (v) {
-    var firstColumn = (
-      Math.max(
-        localToGlobalTileX(v.firstColumn - EXTRA_TILES),
-        FIRST_TILE_X));
-    var lastColumn = (
-      Math.min(
-        localToGlobalTileX(v.lastColumn + EXTRA_TILES),
-        LAST_TILE_X));
-    var firstRow = (
-      Math.max(
-        localToGlobalTileY(v.firstRow - EXTRA_TILES),
-        FIRST_TILE_Y));
-    var lastRow = (
-      Math.min(
-        localToGlobalTileY(v.lastRow + EXTRA_TILES),
-        LAST_TILE_Y));
-    for (var gy = lastRow; gy <= firstRow; gy++) {
-      for (var gx = lastColumn; gx >= firstColumn; gx--) {
-        var tileId = globalToTileId(gx, gy);
-        if (!(tileId in this.tileData)) {
-          this.loader.postMessage({
-              origin: location.origin,
-              gx: gx,
-              gy: gy,
-              tileId: tileId
-            });
-        }
-      }
-    }
+  onScroll: function (event) {
+    this.scrollLeft = this.node.scrollLeft;
+    this.scrollTop = this.node.scrollTop;
+    this.computeVisibleTiles();
+    this.requestVisibleTiles();
+    this.requestPaint();
   },
 
-  isTileVisible: function (v, gx, gy) {
-    var lx = globalToLocalTileX(gx);
-    var ly = globalToLocalTileY(gy);
-    return (
-      lx >= v.firstColumn &&
-      lx <= v.lastColumn &&
-      ly >= v.firstRow &&
-      ly <= v.lastRow);
+  onResize: function (event) {
+    this.clientWidth = this.node.clientWidth;
+    this.clientHeight = this.node.clientHeight;
+    this.computeVisibleTiles();
+    this.requestVisibleTiles();
+    this.requestPaint();
   },
 
-  onTileLoad: function (event) {
-    this.tileData[event.data.tileId] = event.data.tileData;
-    this.maxRoadLinkCount = Math.max(this.maxRoadLinkCount, event.data.tileData.roadLinks.length);
-    this.maxRoadNodeCount = Math.max(this.maxRoadNodeCount, event.data.tileData.roadNodes.length);
-    var v = this.computeVisibility();
-    if (this.isTileVisible(v, event.data.gx, event.data.gy)) {
+  requestPaint: function () {
+    if (!this.isPainting) {
+      this.isPainting = true;
       window.requestAnimationFrame(this.paint);
     }
   },
 
-  onScroll: function (event) {
-    window.requestAnimationFrame(this.paint);
+  requestAllTiles: function () {
+    for (var gy = FIRST_TILE_Y; gy <= LAST_TILE_Y; gy++) {
+      for (var gx = LAST_TILE_X; gx >= FIRST_TILE_X; gx--) {
+        var tileId = "tile-" + gx + "-" + gy;
+        var tileUrl = this.tileUrlBase + tileId + (process.env.NODE_ENV === "production" ? ".json.gz" : ".json");
+        this.loaderWorker.postMessage({
+            cmd: "queueRequest",
+            req: {
+              gx: gx,
+              gy: gy,
+              id: tileId,
+              url: tileUrl
+            }
+          });
+      }
+    }
+    this.loaderWorker.postMessage({
+        cmd: "performNextRequest"
+      });
   },
 
-  onResize: function (event) {
-    window.requestAnimationFrame(this.paint);
+  requestVisibleTiles: function () {
+    clearTimeout(this.visibleTilesTimeout);
+    this.visibleTilesTimeout = setTimeout(function () {
+        for (var gy = this.lvgy; gy <= this.fvgy; gy++) {
+          for (var gx = this.lvgx; gx >= this.fvgx; gx--) {
+            var tileId = "tile-" + gx + "-" + gy;
+            var tile = this.loaderData[tileId];
+            if (!tile) {
+              var tileUrl = this.tileUrlBase + tileId + (process.env.NODE_ENV === "production" ? ".json.gz" : ".json");
+              this.loaderWorker.postMessage({
+                  cmd: "queueRequest",
+                  req: {
+                    gx: gx,
+                    gy: gy,
+                    id: tileId,
+                    url: tileUrl
+                  }
+                });
+            } else {
+              var imageId = "image-" + gx + "-" + gy + "-" + this.state.zoomLevel;
+              this.renderer_queueRequest({
+                  tile: tile,
+                  zoomLevel: this.state.zoomLevel,
+                  id: imageId
+                });
+            }
+          }
+        }
+        this.loaderWorker.postMessage({
+            cmd: "performNextRequest"
+          });
+        this.renderer_performNextRequest();
+      }.bind(this),
+      100);
+  },
+
+  onTileLoaded: function (event) {
+    var tile = event.data;
+    this.loaderData[tile.id] = tile;
+    if (this.isTileVisible(tile.gx, tile.gy)) {
+      var imageId = "image-" + tile.gx + "-" + tile.gy + "-" + this.state.zoomLevel;
+      this.renderer_queueRequest({
+          tile: tile,
+          zoomLevel: this.state.zoomLevel,
+          id: imageId
+        });
+      setTimeout(this.renderer_performNextRequest, 0);
+    }
+  },
+
+  renderImageCanvas: function (tile, zoomLevel) {
+    var canvas = document.createElement("canvas");
+    canvas.width = deviceIndependent(TILE_SIZE / zoomLevel);
+    canvas.height = deviceIndependent(TILE_SIZE / zoomLevel);
+    var c = canvas.getContext("2d");
+    c.scale(deviceIndependent(1 / zoomLevel), deviceIndependent(1 / zoomLevel));
+    c.translate(-(tile.gx * TILE_SIZE), -(tile.gy * TILE_SIZE));
+    c.strokeStyle = ROAD_LINK_COLOR;
+    c.fillStyle = ROAD_NODE_COLOR;
+    c.lineWidth = ROAD_LINK_SCALE * zoomLevel;
+    c.globalCompositeOperation = "screen";
+    for (var i = 0; i < tile.roadLinks.length; i++) {
+      var ps = tile.roadLinks[i].ps;
+      c.beginPath();
+      c.moveTo(ps[0].x, ps[0].y);
+      for (var j = 1; j < ps.length; j++) {
+        c.lineTo(ps[j].x, ps[j].y);
+      }
+      c.stroke();
+    }
+    var rectSize = ROAD_NODE_SCALE * zoomLevel;
+    for (var i = 0; i < tile.roadNodes.length; i++) {
+      var p = tile.roadNodes[i].p;
+      c.fillRect(p.x - rectSize, p.y - rectSize, rectSize * 2, rectSize * 2);
+    }
+    return canvas;
   },
 
   onKeyDown: function (event) {
     console.log("keyDown", event.keyCode);
-    var zoomLevels = [1, 2, 4, 5, 8, 10, 20, 25, 40, 50];
     if (event.keyCode >= 49 && event.keyCode <= 58) {
       this.setState({
-          zoomLevel: zoomLevels[event.keyCode - 49]
+          zoomLevel: ZOOM_LEVELS[event.keyCode - 49]
         });
     } else if (event.keyCode === 48) {
       this.setState({
-          zoomLevel: zoomLevels[event.keyCode - 48 + 9]
+          zoomLevel: ZOOM_LEVELS[event.keyCode - 48 + 9]
         });
     }
   },
 
   onClick: function (event) {
-    var node = r.domNode(this);
-    var px = node.scrollLeft + event.clientX;
-    var py = node.scrollTop + event.clientY;
-    console.log("click", px, py);
+    console.log("click", event.clientX, event.clientY);
   },
 
   prepareCanvas: function () {
-    var node = r.domNode(this);
-    var clientWidth = deviceIndependent(node.clientWidth);
-    var clientHeight = deviceIndependent(node.clientHeight);
-    var canvas = node.firstChild;
-    if (canvas.width !== clientWidth || canvas.height !== clientHeight) {
-      canvas.width = clientWidth;
-      canvas.height = clientHeight;
+    var width = deviceIndependent(this.clientWidth);
+    var height = deviceIndependent(this.clientHeight);
+    if (this.canvas.width !== width || this.canvas.height !== height) {
+      this.canvas.width = width;
+      this.canvas.height = height;
     }
-    var c = canvas.getContext("2d", {
+    console.log(this.clientWidth, this.clientHeight, this.node.clientWidth, this.node.clientHeight);
+    var c = this.canvas.getContext("2d", {
         alpha: false
       });
     resetContextTransform(c);
     c.fillStyle = "#000";
-    c.fillRect(0, 0, canvas.width, canvas.height);
-    return c;
-  },
-
-  pointToLocalTileX: function (px) {
-    var zoomRatio = 1 / this.state.zoomLevel;
-    return (
-      Math.min(
-        Math.floor(px / (TILE_SIZE * zoomRatio)),
-        TILE_X_COUNT - 1));
-  },
-
-  pointToLocalTileY: function (py) {
-    var zoomRatio = 1 / this.state.zoomLevel;
-    return (
-      Math.min(
-        Math.floor(py / (TILE_SIZE * zoomRatio)),
-        TILE_Y_COUNT - 1));
-  },
-
-  computeVisibility: function () {
-    var node = r.domNode(this);
-    return {
-      firstColumn: this.pointToLocalTileX(node.scrollLeft),
-      lastColumn: this.pointToLocalTileX(node.scrollLeft + node.clientWidth - 1),
-      firstRow: this.pointToLocalTileY(node.scrollTop),
-      lastRow: this.pointToLocalTileY(node.scrollTop + node.clientHeight - 1)
-    };
-  },
-
-  paintRoadLinks: function (c, gx, gy, tileData) {
-    if (!tileData.roadLinksPath) {
-      var k = new Path2D();
-      for (var i = 0; i < tileData.roadLinks.length; i++) {
-        var l = tileData.roadLinks[i];
-        k.moveTo(l.ps[0].x, l.ps[0].y);
-        for (var j = 1; j < l.ps.length; j++) {
-          k.lineTo(l.ps[j].x, l.ps[j].y);
-        }
-      }
-      tileData.roadLinksPath = k;
-    }
-    c.stroke(tileData.roadLinksPath);
-  },
-
-  paintRoadNodes: function (c, gx, gy, tileData) {
-    // if (!tileData.roadNodesPath) {
-    //   var k = new Path2D();
-    //   for (var i = 0; i < tileData.roadNodes.length; i++) {
-    //     var n = tileData.roadNodes[i];
-    //     k.moveTo(n.p.x + 2, n.p.y);
-    //     k.arc(n.p.x, n.p.y, 2, 0, 2 * Math.PI);
-    //   }
-    //   tileData.roadNodesPath = k;
-    // }
-    // c.fill(tileData.roadNodesPath);
-    // c.stroke(tileData.roadNodesPath);
-    var size = this.state.zoomLevel * 1.25;
-    for (var i = 0; i < tileData.roadNodes.length; i++) {
-      var n = tileData.roadNodes[i];
-      c.fillRect(n.p.x - size, n.p.y - size, size * 2, size * 2);
-    }
-  },
-
-  paintTileContents: function (c, v) {
-    var firstColumn = localToGlobalTileX(v.firstColumn);
-    var lastColumn = localToGlobalTileX(v.lastColumn);
-    var firstRow = localToGlobalTileY(v.firstRow);
-    var lastRow = localToGlobalTileY(v.lastRow);
-    c.lineWidth = this.state.zoomLevel * 0.5;
-    c.globalCompositeOperation = "screen";
-    // c.strokeStyle = "#36f";
-    // c.fillStyle = "#39f";
-    c.strokeStyle = "#f63";
-    c.fillStyle = "#f93";
-    // c.strokeStyle = "#f0690f"; // "#555";
-    // c.fillStyle = "#f0690f"; // "#555";
-    for (var gx = firstColumn; gx <= lastColumn; gx++) {
-      for (var gy = firstRow; gy >= lastRow; gy--) {
-        var tileId = globalToTileId(gx, gy);
-        var full = (
-          gx >= firstColumn &&
-          gx < lastColumn &&
-          gy <= firstRow &&
-          gy > lastRow);
-        if (tileId in this.tileData) {
-          var tileData = this.tileData[tileId];
-          // c.strokeStyle = "rgba(255,102,51," + (tileData.roadLinks.length / this.maxRoadLinkCount) + ")";
-          // c.fillStyle = "rgba(255,153,51," + (tileData.roadNodes.length / this.maxRoadNodeCount) +")";
-          this.paintRoadLinks(c, gx, gy, tileData);
-          this.paintRoadNodes(c, gx, gy, tileData);
-        }
-      }
-    }
-    c.globalCompositeOperation = "source-over";
-  },
-
-  paintTileBorders: function (c, v) {
-    c.fillStyle = "#333"; // "#f0690f"; "#96f00f"; #3f96f0 0f96f0
+    c.fillRect(0, 0, width, height);
+    c.fillStyle = "#333";
     c.strokeStyle = "#333";
     c.lineWidth = this.state.zoomLevel;
     c.font = '10px "Helvetica Neue", Helvetica, Arial, sans-serif';
     c.textAlign = "left";
     c.textBaseline = "top";
-    for (var lx = v.firstColumn; lx <= v.lastColumn; lx++) {
-      for (var ly = v.firstRow; ly <= v.lastRow; ly++) {
+    return c;
+  },
+
+  paintTileContents: function (c) {
+    for (var gy = this.lvgy; gy <= this.fvgy; gy++) {
+      for (var gx = this.lvgx; gx >= this.fvgx; gx--) {
+        var imageId = "image-" + gx + "-" + gy + "-" + this.state.zoomLevel;
+        var image = this.rendererData[imageId];
+        if (image) {
+          c.drawImage(image.canvas, gx * TILE_SIZE, gy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+      }
+    }
+  },
+
+  paintTileBorders: function (c) {
+    for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
+      for (var ly = this.fvly; ly <= this.lvly; ly++) {
         var gx = localToGlobalTileX(lx);
         var gy = localToGlobalTileY(ly);
         if (this.state.zoomLevel <= 1) {
@@ -305,19 +332,53 @@ module.exports = {
 
   paint: function () {
     var zoomRatio = 1 / this.state.zoomLevel;
-    var node = r.domNode(this);
     var c = this.prepareCanvas();
-    var v = this.computeVisibility();
     c.translate(0.5, 0.5);
-    c.translate(-node.scrollLeft, -node.scrollTop);
+    c.translate(-this.scrollLeft, -this.scrollTop);
     c.scale(zoomRatio, zoomRatio);
-    this.paintTileBorders(c, v);
+    this.paintTileBorders(c);
     resetContextTransform(c);
     c.scale(zoomRatio, -zoomRatio);
     c.translate(-(FIRST_TILE_X * TILE_SIZE), -(FIRST_TILE_Y * TILE_SIZE));
-    c.translate(-(node.scrollLeft / zoomRatio), -(TILE_Y_COUNT * TILE_SIZE - (node.scrollTop / zoomRatio)));
-    this.loadVisibleTiles(v);
-    this.paintTileContents(c, v);
+    c.translate(-(this.scrollLeft / zoomRatio), -(TILE_Y_COUNT * TILE_SIZE - (this.scrollTop / zoomRatio)));
+    this.paintTileContents(c);
+    this.isPainting = false;
+  },
+
+  pointToLocalTileX: function (px) {
+    var zoomRatio = 1 / this.state.zoomLevel;
+    return (
+      Math.min(
+        Math.floor(px / (TILE_SIZE * zoomRatio)),
+        TILE_X_COUNT - 1));
+  },
+
+  pointToLocalTileY: function (py) {
+    var zoomRatio = 1 / this.state.zoomLevel;
+    return (
+      Math.min(
+        Math.floor(py / (TILE_SIZE * zoomRatio)),
+        TILE_Y_COUNT - 1));
+  },
+
+  computeVisibleTiles: function () {
+    this.fvlx = this.pointToLocalTileX(this.scrollLeft);
+    this.lvlx = this.pointToLocalTileX(this.scrollLeft + this.clientWidth - 1);
+    this.fvly = this.pointToLocalTileY(this.scrollTop);
+    this.lvly = this.pointToLocalTileY(this.scrollTop + this.clientHeight - 1);
+    this.fvgx = localToGlobalTileX(this.fvlx);
+    this.lvgx = localToGlobalTileX(this.lvlx);
+    this.fvgy = localToGlobalTileY(this.fvly);
+    this.lvgy = localToGlobalTileY(this.lvly);
+  },
+
+  isTileVisible: function (gx, gy, zoomLevel) {
+    return (
+      gx >= this.fvgx &&
+      gx <= this.lvgx &&
+      gy <= this.fvgy &&
+      gy >= this.lvgy &&
+      (!zoomLevel || zoomLevel === this.state.zoomLevel));
   },
 
   render: function () {

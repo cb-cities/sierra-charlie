@@ -8,7 +8,6 @@
   "devDependencies": {
     "css-loader": "^0.16.0",
     "express": "^4.13.3",
-    "lazy-map-viewer": "^1.0.0",
     "object-assign": "^4.0.1",
     "react": "^0.13.3",
     "react-wrapper": "^1.0.1",
