@@ -11,6 +11,7 @@
     "lazy-map-viewer": "^1.0.0",
     "react": "^0.13.3",
     "react-wrapper": "^1.0.1",
+    "seedrandom": "^2.4.2",
     "style-loader": "^0.12.3",
     "webpack": "^1.11.0"
   },
