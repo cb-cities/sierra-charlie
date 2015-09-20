@@ -30,6 +30,9 @@ function buildSpiral(width, height, index) {
 }
 
 module.exports = function (width, height) {
+  if (width < 1 || height < 1) {
+    return [];
+  }
   var M = buildSpiral(width, height, 0);
   var ps = new Array(width * height);
   for (var x = 0; x < width; x++) {
