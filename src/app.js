@@ -229,8 +229,10 @@ module.exports = {
   },
 
   loadVisibleTiles: function () {
-    clearTimeout(this.pendingLoad);
-    this.pendingLoad = setTimeout(this.loadVisibleTilesNow, 0);
+    if (!this.pendingZoom) {
+      clearTimeout(this.pendingLoad);
+      this.pendingLoad = setTimeout(this.loadVisibleTilesNow, 0);
+    }
   },
 
   loadVisibleTilesNow: function () {
