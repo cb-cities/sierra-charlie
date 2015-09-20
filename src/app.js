@@ -14,8 +14,6 @@ var FIRST_TILE_Y = 148;
 var LAST_TILE_Y  = 208;
 var TILE_X_COUNT = LAST_TILE_X - FIRST_TILE_X + 1;
 var TILE_Y_COUNT = LAST_TILE_Y - FIRST_TILE_Y + 1;
-// var INITIAL_TILE_X = 530;
-// var INITIAL_TILE_Y = 180;
 
 // function tileToLocalX(tx) {
 //   return tx - FIRST_TILE_X;
@@ -37,12 +35,12 @@ function computeZoomLevel(zoomPower) {
   return Math.pow(2, zoomPower);
 }
 
-function pointToLocalX(px, imageSize) {
-  return Math.min(Math.floor(px / imageSize), TILE_X_COUNT - 1);
+function clampLocalX(lx) {
+  return Math.max(0, Math.min(lx, TILE_X_COUNT - 1));
 }
 
-function pointToLocalY(py, imageSize) {
-  return Math.min(Math.floor(py / imageSize), TILE_Y_COUNT - 1);
+function clampLocalY(ly) {
+  return Math.max(0, Math.min(ly, TILE_Y_COUNT - 1));
 }
 
 
@@ -64,6 +62,8 @@ module.exports = {
   },
 
   tweenZoomPower: function (zoomPower, duration) {
+    this.pendingZoom = this.pendingZoom || 0;
+    this.pendingZoom++;
     this.tweenState("zoomPower", {
         endValue: zoomPower,
         duration: duration,
@@ -71,19 +71,19 @@ module.exports = {
           return from + (to - from) * easeTween.ease(elapsed / duration);
         },
         onEnd: function () {
-          console.log("zoomPower", this.state.zoomPower);
+          this.pendingZoom--;
         }.bind(this)
       });
   },
 
-
   componentDidMount: function () {
-    this.node         = r.domNode(this);
-    this.canvas       = this.node.firstChild;
-    this.scrollLeft   = this.node.scrollLeft;
-    this.scrollTop    = this.node.scrollTop;
+    this.node = r.domNode(this);
+    this.canvas = this.node.firstChild;
     this.clientWidth  = this.node.clientWidth;
     this.clientHeight = this.node.clientHeight;
+    this.attentionLeft = 0.4897637424698795;
+    this.attentionTop  = 0.4768826844262295;
+    this.exportScrollPosition();
     this.node.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
@@ -104,18 +104,20 @@ module.exports = {
     this.stopLoader();
   },
 
-  componentDidUpdate: function () {
+  componentDidUpdate: function (prevProps, prevState) {
+    this.exportScrollPosition();
     this.computeVisibleTiles();
     this.loadVisibleTiles();
     this.paint();
   },
 
   onScroll: function (event) {
-    this.scrollLeft = this.node.scrollLeft;
-    this.scrollTop  = this.node.scrollTop;
-    this.computeVisibleTiles();
-    this.loadVisibleTiles();
-    this.paint();
+    if (!this.pendingZoom) {
+      this.importScrollPosition();
+      this.computeVisibleTiles();
+      this.loadVisibleTiles();
+      this.paint();
+    }
   },
 
   onResize: function (event) {
@@ -126,13 +128,26 @@ module.exports = {
     this.paint();
   },
 
+  exportScrollPosition: function () {
+    var imageSize = IMAGE_SIZE / this.getZoomLevel();
+    this.node.scrollLeft = this.attentionLeft * TILE_X_COUNT * imageSize;
+    this.node.scrollTop  = this.attentionTop * TILE_Y_COUNT * imageSize;
+  },
+
+  importScrollPosition: function () {
+    var imageSize = IMAGE_SIZE / this.getZoomLevel();
+    this.attentionLeft = this.node.scrollLeft / (TILE_X_COUNT * imageSize);
+    this.attentionTop  = this.node.scrollTop / (TILE_Y_COUNT * imageSize);
+  },
 
   computeVisibleTiles: function () {
     var imageSize = IMAGE_SIZE / this.getZoomLevel();
-    this.fvlx = pointToLocalX(this.scrollLeft, imageSize);
-    this.lvlx = pointToLocalX(this.scrollLeft + this.clientWidth - 1, imageSize);
-    this.fvly = pointToLocalY(this.scrollTop, imageSize);
-    this.lvly = pointToLocalY(this.scrollTop + this.clientHeight - 1, imageSize);
+    var scrollLeft = this.attentionLeft * TILE_X_COUNT * imageSize - this.clientWidth / 2;
+    var scrollTop  = this.attentionTop * TILE_Y_COUNT * imageSize - this.clientHeight / 2;
+    this.fvlx = clampLocalX(Math.floor(scrollLeft / imageSize));
+    this.lvlx = clampLocalX(Math.floor((scrollLeft + this.clientWidth - 1) / imageSize));
+    this.fvly = clampLocalY(Math.floor(scrollTop / imageSize));
+    this.lvly = clampLocalY(Math.floor((scrollTop + this.clientHeight - 1) / imageSize));
     this.fvtx = localToTileX(this.fvlx);
     this.lvtx = localToTileX(this.lvlx);
     this.fvty = localToTileY(this.fvly);
@@ -325,6 +340,7 @@ module.exports = {
   paint: function () {
     if (!this.pendingPaint) {
       this.pendingPaint = true;
+      this.storedZoomPower = this.getZoomPower();
       window.requestAnimationFrame(this.paintNow);
     }
   },
@@ -342,19 +358,19 @@ module.exports = {
     c.scale(window.devicePixelRatio, window.devicePixelRatio);
     c.fillStyle   = "#000";
     c.fillRect(0, 0, this.clientWidth, this.clientHeight);
-    var imageSize = IMAGE_SIZE / this.getZoomLevel();
-    var emptyWidth  = Math.max(0, this.clientWidth  - TILE_X_COUNT * imageSize);
-    var emptyHeight = Math.max(0, this.clientHeight - TILE_Y_COUNT * imageSize);
-    c.translate(emptyWidth / 2, emptyHeight / 2);
     this.paintTileBorders(c);
     this.paintTileContents(c);
     this.pendingPaint = false;
   },
 
   paintTileBorders: function (c) {
-    var zoomLevel = this.getZoomLevel();
+    var zoomPower  = this.storedZoomPower;
+    var zoomLevel  = computeZoomLevel(zoomPower);
+    var imageSize  = IMAGE_SIZE / zoomLevel;
+    var scrollLeft = this.attentionLeft * TILE_X_COUNT * imageSize - this.clientWidth / 2;
+    var scrollTop  = this.attentionTop * TILE_Y_COUNT * imageSize - this.clientHeight / 2;
     c.save();
-    c.translate(-this.scrollLeft + 0.25, -this.scrollTop + 0.25);
+    c.translate(-scrollLeft + 0.25, -scrollTop + 0.25);
     c.scale(1 / zoomLevel, 1 / zoomLevel);
     c.lineWidth   = 0.5 * zoomLevel;
     c.fillStyle   = "#333";
@@ -366,8 +382,10 @@ module.exports = {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
         var tx = localToTileX(lx);
         var ty = localToTileY(ly);
-        if (zoomLevel < 8) {
+        if (zoomPower < 3) {
+          c.globalAlpha = 1 - (zoomPower - 2);
           c.fillText(tx + "×" + ty, lx * IMAGE_SIZE + 4 * Math.sqrt(zoomLevel), ly * IMAGE_SIZE);
+          c.globalAlpha = 1;
         }
         c.strokeRect(lx * IMAGE_SIZE, ly * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
       }
@@ -376,9 +394,12 @@ module.exports = {
   },
 
   paintTileContents: function (c) {
-    var zoomPower = this.getZoomPower();
-    var zoomLevel = computeZoomLevel(zoomPower);
-    c.translate(-this.scrollLeft, -this.scrollTop);
+    var zoomPower  = this.storedZoomPower;
+    var zoomLevel  = computeZoomLevel(zoomPower);
+    var imageSize  = IMAGE_SIZE / zoomLevel;
+    var scrollLeft = this.attentionLeft * TILE_X_COUNT * imageSize - this.clientWidth / 2;
+    var scrollTop  = this.attentionTop * TILE_Y_COUNT * imageSize - this.clientHeight / 2;
+    c.translate(-scrollLeft, -scrollTop);
     c.scale(1 / zoomLevel, -1 / zoomLevel);
     c.translate(0, -TILE_Y_COUNT * IMAGE_SIZE);
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
@@ -399,9 +420,9 @@ module.exports = {
     if (event.keyCode >= 49 && event.keyCode <= 58) {
       this.tweenZoomPower(event.keyCode - 49, 500);
     } else if (event.keyCode === 187) {
-      this.tweenZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 250);
+      this.tweenZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 500);
     } else if (event.keyCode === 189) {
-      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, 8), 250);
+      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, 8), 500);
     }
   },
 
@@ -417,8 +438,8 @@ module.exports = {
         r.div({
             className: "map-space",
             style: {
-              width:  TILE_X_COUNT * imageSize + 1,
-              height: TILE_Y_COUNT * imageSize + 1
+              width:  TILE_X_COUNT * imageSize,
+              height: TILE_Y_COUNT * imageSize
             },
             onClick: this.onClick
           })));

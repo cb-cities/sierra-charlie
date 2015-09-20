@@ -34,3 +34,8 @@ body {
   pointer-events: none;
   z-index: -1;
 }
+
+.map-space {
+  padding-right: 100vw;
+  padding-bottom: 100vh;
+}
