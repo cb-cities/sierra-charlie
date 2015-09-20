@@ -33,18 +33,16 @@ function localToTileY(ly) {
   return LAST_TILE_Y - ly;
 }
 
-function pointToLocalX(px, zoomRatio) {
-  return (
-    Math.min(
-      Math.floor(px / (IMAGE_SIZE * zoomRatio)),
-      TILE_X_COUNT - 1));
+function computeZoomLevel(zoomPower) {
+  return Math.pow(2, zoomPower);
 }
 
-function pointToLocalY(py, zoomRatio) {
-  return (
-    Math.min(
-      Math.floor(py / (IMAGE_SIZE * zoomRatio)),
-      TILE_Y_COUNT - 1));
+function pointToLocalX(px, imageSize) {
+  return Math.min(Math.floor(px / imageSize), TILE_X_COUNT - 1);
+}
+
+function pointToLocalY(py, imageSize) {
+  return Math.min(Math.floor(py / imageSize), TILE_Y_COUNT - 1);
 }
 
 
@@ -56,6 +54,28 @@ module.exports = {
       zoomPower: 3
     };
   },
+
+  getZoomPower: function () {
+    return this.getTweeningValue("zoomPower");
+  },
+
+  getZoomLevel: function () {
+    return computeZoomLevel(this.getZoomPower());
+  },
+
+  tweenZoomPower: function (zoomPower, duration) {
+    this.tweenState("zoomPower", {
+        endValue: zoomPower,
+        duration: duration,
+        easing: function (elapsed, from, to, duration) {
+          return from + (to - from) * easeTween.ease(elapsed / duration);
+        },
+        onEnd: function () {
+          console.log("zoomPower", this.state.zoomPower);
+        }.bind(this)
+      });
+  },
+
 
   componentDidMount: function () {
     this.node         = r.domNode(this);
@@ -107,26 +127,12 @@ module.exports = {
   },
 
 
-
-
-  getZoomPower: function () {
-    return this.getTweeningValue("zoomPower");
-  },
-
-  getZoomLevel: function () {
-    return Math.pow(2, this.getZoomPower());
-  },
-
-  getZoomRatio: function () {
-    return 1 / this.getZoomLevel();
-  },
-
   computeVisibleTiles: function () {
-    var zoomRatio = this.getZoomRatio();
-    this.fvlx = pointToLocalX(this.scrollLeft, zoomRatio);
-    this.lvlx = pointToLocalX(this.scrollLeft + this.clientWidth - 1, zoomRatio);
-    this.fvly = pointToLocalY(this.scrollTop, zoomRatio);
-    this.lvly = pointToLocalY(this.scrollTop + this.clientHeight - 1, zoomRatio);
+    var imageSize = IMAGE_SIZE / this.getZoomLevel();
+    this.fvlx = pointToLocalX(this.scrollLeft, imageSize);
+    this.lvlx = pointToLocalX(this.scrollLeft + this.clientWidth - 1, imageSize);
+    this.fvly = pointToLocalY(this.scrollTop, imageSize);
+    this.lvly = pointToLocalY(this.scrollTop + this.clientHeight - 1, imageSize);
     this.fvtx = localToTileX(this.fvlx);
     this.lvtx = localToTileX(this.lvlx);
     this.fvty = localToTileY(this.fvly);
@@ -293,12 +299,11 @@ module.exports = {
     var txyz = imageId.split("-");
     var tx = parseInt(txyz[0]);
     var ty = parseInt(txyz[1]);
-    var tz = parseInt(txyz[2]);
     var tileId = tx + "-" + ty;
     var tileData = this.tileData[tileId];
-    var zoomLevel = 1 << tz;
-    var zoomRatio = 1 / zoomLevel;
-    var imageSize = IMAGE_SIZE * window.devicePixelRatio * zoomRatio;
+    var zoomPower = parseInt(txyz[2]);
+    var zoomLevel = computeZoomLevel(zoomPower);
+    var imageSize = window.devicePixelRatio * IMAGE_SIZE / zoomLevel;
     var canvas = document.createElement("canvas");
     canvas.width  = imageSize;
     canvas.height = imageSize;
@@ -345,10 +350,9 @@ module.exports = {
 
   paintTileBorders: function (c) {
     var zoomLevel = this.getZoomLevel();
-    var zoomRatio = 1 / zoomLevel;
     c.save();
     c.translate(-this.scrollLeft + 0.25, -this.scrollTop + 0.25);
-    c.scale(zoomRatio, zoomRatio);
+    c.scale(1 / zoomLevel, 1 / zoomLevel);
     c.lineWidth   = 0.5 * zoomLevel;
     c.fillStyle   = "#333";
     c.strokeStyle = "#333";
@@ -370,10 +374,9 @@ module.exports = {
 
   paintTileContents: function (c) {
     var zoomPower = this.getZoomPower();
-    var zoomLevel = Math.pow(2, zoomPower);
-    var zoomRatio = 1 / zoomLevel;
+    var zoomLevel = computeZoomLevel(zoomPower);
     c.translate(-this.scrollLeft, -this.scrollTop);
-    c.scale(zoomRatio, -zoomRatio);
+    c.scale(1 / zoomLevel, -1 / zoomLevel);
     c.translate(0, -TILE_Y_COUNT * IMAGE_SIZE);
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
@@ -388,27 +391,14 @@ module.exports = {
   },
 
 
-  tweenZoomPower: function (duration, endValue) {
-    this.tweenState("zoomPower", {
-        duration: duration,
-        endValue: endValue,
-        easing: function (elapsed, startValue, endValue, duration) {
-          return startValue + (endValue - startValue) * easeTween.ease(elapsed / duration);
-        },
-        onEnd: function () {
-          console.log("zoomPower", this.state.zoomPower);
-        }.bind(this)
-      });
-  },
-
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
     if (event.keyCode >= 49 && event.keyCode <= 58) {
-      this.tweenZoomPower(500, event.keyCode - 49);
+      this.tweenZoomPower(event.keyCode - 49, 500);
     } else if (event.keyCode === 187) {
-      this.tweenZoomPower(250, Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10));
+      this.tweenZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 250);
     } else if (event.keyCode === 189) {
-      this.tweenZoomPower(250, Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10), 8);
+      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10), 8, 250);
     }
   },
 
@@ -417,15 +407,15 @@ module.exports = {
   },
 
   render: function () {
-    var scale = IMAGE_SIZE * this.getZoomRatio();
+    var imageSize = IMAGE_SIZE / this.getZoomLevel();
     return (
       r.div("map-frame",
         r.canvas("map-picture"),
         r.div({
             className: "map-space",
             style: {
-              width:  TILE_X_COUNT * scale,
-              height: TILE_Y_COUNT * scale
+              width:  TILE_X_COUNT * imageSize,
+              height: TILE_Y_COUNT * imageSize
             },
             onClick: this.onClick
           })));
