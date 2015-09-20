@@ -15,6 +15,8 @@ var LAST_TILE_Y  = 208;
 var TILE_X_COUNT = LAST_TILE_X - FIRST_TILE_X + 1;
 var TILE_Y_COUNT = LAST_TILE_Y - FIRST_TILE_Y + 1;
 
+var MAX_ZOOM_POWER = 8;
+
 // function tileToLocalX(tx) {
 //   return tx - FIRST_TILE_X;
 // }
@@ -419,6 +421,24 @@ module.exports = {
     c.restore();
   },
 
+  getImage: function (lx, ly, zoomPower) {
+    var tx = localToTileX(lx);
+    var ty = localToTileY(ly);
+    for (var p = Math.round(zoomPower); p >= 0; p--) {
+      var imageId = tx + "-" + ty + "-" + p;
+      if (imageId in this.imageData) {
+        return this.imageData[imageId];
+      }
+    }
+    for (var p = Math.round(zoomPower); p <= MAX_ZOOM_POWER; p++) {
+      var imageId = tx + "-" + ty + "-" + p;
+      if (imageId in this.imageData) {
+        return this.imageData[imageId];
+      }
+    }
+    return null;
+  },
+
   paintTileContents: function (c) {
     var zoomPower  = this.storedZoomPower;
     var zoomLevel  = computeZoomLevel(zoomPower);
@@ -430,11 +450,9 @@ module.exports = {
     c.translate(0, -TILE_Y_COUNT * IMAGE_SIZE);
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
-        var tx = localToTileX(lx);
-        var ty = localToTileY(ly);
-        var imageId = tx + "-" + ty + "-" + Math.round(zoomPower);
-        if (imageId in this.imageData) {
-          c.drawImage(this.imageData[imageId], lx * IMAGE_SIZE, (TILE_Y_COUNT - ly - 1) * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
+        var imageData = this.getImage(lx, ly, zoomPower);
+        if (imageData) {
+          c.drawImage(imageData, lx * IMAGE_SIZE, (TILE_Y_COUNT - ly - 1) * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
         }
       }
     }
@@ -448,7 +466,7 @@ module.exports = {
     } else if (event.keyCode === 187) {
       this.tweenZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 500);
     } else if (event.keyCode === 189) {
-      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, 8), 500);
+      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, MAX_ZOOM_POWER), 500);
     } else if (event.keyCode === 67) {
       this.setState({
           dark: !this.state.dark
