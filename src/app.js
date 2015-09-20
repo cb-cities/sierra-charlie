@@ -343,6 +343,10 @@ module.exports = {
     c.fillStyle   = "#000";
     c.strokeStyle = "#0f0";
     c.fillRect(0, 0, this.clientWidth, this.clientHeight);
+    var imageSize = IMAGE_SIZE / this.getZoomLevel();
+    var emptyWidth  = Math.max(0, this.clientWidth  - TILE_X_COUNT * imageSize);
+    var emptyHeight = Math.max(0, this.clientHeight - TILE_Y_COUNT * imageSize);
+    c.translate(emptyWidth / 2, emptyHeight / 2);
     this.paintTileBorders(c);
     this.paintTileContents(c);
     this.pendingPaint = false;
