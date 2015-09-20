@@ -402,7 +402,7 @@ module.exports = {
     } else if (event.keyCode === 187) {
       this.tweenZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 250);
     } else if (event.keyCode === 189) {
-      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10), 8, 250);
+      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, 8), 250);
     }
   },
 
