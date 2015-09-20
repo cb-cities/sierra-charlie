@@ -341,7 +341,6 @@ module.exports = {
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.scale(window.devicePixelRatio, window.devicePixelRatio);
     c.fillStyle   = "#000";
-    c.strokeStyle = "#0f0";
     c.fillRect(0, 0, this.clientWidth, this.clientHeight);
     var imageSize = IMAGE_SIZE / this.getZoomLevel();
     var emptyWidth  = Math.max(0, this.clientWidth  - TILE_X_COUNT * imageSize);
@@ -418,8 +417,8 @@ module.exports = {
         r.div({
             className: "map-space",
             style: {
-              width:  TILE_X_COUNT * imageSize,
-              height: TILE_Y_COUNT * imageSize
+              width:  TILE_X_COUNT * imageSize + 1,
+              height: TILE_Y_COUNT * imageSize + 1
             },
             onClick: this.onClick
           })));
