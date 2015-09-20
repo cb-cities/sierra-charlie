@@ -357,29 +357,23 @@ module.exports = {
     c.restore();
   },
 
-  getImage: function (tx, ty, zoomBase) {
-    while (zoomBase >= 1) {
-      var imageId = tx + "-" + ty + "-" + zoomBase;
-      if (imageId in this.imageData) {
-        return this.imageData[imageId];
-      }
-      zoomBase = Math.floor(zoomBase / 2);
-    }
-    return null;
+  getImage: function (lx, ly, zoomLevel) {
+    var tx = localToTileX(lx);
+    var ty = localToTileY(ly);
+    var zoomBase = computeZoomBase(zoomLevel);
+    var imageId = tx + "-" + ty + "-" + zoomBase;
+    return this.imageData[imageId];
   },
 
   paintTileContents: function (c) {
     var zoomLevel = this.getTweeningValue("zoomLevel");
     var zoomRatio = 1 / zoomLevel;
-    var zoomBase = computeZoomBase(zoomLevel);
     c.translate(-this.scrollLeft, -this.scrollTop);
     c.scale(zoomRatio, -zoomRatio);
     c.translate(0, -TILE_Y_COUNT * IMAGE_SIZE);
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
-        var tx = localToTileX(lx);
-        var ty = localToTileY(ly);
-        var imageData = this.getImage(tx, ty, zoomBase);
+        var imageData = this.getImage(lx, ly, zoomLevel);
         if (imageData) {
           c.drawImage(imageData, lx * IMAGE_SIZE, (TILE_Y_COUNT - ly - 1) * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
         }
