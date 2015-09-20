@@ -109,7 +109,8 @@ module.exports = {
   componentDidUpdate: function (prevProps, prevState) {
     if (prevState.dark !== this.state.dark) {
       document.body.style.backgroundColor = this.getBackgroundColor();
-      this.imageData = {};
+      this.imageData  = {};
+      this.imageQueue = [];
     }
     this.exportScrollPosition();
     this.computeVisibleTiles();
