@@ -49,7 +49,8 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      zoomPower: 3
+      zoomPower: 3,
+      dark: true
     };
   },
 
@@ -77,6 +78,7 @@ module.exports = {
   },
 
   componentDidMount: function () {
+    document.body.style.backgroundColor = this.getBackgroundColor();
     this.node = r.domNode(this);
     this.canvas = this.node.firstChild;
     this.clientWidth  = this.node.clientWidth;
@@ -105,6 +107,10 @@ module.exports = {
   },
 
   componentDidUpdate: function (prevProps, prevState) {
+    if (prevState.dark !== this.state.dark) {
+      document.body.style.backgroundColor = this.getBackgroundColor();
+      this.imageData = {};
+    }
     this.exportScrollPosition();
     this.computeVisibleTiles();
     this.loadVisibleTiles();
@@ -310,6 +316,27 @@ module.exports = {
     }
   },
 
+
+  getBackgroundColor: function () {
+    return this.state.dark ? "#000" : "#fff";
+  },
+
+  getRoadLinkColor: function () {
+    return this.state.dark ? "#f63" : "#39f";
+  },
+
+  getRoadNodeColor: function () {
+    return this.state.dark ? "#f93" : "#36f";
+  },
+
+  getBorderColor: function () {
+    return this.state.dark ? "#333" : "#ccc";
+  },
+
+  getCompositeOperation: function () {
+    return this.state.dark ? "screen" : "soft-light";
+  },
+
   renderImage: function (imageId) {
     var txyz = imageId.split("-");
     var tx = parseInt(txyz[0]);
@@ -325,12 +352,9 @@ module.exports = {
     var c = canvas.getContext("2d");
     c.scale(imageSize / TILE_SIZE, imageSize / TILE_SIZE);
     c.translate(-tx * TILE_SIZE, -ty * TILE_SIZE);
-    c.fillStyle   = "#f93";
-    c.strokeStyle = "#f63";
-    c.font         = 18 * Math.sqrt(zoomLevel) + 'px "HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif';
-    c.textAlign    = "left";
-    c.textBaseline = "top";
-    c.globalCompositeOperation = "screen";
+    c.strokeStyle = this.getRoadLinkColor();
+    c.fillStyle = this.getRoadNodeColor();
+    c.globalCompositeOperation = this.getCompositeOperation();
     this.renderRoadLinks(c, zoomLevel, tileData.roadLinks);
     this.renderRoadNodes(c, zoomLevel, tileData.roadNodes);
     return canvas;
@@ -356,7 +380,7 @@ module.exports = {
     var c = canvas.getContext("2d", {alpha: false});
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.scale(window.devicePixelRatio, window.devicePixelRatio);
-    c.fillStyle   = "#000";
+    c.fillStyle = this.getBackgroundColor();
     c.fillRect(0, 0, this.clientWidth, this.clientHeight);
     this.paintTileBorders(c);
     this.paintTileContents(c);
@@ -372,11 +396,10 @@ module.exports = {
     c.save();
     c.translate(-scrollLeft + 0.25, -scrollTop + 0.25);
     c.scale(1 / zoomLevel, 1 / zoomLevel);
-    c.lineWidth   = 0.5 * zoomLevel;
-    c.fillStyle   = "#333";
-    c.strokeStyle = "#333";
-    c.font        = 24 * Math.sqrt(zoomLevel) + 'px "HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif';
-    c.textAlign   = "left";
+    c.lineWidth = 0.5 * zoomLevel;
+    c.fillStyle = c.strokeStyle = this.getBorderColor();
+    c.font = 24 * Math.sqrt(zoomLevel) + 'px "HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif';
+    c.textAlign = "left";
     c.textBaseline = "top";
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
@@ -423,6 +446,10 @@ module.exports = {
       this.tweenZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 500);
     } else if (event.keyCode === 189) {
       this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, 8), 500);
+    } else if (event.keyCode === 67) {
+      this.setState({
+          dark: !this.state.dark
+        });
     }
   },
 
