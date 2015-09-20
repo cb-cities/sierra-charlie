@@ -298,7 +298,7 @@ module.exports = {
     var tileData = this.tileData[tileId];
     var zoomLevel = 1 << tz;
     var zoomRatio = 1 / zoomLevel;
-    var imageSize = IMAGE_SIZE * zoomRatio * window.devicePixelRatio;
+    var imageSize = IMAGE_SIZE * window.devicePixelRatio * zoomRatio;
     var canvas = document.createElement("canvas");
     canvas.width  = imageSize;
     canvas.height = imageSize;
@@ -325,8 +325,8 @@ module.exports = {
   },
 
   paintNow: function () {
-    var width  = this.clientWidth * window.devicePixelRatio;
-    var height = this.clientHeight * window.devicePixelRatio;
+    var width  = window.devicePixelRatio * this.clientWidth;
+    var height = window.devicePixelRatio * this.clientHeight;
     var canvas = this.canvas;
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width  = width;
@@ -417,15 +417,15 @@ module.exports = {
   },
 
   render: function () {
-    var zoomRatio = this.getZoomRatio();
+    var scale = IMAGE_SIZE * this.getZoomRatio();
     return (
       r.div("map-frame",
         r.canvas("map-picture"),
         r.div({
             className: "map-space",
             style: {
-              width: TILE_X_COUNT * IMAGE_SIZE * zoomRatio,
-              height: TILE_Y_COUNT * IMAGE_SIZE * zoomRatio
+              width:  TILE_X_COUNT * scale,
+              height: TILE_Y_COUNT * scale
             },
             onClick: this.onClick
           })));
