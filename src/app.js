@@ -4,7 +4,8 @@ var r = require("react-wrapper");
 var easeTween = require("ease-tween");
 var tweenState = require("react-tween-state");
 var Loader = require("worker?inline!./loader");
-var MISSING_TILE_IDS = require("./missing-tile-ids.js");
+var MISSING_TILE_IDS = require("./missing-tile-ids");
+var spiral = require("./spiral");
 
 var TILE_SIZE    = 1000;
 var IMAGE_SIZE   = 1024;
@@ -239,22 +240,23 @@ module.exports = {
 
   loadVisibleTilesNow: function () {
     var zoomPower = this.getZoomPower();
+    var ps = spiral(this.lvtx - this.fvtx + 1, this.fvty - this.lvty + 1);
     var tileIds = [];
-    for (var ty = this.lvty; ty <= this.fvty; ty++) {
-      for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
-        var tileId = tx + "-" + ty;
-        if (!(tileId in MISSING_TILE_IDS)) {
-          if (!(tileId in this.tileData)) {
-            tileIds.push(tileId);
-          } else {
-            var floorImageId = tileId + "-" + Math.floor(zoomPower);
-            var ceilImageId  = tileId + "-" + Math.ceil(zoomPower);
-            if (!(floorImageId in this.imageData)) {
-              this.imageQueue.push(floorImageId);
-            }
-            if (ceilImageId !== floorImageId && !(ceilImageId in this.imageData)) {
-              this.imageQueue.push(ceilImageId);
-            }
+    for (var i = 0; i < ps.length; i++) {
+      var tx = this.fvtx + ps[i].x;
+      var ty = this.lvty + ps[i].y;
+      var tileId = tx + "-" + ty;
+      if (!(tileId in MISSING_TILE_IDS)) {
+        if (!(tileId in this.tileData)) {
+          tileIds.push(tileId);
+        } else {
+          var floorImageId = tileId + "-" + Math.floor(zoomPower);
+          var ceilImageId  = tileId + "-" + Math.ceil(zoomPower);
+          if (!(floorImageId in this.imageData)) {
+            this.imageQueue.push(floorImageId);
+          }
+          if (ceilImageId !== floorImageId && !(ceilImageId in this.imageData)) {
+            this.imageQueue.push(ceilImageId);
           }
         }
       }

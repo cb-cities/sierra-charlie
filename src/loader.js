@@ -1,7 +1,8 @@
 "use strict";
 
 var http = require("http-request-wrapper");
-var MISSING_TILE_IDS = require("./missing-tile-ids.js");
+var MISSING_TILE_IDS = require("./missing-tile-ids");
+var spiral = require("./spiral");
 
 var origin;
 var tileQueue = [];
@@ -18,13 +19,14 @@ function tileUrl(tileId) {
 }
 
 function forceQueueAllTiles(ftx, ltx, fty, lty) {
-  for (var ty = fty; ty <= lty; ty++) {
-    for (var tx = ltx; tx >= ftx; tx--) {
-      var tileId = tx + "-" + ty;
-      if (!(tileId in MISSING_TILE_IDS)) {
-        tileQueue.push(tileId);
-        queuedTiles[tileId] = true;
-      }
+  var ps = spiral(ltx - ftx + 1, fty - lty + 1);
+  for (var i = 0; i < ps.length; i++) {
+    var tx = ftx + ps[i].x;
+    var ty = lty + ps[i].y;
+    var tileId = tx + "-" + ty;
+    if (!(tileId in MISSING_TILE_IDS)) {
+      tileQueue.push(tileId);
+      queuedTiles[tileId] = true;
     }
   }
 }
