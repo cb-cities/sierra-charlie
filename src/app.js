@@ -52,8 +52,18 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      zoomPower: 3,
-      dark: true
+      zoomPower: 3
+    };
+  },
+
+  getDefaultProps: function () {
+    return {
+      backgroundColor: "#000",
+      inverseBackgroundColor: "#fff",
+      roadLinkColor: "#f63",
+      roadNodeColor: "#f93",
+      borderColor: "#333",
+      borderFont: '"HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif'
     };
   },
 
@@ -81,7 +91,7 @@ module.exports = {
   },
 
   componentDidMount: function () {
-    document.body.style.backgroundColor = this.getBackgroundColor();
+    this.exportBackgroundColor();
     this.node = r.domNode(this);
     this.canvas = this.node.firstChild;
     this.clientWidth  = this.node.clientWidth;
@@ -110,10 +120,8 @@ module.exports = {
   },
 
   componentDidUpdate: function (prevProps, prevState) {
-    if (prevState.dark !== this.state.dark) {
-      document.body.style.backgroundColor = this.getBackgroundColor();
-      this.imageData  = {};
-      this.imageQueue = [];
+    if (prevState.invertColor !== this.state.invertColor) {
+      this.exportBackgroundColor();
     }
     this.exportScrollPosition();
     this.computeVisibleTiles();
@@ -136,6 +144,13 @@ module.exports = {
     this.computeVisibleTiles();
     this.loadVisibleTiles();
     this.paint();
+  },
+
+  exportBackgroundColor: function () {
+    document.body.style.backgroundColor = (
+      !this.state.invertColor ?
+        this.props.backgroundColor :
+        this.props.inverseBackgroundColor);
   },
 
   exportScrollPosition: function () {
@@ -324,26 +339,6 @@ module.exports = {
   },
 
 
-  getBackgroundColor: function () {
-    return this.state.dark ? "#000" : "#fff";
-  },
-
-  getRoadLinkColor: function () {
-    return this.state.dark ? "#f63" : "#39f";
-  },
-
-  getRoadNodeColor: function () {
-    return this.state.dark ? "#f93" : "#36f";
-  },
-
-  getBorderColor: function () {
-    return this.state.dark ? "#333" : "#ccc";
-  },
-
-  getCompositeOperation: function () {
-    return this.state.dark ? "screen" : "soft-light";
-  },
-
   renderImage: function (imageId) {
     var txyz = imageId.split("-");
     var tx = parseInt(txyz[0]);
@@ -359,9 +354,9 @@ module.exports = {
     var c = canvas.getContext("2d");
     c.scale(imageSize / TILE_SIZE, imageSize / TILE_SIZE);
     c.translate(-tx * TILE_SIZE, -ty * TILE_SIZE);
-    c.strokeStyle = this.getRoadLinkColor();
-    c.fillStyle = this.getRoadNodeColor();
-    c.globalCompositeOperation = this.getCompositeOperation();
+    c.strokeStyle = this.props.roadLinkColor;
+    c.fillStyle = this.props.roadNodeColor;
+    c.globalCompositeOperation = "screen";
     this.renderRoadLinks(c, zoomLevel, tileData.roadLinks);
     this.renderRoadNodes(c, zoomLevel, tileData.roadNodes);
     return canvas;
@@ -387,10 +382,20 @@ module.exports = {
     var c = canvas.getContext("2d", {alpha: false});
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.scale(window.devicePixelRatio, window.devicePixelRatio);
-    c.fillStyle = this.getBackgroundColor();
+    c.save();
+    c.fillStyle = this.props.backgroundColor;
     c.fillRect(0, 0, this.clientWidth, this.clientHeight);
     this.paintTileBorders(c);
+    c.restore();
+    c.save();
     this.paintTileContents(c);
+    c.restore();
+    if (this.state.invertColor) {
+      c.globalCompositeOperation = "difference";
+      c.fillStyle = "#fff";
+      c.fillRect(0, 0, this.clientWidth, this.clientHeight);
+      c.globalCompositeOperation = "source-over";
+    }
     this.pendingPaint = false;
   },
 
@@ -400,12 +405,11 @@ module.exports = {
     var imageSize  = IMAGE_SIZE / zoomLevel;
     var scrollLeft = this.attentionLeft * TILE_X_COUNT * imageSize - this.clientWidth / 2;
     var scrollTop  = this.attentionTop * TILE_Y_COUNT * imageSize - this.clientHeight / 2;
-    c.save();
     c.translate(-scrollLeft + 0.25, -scrollTop + 0.25);
     c.scale(1 / zoomLevel, 1 / zoomLevel);
     c.lineWidth = 0.5 * zoomLevel;
-    c.fillStyle = c.strokeStyle = this.getBorderColor();
-    c.font = 24 * Math.sqrt(zoomLevel) + 'px "HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif';
+    c.fillStyle = c.strokeStyle = this.props.borderColor;
+    c.font = 24 * Math.sqrt(zoomLevel) + "px " + this.props.borderFont;
     c.textAlign = "left";
     c.textBaseline = "top";
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
@@ -420,7 +424,6 @@ module.exports = {
         c.strokeRect(lx * IMAGE_SIZE, ly * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
       }
     }
-    c.restore();
   },
 
   getImage: function (lx, ly, zoomPower) {
@@ -471,7 +474,7 @@ module.exports = {
       this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, MAX_ZOOM_POWER), 500);
     } else if (event.keyCode === 67) {
       this.setState({
-          dark: !this.state.dark
+          invertColor: !this.state.invertColor
         });
     }
   },
