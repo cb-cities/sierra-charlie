@@ -1,6 +1,7 @@
 "use strict";
 
 var r = require("react-wrapper");
+var easeTween = require("ease-tween");
 var tweenState = require("react-tween-state");
 var Loader = require("worker?inline!./loader");
 var MISSING_TILE_IDS = require("./missing-tile-ids.js");
@@ -46,24 +47,13 @@ function pointToLocalY(py, zoomRatio) {
       TILE_Y_COUNT - 1));
 }
 
-function computeZoomBase(zoomLevel) {
-  if (zoomLevel <=   1 +   2/2) { return   1; }
-  if (zoomLevel <=   2 +   4/2) { return   2; }
-  if (zoomLevel <=   4 +   8/2) { return   4; }
-  if (zoomLevel <=   8 +  16/2) { return   8; }
-  if (zoomLevel <=  16 +  32/2) { return  16; }
-  if (zoomLevel <=  32 +  64/2) { return  32; }
-  if (zoomLevel <=  64 + 128/2) { return  64; }
-  if (zoomLevel <= 128 + 256/2) { return 128; }
-  return 256;
-}
 
 module.exports = {
   mixins: [tweenState.Mixin],
 
   getInitialState: function () {
     return {
-      zoomLevel: 8
+      zoomPower: 3
     };
   },
 
@@ -119,9 +109,20 @@ module.exports = {
 
 
 
+  getZoomPower: function () {
+    return this.getTweeningValue("zoomPower");
+  },
+
+  getZoomLevel: function () {
+    return Math.pow(2, this.getZoomPower());
+  },
+
+  getZoomRatio: function () {
+    return 1 / this.getZoomLevel();
+  },
 
   computeVisibleTiles: function () {
-    var zoomRatio = 1 / this.getTweeningValue("zoomLevel");
+    var zoomRatio = this.getZoomRatio();
     this.fvlx = pointToLocalX(this.scrollLeft, zoomRatio);
     this.lvlx = pointToLocalX(this.scrollLeft + this.clientWidth - 1, zoomRatio);
     this.fvly = pointToLocalY(this.scrollTop, zoomRatio);
@@ -136,10 +137,10 @@ module.exports = {
     var txy = tileId.split("-");
     var tx = parseInt(txy[0]);
     var ty = parseInt(txy[1]);
-    return this.isTileVisibleSplit(tx, ty);
+    return this.isTileVisible_(tx, ty);
   },
 
-  isTileVisibleSplit: function (tx, ty) {
+  isTileVisible_: function (tx, ty) {
     return (
       tx >= this.fvtx &&
       tx <= this.lvtx &&
@@ -151,15 +152,16 @@ module.exports = {
     var txyz = imageId.split("-");
     var tx = parseInt(txyz[0]);
     var ty = parseInt(txyz[1]);
-    var zoomLevel = parseInt(txyz[2]);
-    return this.isImageVisibleSplit(tx, ty, zoomLevel);
+    var tz = parseInt(txyz[2]);
+    return this.isImageVisible_(tx, ty, tz);
   },
 
-  isImageVisibleSplit: function (tx, ty, zoomLevel) {
-    var zoomBase = computeZoomBase(this.getTweeningValue("zoomLevel"));
+  isImageVisible_: function (tx, ty, tz) {
+    var zoomPower = this.getZoomPower();
     return (
-      zoomLevel === zoomBase &&
-      this.isTileVisibleSplit(tx, ty));
+      this.isTileVisible_(tx, ty) && (
+        tz === Math.floor(zoomPower) ||
+        tz === Math.ceil(zoomPower)));
   },
 
 
@@ -204,7 +206,7 @@ module.exports = {
   },
 
   loadVisibleTilesNow: function () {
-    var zoomBase = computeZoomBase(this.getTweeningValue("zoomLevel"));
+    var zoomPower = this.getZoomPower();
     var tileIds = [];
     for (var ty = this.lvty; ty <= this.fvty; ty++) {
       for (var tx = this.lvtx; tx >= this.fvtx; tx--) {
@@ -213,9 +215,13 @@ module.exports = {
           if (!(tileId in this.tileData)) {
             tileIds.push(tileId);
           } else {
-            var imageId = tileId + "-" + zoomBase;
-            if (!(imageId in this.imageData)) {
-              this.imageQueue.push(imageId);
+            var floorImageId = tileId + "-" + Math.floor(zoomPower);
+            var ceilImageId  = tileId + "-" + Math.ceil(zoomPower);
+            if (!(floorImageId in this.imageData)) {
+              this.imageQueue.push(floorImageId);
+            }
+            if (ceilImageId !== floorImageId && !(ceilImageId in this.imageData)) {
+              this.imageQueue.push(ceilImageId);
             }
           }
         }
@@ -231,9 +237,13 @@ module.exports = {
   tileDidLoad: function (tileId, tileData) {
     this.tileData[tileId] = tileData;
     if (this.isTileVisible(tileId)) {
-      var zoomBase = computeZoomBase(this.getTweeningValue("zoomLevel"));
-      var imageId = tileId + "-" + zoomBase;
-      this.imageQueue.push(imageId);
+      var zoomPower = this.getZoomPower();
+      var floorImageId = tileId + "-" + Math.floor(zoomPower);
+      var ceilImageId  = tileId + "-" + Math.ceil(zoomPower);
+      this.imageQueue.push(floorImageId);
+      if (ceilImageId !== floorImageId) {
+        this.imageQueue.push(ceilImageId);
+      }
       this.renderNextImage();
     }
   },
@@ -283,9 +293,10 @@ module.exports = {
     var txyz = imageId.split("-");
     var tx = parseInt(txyz[0]);
     var ty = parseInt(txyz[1]);
+    var tz = parseInt(txyz[2]);
     var tileId = tx + "-" + ty;
     var tileData = this.tileData[tileId];
-    var zoomLevel = parseInt(txyz[2]);
+    var zoomLevel = 1 << tz;
     var zoomRatio = 1 / zoomLevel;
     var imageSize = IMAGE_SIZE * zoomRatio * window.devicePixelRatio;
     var canvas = document.createElement("canvas");
@@ -333,7 +344,7 @@ module.exports = {
   },
 
   paintTileBorders: function (c) {
-    var zoomLevel = this.getTweeningValue("zoomLevel");
+    var zoomLevel = this.getZoomLevel();
     var zoomRatio = 1 / zoomLevel;
     c.save();
     c.translate(-this.scrollLeft + 0.25, -this.scrollTop + 0.25);
@@ -357,54 +368,47 @@ module.exports = {
     c.restore();
   },
 
-  getImage: function (lx, ly, zoomLevel) {
-    var tx = localToTileX(lx);
-    var ty = localToTileY(ly);
-    var zoomBase = computeZoomBase(zoomLevel);
-    var imageId = tx + "-" + ty + "-" + zoomBase;
-    return this.imageData[imageId];
-  },
-
   paintTileContents: function (c) {
-    var zoomLevel = this.getTweeningValue("zoomLevel");
+    var zoomPower = this.getZoomPower();
+    var zoomLevel = Math.pow(2, zoomPower);
     var zoomRatio = 1 / zoomLevel;
     c.translate(-this.scrollLeft, -this.scrollTop);
     c.scale(zoomRatio, -zoomRatio);
     c.translate(0, -TILE_Y_COUNT * IMAGE_SIZE);
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
-        var imageData = this.getImage(lx, ly, zoomLevel);
-        if (imageData) {
-          c.drawImage(imageData, lx * IMAGE_SIZE, (TILE_Y_COUNT - ly - 1) * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
+        var tx = localToTileX(lx);
+        var ty = localToTileY(ly);
+        var imageId = tx + "-" + ty + "-" + Math.round(zoomPower);
+        if (imageId in this.imageData) {
+          c.drawImage(this.imageData[imageId], lx * IMAGE_SIZE, (TILE_Y_COUNT - ly - 1) * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
         }
       }
     }
   },
 
 
+  tweenZoomPower: function (duration, endValue) {
+    this.tweenState("zoomPower", {
+        duration: duration,
+        endValue: endValue,
+        easing: function (elapsed, startValue, endValue, duration) {
+          return startValue + (endValue - startValue) * easeTween.ease(elapsed / duration);
+        },
+        onEnd: function () {
+          console.log("zoomPower", this.state.zoomPower);
+        }.bind(this)
+      });
+  },
+
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
     if (event.keyCode >= 49 && event.keyCode <= 58) {
-      this.tweenState("zoomLevel", {
-          duration: 1000,
-          endValue: 1 << (event.keyCode - 49)
-        });
+      this.tweenZoomPower(500, event.keyCode - 49);
     } else if (event.keyCode === 187) {
-      this.tweenState("zoomLevel", {
-          duration: 1000,
-          endValue: Math.max(0, this.state.zoomLevel - 0.5),
-          onEnd: function () {
-            console.log("zoomLevel", this.state.zoomLevel);
-          }.bind(this)
-        });
+      this.tweenZoomPower(250, Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10));
     } else if (event.keyCode === 189) {
-      this.tweenState("zoomLevel", {
-          duration: 1000,
-          endValue: Math.min(this.state.zoomLevel + 0.5, 256),
-          onEnd: function () {
-            console.log("zoomLevel", this.state.zoomLevel);
-          }.bind(this)
-        });
+      this.tweenZoomPower(250, Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10), 8);
     }
   },
 
@@ -413,7 +417,7 @@ module.exports = {
   },
 
   render: function () {
-    var zoomRatio = 1 / this.getTweeningValue("zoomLevel");
+    var zoomRatio = this.getZoomRatio();
     return (
       r.div("map-frame",
         r.canvas("map-picture"),
