@@ -5,7 +5,6 @@ var easeTween = require("ease-tween");
 var tweenState = require("react-tween-state");
 var Loader = require("worker?inline!./loader");
 var MISSING_TILE_IDS = require("./missing-tile-ids");
-var spiral = require("./spiral");
 
 var TILE_SIZE    = 1000;
 var IMAGE_SIZE   = 1024;
@@ -18,11 +17,18 @@ var TILE_Y_COUNT = LAST_TILE_Y - FIRST_TILE_Y + 1;
 
 var MAX_ZOOM_POWER = 8;
 
+
+function isTileValid(tx, ty) {
+  return (
+    tx >= FIRST_TILE_X && tx <= LAST_TILE_X &&
+    ty >= FIRST_TILE_Y && ty <= LAST_TILE_Y);
+}
+
 // function tileToLocalX(tx) {
 //   return tx - FIRST_TILE_X;
 // }
 //
-// function tileToLocalTileY(ty) {
+// function tileToLocalY(ty) {
 //   return LAST_TILE_Y - ty;
 // }
 
@@ -36,6 +42,31 @@ function localToTileY(ly) {
 
 function computeZoomLevel(zoomPower) {
   return Math.pow(2, zoomPower);
+}
+
+function printTileId(tx, ty) {
+  return tx + "-" + ty;
+}
+
+function scanTileId(tileId) {
+  var txy = tileId.split("-");
+  return {
+    x: parseInt(txy[0]),
+    y: parseInt(txy[1])
+  };
+}
+
+function printImageId(tx, ty, zoomPower) {
+  return tx + "-" + ty + "-" + zoomPower;
+}
+
+function scanImageId(imageId) {
+  var txyz = imageId.split("-");
+  return {
+    x: parseInt(txyz[0]),
+    y: parseInt(txyz[1]),
+    z: parseInt(txyz[2])
+  };
 }
 
 function clampLocalX(lx) {
@@ -107,7 +138,7 @@ module.exports = {
     this.imageQueue = [];
     this.startLoader();
     this.computeVisibleTiles();
-    this.forceQueueAllTiles();
+    // this.queueAllTiles();
     this.loadVisibleTiles();
     this.paint();
   },
@@ -175,43 +206,33 @@ module.exports = {
     this.lvly = clampLocalY(Math.floor((scrollTop + this.clientHeight - 1) / imageSize));
     this.fvtx = localToTileX(this.fvlx);
     this.lvtx = localToTileX(this.lvlx);
-    this.fvty = localToTileY(this.fvly);
-    this.lvty = localToTileY(this.lvly);
+    this.fvty = localToTileY(this.lvly);
+    this.lvty = localToTileY(this.fvly);
   },
 
-  isTileVisible: function (tileId) {
-    var txy = tileId.split("-");
-    var tx = parseInt(txy[0]);
-    var ty = parseInt(txy[1]);
-    return this.isTileVisible_(tx, ty);
+  isTileIdVisible: function (tileId) {
+    var t = scanTileId(tileId);
+    return this.isTileVisible(t.x, t.y);
   },
 
-  isTileVisible_: function (tx, ty) {
+  isTileVisible: function (tx, ty) {
     return (
-      tx >= this.fvtx &&
-      tx <= this.lvtx &&
-      ty <= this.fvty &&
-      ty >= this.lvty);
+      tx >= this.fvtx && tx <= this.lvtx &&
+      ty >= this.fvty && ty <= this.lvty);
   },
 
-  isImageVisible: function (imageId) {
-    var txyz = imageId.split("-");
-    var tx = parseInt(txyz[0]);
-    var ty = parseInt(txyz[1]);
-    var tz = parseInt(txyz[2]);
-    return this.isImageVisible_(tx, ty, tz);
+  isImageIdVisible: function (imageId) {
+    var t = scanImageId(imageId);
+    return this.isImageVisible(t.x, t.y, t.z);
   },
 
-  isImageVisible_: function (tx, ty, tz) {
+  isImageVisible: function (tx, ty, tz) {
     var zoomPower = this.getZoomPower();
     return (
-      this.isTileVisible_(tx, ty) && (
+      this.isTileVisible(tx, ty) && (
         tz === Math.floor(zoomPower) ||
         tz === Math.ceil(zoomPower)));
   },
-
-
-
 
 
   startLoader: function () {
@@ -236,13 +257,34 @@ module.exports = {
     }
   },
 
-  forceQueueAllTiles: function () {
+  queueAllTiles: function () {
+    var tx = localToTileX(Math.floor(this.attentionLeft * TILE_X_COUNT));
+    var ty = localToTileY(Math.floor(this.attentionTop * TILE_Y_COUNT));
+    var k = Math.max(
+      Math.max(tx, LAST_TILE_X - tx),
+      Math.max(ty, LAST_TILE_Y - ty));
+    var tileIds = [];
+    function push(tx, ty) {
+      if (isTileValid(tx, ty)) {
+        var tileId = printTileId(tx, ty);
+        if (!(tileId in MISSING_TILE_IDS)) {
+          tileIds.push(tileId);
+        }
+      }
+    }
+    push(tx, ty);
+    for (var n = 0; n <= k; n++) {
+      for (var i = 0; i < n * 2; i++) {
+        push(tx + n,           ty + i - (n - 1));
+        push(tx - i + (n - 1), ty + n);
+        push(tx - n,           ty - i + (n - 1));
+        push(tx + i - (n - 1), ty - n);
+      }
+    }
+    tileIds.reverse();
     this.loader.postMessage({
-        message: "forceQueueAllTiles",
-        ftx: FIRST_TILE_X,
-        ltx: LAST_TILE_X,
-        fty: FIRST_TILE_Y,
-        lty: LAST_TILE_Y
+        message: "queueTiles",
+        tileIds: tileIds
       });
   },
 
@@ -255,40 +297,64 @@ module.exports = {
 
   loadVisibleTilesNow: function () {
     var zoomPower = this.getZoomPower();
-    var ps = spiral(this.lvtx - this.fvtx + 1, this.fvty - this.lvty + 1);
+    var tx = localToTileX(Math.floor(this.attentionLeft * TILE_X_COUNT));
+    var ty = localToTileY(Math.floor(this.attentionTop * TILE_Y_COUNT));
+    var k = Math.max(
+      Math.max(tx - this.fvtx, this.lvtx - tx),
+      Math.max(ty - this.fvty, this.lvty - ty));
+    var isTileVisible = this.isTileVisible;
     var tileIds = [];
-    for (var i = 0; i < ps.length; i++) {
-      var tx = this.fvtx + ps[i].x;
-      var ty = this.lvty + ps[i].y;
-      var tileId = tx + "-" + ty;
-      if (!(tileId in MISSING_TILE_IDS)) {
-        if (!(tileId in this.tileData)) {
-          tileIds.push(tileId);
-        } else {
-          var floorImageId = tileId + "-" + Math.floor(zoomPower);
-          var ceilImageId  = tileId + "-" + Math.ceil(zoomPower);
-          if (!(floorImageId in this.imageData)) {
-            this.imageQueue.push(floorImageId);
-          }
-          if (ceilImageId !== floorImageId && !(ceilImageId in this.imageData)) {
-            this.imageQueue.push(ceilImageId);
+    var tileData = this.tileData;
+    var imageIds = [];
+    var imageData = this.imageData;
+    function push(tx, ty) {
+      if (isTileVisible(tx, ty)) {
+        var tileId = printTileId(tx, ty);
+        if (!(tileId in MISSING_TILE_IDS)) {
+          if (!(tileId in tileData)) {
+            tileIds.push(tileId);
+          } else {
+            var floorImageId = printImageId(tx, ty, Math.floor(zoomPower));
+            var ceilImageId  = printImageId(tx, ty, Math.ceil(zoomPower));
+            if (!(floorImageId in imageData)) {
+              imageIds.push(floorImageId);
+            }
+            if (ceilImageId !== floorImageId && !(ceilImageId in imageData)) {
+              imageIds.push(ceilImageId);
+            }
           }
         }
       }
     }
+    push(tx, ty);
+    for (var n = 0; n <= k; n++) {
+      for (var i = 0; i < n * 2; i++) {
+        push(tx + n,           ty + i - (n - 1));
+        push(tx - i + (n - 1), ty + n);
+        push(tx - n,           ty - i + (n - 1));
+        push(tx + i - (n - 1), ty - n);
+      }
+    }
+    tileIds.reverse();
+    imageIds.reverse();
     this.loader.postMessage({
-        message: "loadTiles",
+        message: "queueTiles",
         tileIds: tileIds
       });
+    this.loader.postMessage({
+        message: "loadNextTile"
+      });
+    this.imageQueue = this.imageQueue.concat(imageIds);
     this.renderNextImage();
   },
 
   tileDidLoad: function (tileId, tileData) {
     this.tileData[tileId] = tileData;
-    if (this.isTileVisible(tileId)) {
+    if (this.isTileIdVisible(tileId)) {
+      var t = scanTileId(tileId);
       var zoomPower = this.getZoomPower();
-      var floorImageId = tileId + "-" + Math.floor(zoomPower);
-      var ceilImageId  = tileId + "-" + Math.ceil(zoomPower);
+      var floorImageId = printImageId(t.x, t.y, Math.floor(zoomPower));
+      var ceilImageId  = printImageId(t.x, t.y, Math.ceil(zoomPower));
       this.imageQueue.push(floorImageId);
       if (ceilImageId !== floorImageId) {
         this.imageQueue.push(ceilImageId);
@@ -303,7 +369,7 @@ module.exports = {
     var pendingImageId;
     while (this.imageQueue.length) {
       var imageId = this.imageQueue.pop();
-      if (!(imageId in this.imageData) && this.isImageVisible(imageId)) {
+      if (!(imageId in this.imageData) && this.isImageIdVisible(imageId)) {
         pendingImageId = imageId;
         break;
       }
@@ -338,22 +404,18 @@ module.exports = {
     }
   },
 
-
   renderImage: function (imageId) {
-    var txyz = imageId.split("-");
-    var tx = parseInt(txyz[0]);
-    var ty = parseInt(txyz[1]);
-    var tileId = tx + "-" + ty;
+    var t = scanImageId(imageId);
+    var tileId = printTileId(t.x, t.y);
     var tileData = this.tileData[tileId];
-    var zoomPower = parseInt(txyz[2]);
-    var zoomLevel = computeZoomLevel(zoomPower);
+    var zoomLevel = computeZoomLevel(t.z);
     var imageSize = window.devicePixelRatio * IMAGE_SIZE / zoomLevel;
     var canvas = document.createElement("canvas");
     canvas.width  = imageSize;
     canvas.height = imageSize;
     var c = canvas.getContext("2d");
     c.scale(imageSize / TILE_SIZE, imageSize / TILE_SIZE);
-    c.translate(-tx * TILE_SIZE, -ty * TILE_SIZE);
+    c.translate(-t.x * TILE_SIZE, -t.y * TILE_SIZE);
     c.strokeStyle = this.props.roadLinkColor;
     c.fillStyle = this.props.roadNodeColor;
     c.globalCompositeOperation = "screen";
@@ -429,14 +491,14 @@ module.exports = {
   getImage: function (lx, ly, zoomPower) {
     var tx = localToTileX(lx);
     var ty = localToTileY(ly);
-    for (var p = Math.round(zoomPower); p >= 0; p--) {
-      var imageId = tx + "-" + ty + "-" + p;
+    for (var tz = Math.round(zoomPower); tz >= 0; tz--) {
+      var imageId = printImageId(tx, ty, tz);
       if (imageId in this.imageData) {
         return this.imageData[imageId];
       }
     }
-    for (var p = Math.round(zoomPower); p <= MAX_ZOOM_POWER; p++) {
-      var imageId = tx + "-" + ty + "-" + p;
+    for (var tz = Math.round(zoomPower); tz <= MAX_ZOOM_POWER; tz++) {
+      var imageId = printImageId(tx, ty, tz);
       if (imageId in this.imageData) {
         return this.imageData[imageId];
       }

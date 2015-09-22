@@ -1,8 +1,6 @@
 "use strict";
 
 var http = require("http-request-wrapper");
-var MISSING_TILE_IDS = require("./missing-tile-ids");
-var spiral = require("./spiral");
 
 var origin;
 var tileQueue = [];
@@ -16,19 +14,6 @@ function tileUrl(tileId) {
       process.env.NODE_ENV === "production" ?
         ".json.gz" :
         ".json"));
-}
-
-function forceQueueAllTiles(ftx, ltx, fty, lty) {
-  var ps = spiral(ltx - ftx + 1, fty - lty + 1);
-  for (var i = 0; i < ps.length; i++) {
-    var tx = ftx + ps[i].x;
-    var ty = lty + ps[i].y;
-    var tileId = tx + "-" + ty;
-    if (!(tileId in MISSING_TILE_IDS)) {
-      tileQueue.push(tileId);
-      queuedTiles[tileId] = true;
-    }
-  }
 }
 
 function queueTile(tileId) {
@@ -80,11 +65,10 @@ onmessage = function (event) {
     case "setOrigin":
       origin = event.data.origin;
       break;
-    case "forceQueueAllTiles":
-      forceQueueAllTiles(event.data.ftx, event.data.ltx, event.data.fty, event.data.lty);
-      break;
-    case "loadTiles":
+    case "queueTiles":
       queueTiles(event.data.tileIds);
+      break;
+    case "loadNextTile":
       loadNextTile();
       break;
   }
