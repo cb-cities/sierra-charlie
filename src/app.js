@@ -121,6 +121,31 @@ module.exports = {
       });
   },
 
+  hasTile: function (tileId) {
+    return tileId in this.tileData;
+  },
+
+  getTile: function (tileId) {
+    return this.tileData[tileId];
+  },
+
+  setTile: function (tileId, tileData) {
+    this.tileData[tileId] = tileData;
+  },
+
+  hasImage: function (imageId) {
+    return imageId in this.imageData;
+  },
+
+  getImage: function (imageId) {
+    return this.imageData[imageId];
+  },
+
+  setImage: function (imageId, imageData) {
+    this.imageData[imageId] = imageData;
+  },
+
+
   componentDidMount: function () {
     this.exportBackgroundColor();
     this.node = r.domNode(this);
@@ -304,22 +329,22 @@ module.exports = {
       Math.max(ty - this.fvty, this.lvty - ty));
     var isTileVisible = this.isTileVisible;
     var tileIds = [];
-    var tileData = this.tileData;
+    var hasTile = this.hasTile;
     var imageIds = [];
-    var imageData = this.imageData;
+    var hasImage = this.hasImage;
     function push(tx, ty) {
       if (isTileVisible(tx, ty)) {
         var tileId = printTileId(tx, ty);
         if (!(tileId in MISSING_TILE_IDS)) {
-          if (!(tileId in tileData)) {
+          if (!hasTile(tileId)) {
             tileIds.push(tileId);
           } else {
             var floorImageId = printImageId(tx, ty, Math.floor(zoomPower));
             var ceilImageId  = printImageId(tx, ty, Math.ceil(zoomPower));
-            if (!(floorImageId in imageData)) {
+            if (!hasImage(floorImageId)) {
               imageIds.push(floorImageId);
             }
-            if (ceilImageId !== floorImageId && !(ceilImageId in imageData)) {
+            if (ceilImageId !== floorImageId && !hasImage(ceilImageId)) {
               imageIds.push(ceilImageId);
             }
           }
@@ -349,7 +374,7 @@ module.exports = {
   },
 
   tileDidLoad: function (tileId, tileData) {
-    this.tileData[tileId] = tileData;
+    this.setTile(tileId, tileData);
     if (this.isTileIdVisible(tileId)) {
       var t = scanTileId(tileId);
       var zoomPower = this.getZoomPower();
@@ -364,19 +389,18 @@ module.exports = {
   },
 
 
-
   renderNextImage: function () {
     var pendingImageId;
     while (this.imageQueue.length) {
       var imageId = this.imageQueue.pop();
-      if (!(imageId in this.imageData) && this.isImageIdVisible(imageId)) {
+      if (!this.hasImage(imageId) && this.isImageIdVisible(imageId)) {
         pendingImageId = imageId;
         break;
       }
     }
     if (pendingImageId) {
       var imageData = this.renderImage(pendingImageId);
-      this.imageData[pendingImageId] = imageData;
+      this.setImage(pendingImageId, imageData);
       this.paint();
       clearTimeout(this.pendingRender);
       this.pendingRender = setTimeout(this.renderNextImage, 0);
@@ -407,7 +431,7 @@ module.exports = {
   renderImage: function (imageId) {
     var t = scanImageId(imageId);
     var tileId = printTileId(t.x, t.y);
-    var tileData = this.tileData[tileId];
+    var tileData = this.getTile(tileId);
     var zoomLevel = computeZoomLevel(t.z);
     var imageSize = window.devicePixelRatio * IMAGE_SIZE / zoomLevel;
     var canvas = document.createElement("canvas");
@@ -488,19 +512,21 @@ module.exports = {
     }
   },
 
-  getImage: function (lx, ly, zoomPower) {
+  getApproximateImage: function (lx, ly, zoomPower) {
     var tx = localToTileX(lx);
     var ty = localToTileY(ly);
     for (var tz = Math.round(zoomPower); tz >= 0; tz--) {
       var imageId = printImageId(tx, ty, tz);
-      if (imageId in this.imageData) {
-        return this.imageData[imageId];
+      var imageData = this.getImage(imageId);
+      if (imageData) {
+        return imageData;
       }
     }
     for (var tz = Math.round(zoomPower); tz <= MAX_ZOOM_POWER; tz++) {
       var imageId = printImageId(tx, ty, tz);
-      if (imageId in this.imageData) {
-        return this.imageData[imageId];
+      var imageData = this.getImage(imageId);
+      if (imageData) {
+        return imageData;
       }
     }
     return null;
@@ -517,7 +543,7 @@ module.exports = {
     c.translate(0, -TILE_Y_COUNT * IMAGE_SIZE);
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
-        var imageData = this.getImage(lx, ly, zoomPower);
+        var imageData = this.getApproximateImage(lx, ly, zoomPower);
         if (imageData) {
           c.drawImage(imageData, lx * IMAGE_SIZE, (TILE_Y_COUNT - ly - 1) * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
         }
