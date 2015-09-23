@@ -1,5 +1,7 @@
 "use strict";
 
+/* global Path2D */
+
 var r = require("react-wrapper");
 var easeTween = require("ease-tween");
 var tweenState = require("react-tween-state");
@@ -407,17 +409,21 @@ module.exports = {
     }
   },
 
-  renderRoadLinks: function (c, zoomLevel, roadLinks) {
-    c.lineWidth = 2 * Math.sqrt(zoomLevel) * (TILE_SIZE / IMAGE_SIZE);
-    for (var i = 0; i < roadLinks.length; i++) {
+  prepareRoadLinks: function (roadLinks) {
+    var path = new Path2D();
+    for (var i = 0; i < (roadLinks || []).length; i++) {
       var ps = roadLinks[i].ps;
-      c.beginPath();
-      c.moveTo(ps[0].x, ps[0].y);
+      path.moveTo(ps[0].x, ps[0].y);
       for (var j = 1; j < ps.length; j++) {
-        c.lineTo(ps[j].x, ps[j].y);
+        path.lineTo(ps[j].x, ps[j].y);
       }
-      c.stroke();
     }
+    return path;
+  },
+
+  renderRoadLinks: function (c, zoomLevel, roadLinksPath) {
+    c.lineWidth = 2 * Math.sqrt(zoomLevel) * (TILE_SIZE / IMAGE_SIZE);
+    c.stroke(roadLinksPath);
   },
 
   renderRoadNodes: function (c, zoomLevel, roadNodes) {
@@ -443,7 +449,10 @@ module.exports = {
     c.strokeStyle = this.props.roadLinkColor;
     c.fillStyle = this.props.roadNodeColor;
     c.globalCompositeOperation = "screen";
-    this.renderRoadLinks(c, zoomLevel, tileData.roadLinks);
+    if (!tileData.roadLinksPath) {
+      tileData.roadLinksPath = this.prepareRoadLinks(tileData.roadLinks);
+    }
+    this.renderRoadLinks(c, zoomLevel, tileData.roadLinksPath);
     this.renderRoadNodes(c, zoomLevel, tileData.roadNodes);
     return canvas;
   },
