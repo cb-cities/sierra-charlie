@@ -83,6 +83,30 @@ function clampLocalY(ly) {
 module.exports = {
   mixins: [tweenState.Mixin],
 
+  easeTweenState: function (name, value, duration, cb) {
+    if (!this.easeCounters) {
+      this.easeCounters = {};
+    }
+    if (!this.easeCounters[name]) {
+      this.easeCounters[name] = 1;
+    } else {
+      this.easeCounters[name]++;
+    }
+    this.tweenState(name, {
+        endValue: value,
+        duration: duration,
+        easing: function (elapsed, from, to) {
+          return from + (to - from) * easeTween.ease(elapsed / duration);
+        },
+        onEnd: function () {
+          if (!--this.easeCounters[name]) {
+            cb();
+          }
+        }.bind(this)
+      });
+  },
+
+
   getInitialState: function () {
     return {
       zoomPower: 3
@@ -109,18 +133,10 @@ module.exports = {
   },
 
   tweenZoomPower: function (zoomPower, duration) {
-    this.pendingZoom = this.pendingZoom || 0;
-    this.pendingZoom++;
-    this.tweenState("zoomPower", {
-        endValue: zoomPower,
-        duration: duration,
-        easing: function (elapsed, from, to, duration) {
-          return from + (to - from) * easeTween.ease(elapsed / duration);
-        },
-        onEnd: function () {
-          this.pendingZoom--;
-        }.bind(this)
-      });
+    this.pendingZoom = true;
+    this.easeTweenState("zoomPower", zoomPower, duration, function () {
+        this.pendingZoom = false;
+      }.bind(this));
   },
 
   hasTile: function (tileId) {
