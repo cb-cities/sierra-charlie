@@ -1,7 +1,6 @@
 "use strict";
 
 var LoaderWorker = require("worker?inline!./loader-worker");
-var MISSING_TILE_IDS = require("./missing-tile-ids");
 var TileId = require("./tile-id");
 
 
@@ -112,11 +111,9 @@ module.exports = {
       Math.max(atx, this.props.lastTileX - atx),
       Math.max(aty, this.props.lastTileY - aty));
     spirally(atx, aty, k, function (tx, ty) {
-        if (this.isTileValid(tx, ty)) {
-          var tileId = new TileId(tx, ty);
-          if (!(tileId in MISSING_TILE_IDS)) {
-            this.collectTileToQueue(tileId);
-          }
+        var tileId = this.getValidTileId(tx, ty);
+        if (tileId) {
+          this.collectTileToQueue(tileId);
         }
       }.bind(this));
   },
@@ -135,14 +132,12 @@ module.exports = {
       Math.max(tx - this.fvtx, this.lvtx - tx),
       Math.max(ty - this.fvty, this.lvty - ty));
     spirally(tx, ty, k, function (tx, ty) {
-        if (this.isTileVisible(tx, ty)) {
-          var tileId = new TileId(tx, ty);
-          if (!(tileId in MISSING_TILE_IDS)) {
-            if (!this.getTile(tileId)) {
-              this.collectTileToQueue(tileId);
-            } else {
-              this.collectImagesToQueue(tileId);
-            }
+        var tileId = this.getVisibleTileId(tx, ty);
+        if (tileId) {
+          if (!this.getTile(tileId)) {
+            this.collectTileToQueue(tileId);
+          } else {
+            this.collectImagesToQueue(tileId);
           }
         }
       }.bind(this));

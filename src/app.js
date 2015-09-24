@@ -3,9 +3,11 @@
 var r = require("react-wrapper");
 var easeTween = require("ease-tween");
 var tweenState = require("react-tween-state");
+var MISSING_TILE_IDS = require("./missing-tile-ids");
+var TileId = require("./tile-id");
 var loaderMixin = require("./loader-mixin");
-var rendererMixin = require("./renderer-mixin");
 var painterMixin = require("./painter-mixin");
+var rendererMixin = require("./renderer-mixin");
 
 
 function computeZoomLevel(zoomPower) {
@@ -54,6 +56,7 @@ module.exports = {
       lastTileX:  572,
       firstTileY: 148,
       lastTileY:  208,
+      missingTileIds: MISSING_TILE_IDS,
       maxZoomPower: 8,
       backgroundColor: "#000",
       inverseBackgroundColor: "#fff",
@@ -72,10 +75,44 @@ module.exports = {
     return this.props.lastTileY - this.props.firstTileY + 1;
   },
 
-  isTileValid: function (tx, ty) {
-    return (
+  getTileId: function (tx, ty) {
+    var tileId = new TileId(tx, ty);
+    if (tileId in this.props.missingTileIds) {
+      return null;
+    }
+    return tileId;
+  },
+
+  getValidTileId: function (tx, ty) {
+    var isValid = (
       tx >= this.props.firstTileX && tx <= this.props.lastTileX &&
       ty >= this.props.firstTileY && ty <= this.props.lastTileY);
+    return (
+      !isValid ? null :
+        this.getTileId(tx, ty));
+  },
+
+  isTileVisible: function (tx, ty) {
+    var isVisible = (
+      tx >= this.fvtx && tx <= this.lvtx &&
+      ty >= this.fvty && ty <= this.lvty);
+    return isVisible;
+  },
+
+  getVisibleTileId: function (tx, ty) {
+    return (
+      !this.isTileVisible(tx, ty) ? null :
+        this.getTileId(tx, ty));
+  },
+
+  isImageVisible: function (tx, ty, tz) {
+    var zoomPower = this.getZoomPower();
+    var isInZoom = (
+      tz === Math.floor(zoomPower) ||
+      tz === Math.ceil(zoomPower));
+    return (
+      isInZoom &&
+      this.isTileVisible(tx, ty));
   },
 
   tileToLocalX: function (tx) {
@@ -199,20 +236,6 @@ module.exports = {
     this.lvtx = this.localToTileX(this.lvlx);
     this.fvty = this.localToTileY(this.lvly);
     this.lvty = this.localToTileY(this.fvly);
-  },
-
-  isTileVisible: function (tx, ty) {
-    return (
-      tx >= this.fvtx && tx <= this.lvtx &&
-      ty >= this.fvty && ty <= this.lvty);
-  },
-
-  isImageVisible: function (tx, ty, tz) {
-    var zoomPower = this.getZoomPower();
-    return (
-      this.isTileVisible(tx, ty) && (
-        tz === Math.floor(zoomPower) ||
-        tz === Math.ceil(zoomPower)));
   },
 
 
