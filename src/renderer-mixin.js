@@ -28,7 +28,7 @@ module.exports = {
     var pendingImageId;
     while (this.renderQueue.length) {
       var imageId = this.renderQueue.pop();
-      if (!this.getImage(imageId) && this.isImageIdVisible(imageId)) {
+      if (!this.getImage(imageId) && this.isImageVisible(imageId.tx, imageId.ty, imageId.tz)) {
         pendingImageId = imageId;
         break;
       }

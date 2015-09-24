@@ -62,7 +62,7 @@ module.exports = {
 
   onTileLoad: function (tileId, tileData) {
     this.setTile(tileId, tileData);
-    if (this.isTileIdVisible(tileId)) {
+    if (this.isTileVisible(tileId.tx, tileId.ty)) {
       var zoomPower = this.getZoomPower();
       var floorImageId = new ImageId(tileId.tx, tileId.ty, Math.floor(zoomPower));
       var ceilImageId  = new ImageId(tileId.tx, tileId.ty, Math.ceil(zoomPower));

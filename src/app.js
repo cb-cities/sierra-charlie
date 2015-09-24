@@ -201,18 +201,10 @@ module.exports = {
     this.lvty = this.localToTileY(this.fvly);
   },
 
-  isTileIdVisible: function (tileId) {
-    return this.isTileVisible(tileId.tx, tileId.ty);
-  },
-
   isTileVisible: function (tx, ty) {
     return (
       tx >= this.fvtx && tx <= this.lvtx &&
       ty >= this.fvty && ty <= this.lvty);
-  },
-
-  isImageIdVisible: function (imageId) {
-    return this.isImageVisible(imageId.tx, imageId.ty, imageId.tz);
   },
 
   isImageVisible: function (tx, ty, tz) {
