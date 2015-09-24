@@ -253,16 +253,49 @@ module.exports = {
 
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
-    if (event.keyCode >= 49 && event.keyCode <= 58) {
-      this.easeZoomPower(event.keyCode - 49, 500);
-    } else if (event.keyCode === 187) {
-      this.easeZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 500);
-    } else if (event.keyCode === 189) {
-      this.easeZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, this.props.maxZoomPower), 500);
-    } else if (event.keyCode === 67) {
-      this.setState({
-          invertColor: !this.state.invertColor
-        });
+    var imageSize = this.props.imageSize / this.getEasedZoomLevel();
+    var pageWidth  = 1 / (this.getTileXCount() / (this.state.clientWidth / imageSize));
+    var pageHeight = 1 / (this.getTileYCount() / (this.state.clientHeight / imageSize));
+    switch (event.keyCode) {
+      case 37: // left
+        this.easeAttentionLeft(Math.max(0, this.state.attentionLeft - pageWidth / 10), 500);
+        break;
+      case 39: // right
+        this.easeAttentionLeft(Math.min(this.state.attentionLeft + pageWidth / 10, 1), 500);
+        break;
+      case 38: // up
+        this.easeAttentionTop(Math.max(0, this.state.attentionTop - pageHeight / 10), 500);
+        break;
+      case 40: // down
+        this.easeAttentionTop(Math.min(this.state.attentionTop + pageHeight / 10, 1), 500);
+        break;
+      case 36: // home
+        this.easeAttentionLeft(Math.max(0, this.state.attentionLeft - pageWidth), 500);
+        break;
+      case 35: // end
+        this.easeAttentionLeft(Math.min(this.state.attentionLeft + pageWidth, 1), 500);
+        break;
+      case 33: // page up
+        this.easeAttentionTop(Math.max(0, this.state.attentionTop - pageHeight), 500);
+        break;
+      case 34: // page down
+        this.easeAttentionTop(Math.min(this.state.attentionTop + pageHeight, 1), 500);
+        break;
+      case 187: // minus
+        this.easeZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 500);
+        break;
+      case 189: // plus
+        this.easeZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, this.props.maxZoomPower), 500);
+        break;
+      case 67: // c
+        this.setState({
+            invertColor: !this.state.invertColor
+          });
+        break;
+      default:
+        if (event.keyCode >= 49 && event.keyCode <= 58) {
+          this.easeZoomPower(event.keyCode - 49, 500);
+        }
     }
   },
 
