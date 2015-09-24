@@ -60,8 +60,10 @@ module.exports = {
 
   getValidTileId: function (tx, ty) {
     var isValid = (
-      tx >= this.props.firstTileX && tx <= this.props.lastTileX &&
-      ty >= this.props.firstTileY && ty <= this.props.lastTileY);
+      tx >= this.props.firstTileX &&
+      tx <= this.props.lastTileX &&
+      ty >= this.props.firstTileY &&
+      ty <= this.props.lastTileY);
     return (
       !isValid ? null :
         this.getTileId(tx, ty));
@@ -69,8 +71,10 @@ module.exports = {
 
   isTileVisible: function (tx, ty) {
     var isVisible = (
-      tx >= this.fvtx && tx <= this.lvtx &&
-      ty >= this.fvty && ty <= this.lvty);
+      tx >= this.fvtx &&
+      tx <= this.lvtx &&
+      ty >= this.fvty &&
+      ty <= this.lvty);
     return isVisible;
   },
 
@@ -107,11 +111,15 @@ module.exports = {
   },
 
   clampLocalX: function (lx) {
-    return Math.max(0, Math.min(lx, this.getTileXCount() - 1));
+    return (
+      Math.max(0,
+        Math.min(lx, this.getTileXCount() - 1)));
   },
 
   clampLocalY: function (ly) {
-    return Math.max(0, Math.min(ly, this.getTileYCount() - 1));
+    return (
+      Math.max(0,
+        Math.min(ly, this.getTileYCount() - 1)));
   },
 
   getZoomPower: function () {
