@@ -35,7 +35,7 @@ module.exports = {
   componentDidMount: function () {
     this.loadedTiles = {};
     this.startLoaderWorker();
-    // this.queueAllTiles();
+    // this.queueLoadAllTiles();
   },
 
   componentWillUnmount: function () {
@@ -86,7 +86,7 @@ module.exports = {
     }
   },
 
-  queueAllTiles: function () {
+  queueLoadAllTiles: function () {
     var tx = this.localToTileX(Math.floor(this.attentionLeft * this.getTileXCount()));
     var ty = this.localToTileY(Math.floor(this.attentionTop * this.getTileYCount()));
     var k = Math.max(
@@ -103,7 +103,7 @@ module.exports = {
       }.bind(this));
     tileIds.reverse();
     this.loaderWorker.postMessage({
-        message:     "queueTiles",
+        message:     "queueLoadTiles",
         flatTileIds: deflate(tileIds)
       });
   },
@@ -145,7 +145,7 @@ module.exports = {
       }.bind(this));
     tileIds.reverse();
     this.loaderWorker.postMessage({
-        message:     "queueTiles",
+        message:     "queueLoadTiles",
         flatTileIds: deflate(tileIds)
       });
     this.loaderWorker.postMessage({

@@ -16,16 +16,16 @@ function tileUrl(tileId) {
         ".json"));
 }
 
-function queueTile(flatTileId) {
+function queueLoadTile(flatTileId) {
   if (flatTileId !== pendingTileId && !(flatTileId in loadedTiles)) {
     loadQueue.push(flatTileId);
     queuedTiles[flatTileId] = true;
   }
 }
 
-function queueTiles(flatTileIds) {
+function queueLoadTiles(flatTileIds) {
   for (var i = 0; i < flatTileIds.length; i++) {
-    queueTile(flatTileIds[i]);
+    queueLoadTile(flatTileIds[i]);
   }
 }
 
@@ -65,8 +65,8 @@ onmessage = function (event) {
     case "setOrigin":
       origin = event.data.origin;
       break;
-    case "queueTiles":
-      queueTiles(event.data.flatTileIds);
+    case "queueLoadTiles":
+      queueLoadTiles(event.data.flatTileIds);
       break;
     case "loadNextTile":
       loadNextTile();
