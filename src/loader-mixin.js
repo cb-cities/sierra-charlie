@@ -119,11 +119,6 @@ module.exports = {
       }.bind(this));
   },
 
-  loadVisibleTiles: function () {
-    clearTimeout(this.pendingLoad);
-    this.pendingLoad = setTimeout(this.loadVisibleTilesNow, 0);
-  },
-
   loadVisibleTilesNow: function () {
     var atx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.getTileXCount()));
     var aty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.getTileYCount()));
@@ -147,5 +142,10 @@ module.exports = {
     if (this.queueImagesToRender()) {
       this.renderNextImage();
     }
+  },
+
+  loadVisibleTiles: function () {
+    clearTimeout(this.pendingLoad);
+    this.pendingLoad = setTimeout(this.loadVisibleTilesNow, 0);
   }
 };
