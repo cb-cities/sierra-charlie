@@ -6,11 +6,16 @@ var ImageId = require("./image-id");
 var TileId = require("./tile-id");
 
 
-function flatten(tileIds) {
+function deflate(tileIds) {
   return (
     tileIds.map(function (tileId) {
         return tileId.toString();
       }));
+}
+
+function inflate(flatTileId) {
+  var t = flatTileId.split("-");
+  return new TileId(t[0], t[1]);
 }
 
 
@@ -18,6 +23,7 @@ module.exports = {
   componentDidMount: function () {
     this.loadedTiles = {};
     this.startLoaderWorker();
+    // this.queueAllTiles();
   },
 
   componentWillUnmount: function () {
@@ -49,14 +55,12 @@ module.exports = {
   onMessage: function (event) {
     switch (event.data.message) {
       case "onTileLoad":
-        this.onTileLoad(event.data.flatTileId, event.data.tileData);
+        this.onTileLoad(inflate(event.data.flatTileId), event.data.tileData);
         break;
     }
   },
 
-  onTileLoad: function (flatTileId, tileData) {
-    var t = flatTileId.split("-");
-    var tileId = new TileId(t[0], t[1]);
+  onTileLoad: function (tileId, tileData) {
     this.setTile(tileId, tileData);
     if (this.isTileIdVisible(tileId)) {
       var zoomPower = this.getZoomPower();
@@ -97,7 +101,7 @@ module.exports = {
     tileIds.reverse();
     this.loaderWorker.postMessage({
         message:     "queueTiles",
-        flatTileIds: flatten(tileIds)
+        flatTileIds: deflate(tileIds)
       });
   },
 
@@ -152,7 +156,7 @@ module.exports = {
     imageIds.reverse();
     this.loaderWorker.postMessage({
         message:     "queueTiles",
-        flatTileIds: flatten(tileIds)
+        flatTileIds: deflate(tileIds)
       });
     this.loaderWorker.postMessage({
         message: "loadNextTile"

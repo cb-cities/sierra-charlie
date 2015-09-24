@@ -131,7 +131,6 @@ module.exports = {
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
     this.computeVisibleTiles();
-    // this.queueAllTiles();
     this.loadVisibleTiles();
     this.paint();
   },
