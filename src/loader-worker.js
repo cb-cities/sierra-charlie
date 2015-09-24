@@ -3,12 +3,11 @@
 var http = require("http-request-wrapper");
 
 var origin;
-var loadQueue = [];
-var queuedTiles = {};
+var queuedTileIds = [];
 var pendingTileId;
-var loadedTiles = {};
+var loadedTileIds = {};
 
-function tileUrl(tileId) {
+function getTileUrl(tileId) {
   return (
     origin + "/json/tile-" + tileId + (
       process.env.NODE_ENV === "production" ?
@@ -16,38 +15,36 @@ function tileUrl(tileId) {
         ".json"));
 }
 
-function queueLoadTile(flatTileId) {
-  if (flatTileId !== pendingTileId && !(flatTileId in loadedTiles)) {
-    loadQueue.push(flatTileId);
-    queuedTiles[flatTileId] = true;
+function queueTileToLoad(tileId) {
+  if (tileId !== pendingTileId && !(tileId in loadedTileIds)) {
+    queuedTileIds.push(tileId);
   }
 }
 
-function queueLoadTiles(flatTileIds) {
-  for (var i = 0; i < flatTileIds.length; i++) {
-    queueLoadTile(flatTileIds[i]);
+function queueTilesToLoad(tileIds) {
+  for (var i = 0; i < tileIds.length; i++) {
+    queueTileToLoad(tileIds[i]);
   }
 }
 
 function loadNextTile() {
   if (!pendingTileId) {
-    while (loadQueue.length) {
-      var flatTileId = loadQueue.pop();
-      delete queuedTiles[flatTileId];
-      if (!(flatTileId in loadedTiles)) {
-        pendingTileId = flatTileId;
+    while (queuedTileIds.length) {
+      var tileId = queuedTileIds.pop();
+      if (!(tileId in loadedTileIds)) {
+        pendingTileId = tileId;
         break;
       }
     }
     if (pendingTileId) {
-      http.getJsonResource(tileUrl(pendingTileId), function (res, err) {
+      http.getJsonResource(getTileUrl(pendingTileId), function (res, err) {
           if (!err || err.type === "clientError") {
-            loadedTiles[pendingTileId] = true;
+            loadedTileIds[pendingTileId] = true;
             res = res || {};
             postMessage({
-                message:    "onTileLoad",
-                flatTileId: pendingTileId,
-                tileData:   {
+                message:  "tileLoaded",
+                tileId:   pendingTileId,
+                tileData: {
                   roadLinks: res.roadLinks || [],
                   roadNodes: res.roadNodes || []
                 }
@@ -65,8 +62,8 @@ onmessage = function (event) {
     case "setOrigin":
       origin = event.data.origin;
       break;
-    case "queueLoadTiles":
-      queueLoadTiles(event.data.flatTileIds);
+    case "queueTilesToLoad":
+      queueTilesToLoad(event.data.tileIds);
       break;
     case "loadNextTile":
       loadNextTile();

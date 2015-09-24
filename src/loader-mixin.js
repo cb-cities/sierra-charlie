@@ -2,7 +2,6 @@
 
 var LoaderWorker = require("worker?inline!./loader-worker");
 var MISSING_TILE_IDS = require("./missing-tile-ids");
-var ImageId = require("./image-id");
 var TileId = require("./tile-id");
 
 
@@ -13,8 +12,8 @@ function deflate(tileIds) {
       }));
 }
 
-function inflate(flatTileId) {
-  var t = flatTileId.split("-");
+function inflate(tileId) {
+  var t = tileId.split("-");
   return new TileId(t[0], t[1]);
 }
 
@@ -33,21 +32,22 @@ function spirally(tx, ty, k, cb) {
 
 module.exports = {
   componentDidMount: function () {
+    this.collectedTileIds = [];
     this.loadedTiles = {};
     this.startLoaderWorker();
-    // this.queueLoadAllTiles();
+    // this.collectAllTilesToQueue();
   },
 
   componentWillUnmount: function () {
     this.stopLoaderWorker();
   },
 
-  getTile: function (tileId) {
-    return this.loadedTiles[tileId];
-  },
-
   setTile: function (tileId, tileData) {
     this.loadedTiles[tileId] = tileData;
+  },
+
+  getTile: function (tileId) {
+    return this.loadedTiles[tileId];
   },
 
   startLoaderWorker: function () {
@@ -64,48 +64,61 @@ module.exports = {
     this.loaderWorker.removeEventListener("message", this.onMessage);
   },
 
+  collectTileToQueue: function (tileId) {
+    this.collectedTileIds.push(tileId);
+  },
+
+  queueTilesToLoad: function () {
+    var tileIds = this.collectedTileIds.reverse();
+    this.collectedTileIds = [];
+    if (tileIds.length) {
+      this.loaderWorker.postMessage({
+          message: "queueTilesToLoad",
+          tileIds: deflate(tileIds)
+        });
+      return true;
+    }
+    return false;
+  },
+
+  loadNextTile: function () {
+    this.loaderWorker.postMessage({
+        message: "loadNextTile"
+      });
+  },
+
   onMessage: function (event) {
     switch (event.data.message) {
-      case "onTileLoad":
-        this.onTileLoad(inflate(event.data.flatTileId), event.data.tileData);
+      case "tileLoaded":
+        this.onTileLoaded(inflate(event.data.tileId), event.data.tileData);
         break;
     }
   },
 
-  onTileLoad: function (tileId, tileData) {
+  onTileLoaded: function (tileId, tileData) {
     this.setTile(tileId, tileData);
     if (this.isTileVisible(tileId.tx, tileId.ty)) {
-      var zoomPower = this.getZoomPower();
-      var floorImageId = new ImageId(tileId.tx, tileId.ty, Math.floor(zoomPower));
-      var ceilImageId  = new ImageId(tileId.tx, tileId.ty, Math.ceil(zoomPower));
-      this.renderQueue.push(floorImageId);
-      if (ceilImageId !== floorImageId) {
-        this.renderQueue.push(ceilImageId);
+      this.collectImagesToQueue(tileId);
+      if (this.queueImagesToRender()) {
+        this.renderNextImage();
       }
-      this.renderNextImage();
     }
   },
 
-  queueLoadAllTiles: function () {
-    var tx = this.localToTileX(Math.floor(this.attentionLeft * this.getTileXCount()));
-    var ty = this.localToTileY(Math.floor(this.attentionTop * this.getTileYCount()));
+  collectAllTilesToQueue: function () {
+    var atx = this.localToTileX(Math.floor(this.attentionLeft * this.getTileXCount()));
+    var aty = this.localToTileY(Math.floor(this.attentionTop * this.getTileYCount()));
     var k = Math.max(
-      Math.max(tx, this.props.lastTileX - tx),
-      Math.max(ty, this.props.lastTileY - ty));
-    var tileIds = [];
-    spirally(tx, ty, k, function (tx, ty) {
+      Math.max(atx, this.props.lastTileX - atx),
+      Math.max(aty, this.props.lastTileY - aty));
+    spirally(atx, aty, k, function (tx, ty) {
         if (this.isTileValid(tx, ty)) {
           var tileId = new TileId(tx, ty);
           if (!(tileId in MISSING_TILE_IDS)) {
-            tileIds.push(tileId);
+            this.collectTileToQueue(tileId);
           }
         }
       }.bind(this));
-    tileIds.reverse();
-    this.loaderWorker.postMessage({
-        message:     "queueLoadTiles",
-        flatTileIds: deflate(tileIds)
-      });
   },
 
   loadVisibleTiles: function () {
@@ -116,43 +129,28 @@ module.exports = {
   },
 
   loadVisibleTilesNow: function () {
-    var zoomPower = this.getZoomPower();
     var tx = this.localToTileX(Math.floor(this.attentionLeft * this.getTileXCount()));
     var ty = this.localToTileY(Math.floor(this.attentionTop * this.getTileYCount()));
     var k = Math.max(
       Math.max(tx - this.fvtx, this.lvtx - tx),
       Math.max(ty - this.fvty, this.lvty - ty));
-    var tileIds = [];
-    var imageIds = [];
     spirally(tx, ty, k, function (tx, ty) {
         if (this.isTileVisible(tx, ty)) {
           var tileId = new TileId(tx, ty);
           if (!(tileId in MISSING_TILE_IDS)) {
             if (!this.getTile(tileId)) {
-              tileIds.push(tileId);
+              this.collectTileToQueue(tileId);
             } else {
-              var floorImageId = new ImageId(tx, ty, Math.floor(zoomPower));
-              var ceilImageId  = new ImageId(tx, ty, Math.ceil(zoomPower));
-              if (!this.getImage(floorImageId)) {
-                imageIds.push(floorImageId);
-              }
-              if (ceilImageId !== floorImageId && !this.getImage(ceilImageId)) {
-                imageIds.push(ceilImageId);
-              }
+              this.collectImagesToQueue(tileId);
             }
           }
         }
       }.bind(this));
-    tileIds.reverse();
-    this.loaderWorker.postMessage({
-        message:     "queueLoadTiles",
-        flatTileIds: deflate(tileIds)
-      });
-    this.loaderWorker.postMessage({
-        message: "loadNextTile"
-      });
-    imageIds.reverse();
-    this.renderQueue = this.renderQueue.concat(imageIds);
-    this.renderNextImage();
+    if (this.queueTilesToLoad()) {
+      this.loadNextTile();
+    }
+    if (this.queueImagesToRender()) {
+      this.renderNextImage();
+    }
   }
 };

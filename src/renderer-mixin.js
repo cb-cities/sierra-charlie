@@ -2,6 +2,7 @@
 
 /* global Path2D */
 
+var ImageId = require("./image-id");
 var TileId = require("./tile-id");
 
 
@@ -12,22 +13,45 @@ function computeZoomLevel(zoomPower) {
 
 module.exports = {
   componentDidMount: function () {
+    this.collectedImageIds = [];
+    this.queuedImageIds = [];
     this.renderedImages = {};
-    this.renderQueue = [];
-  },
-
-  getImage: function (imageId) {
-    return this.renderedImages[imageId];
   },
 
   setImage: function (imageId, imageData) {
     this.renderedImages[imageId] = imageData;
   },
 
+  getImage: function (imageId) {
+    return this.renderedImages[imageId];
+  },
+
+  collectImagesToQueue: function (tileId) {
+    var zoomPower = this.getZoomPower();
+    var floorImageId = new ImageId(tileId.tx, tileId.ty, Math.floor(zoomPower));
+    var ceilImageId  = new ImageId(tileId.tx, tileId.ty, Math.ceil(zoomPower));
+    if (!this.getImage(floorImageId)) {
+      this.collectedImageIds.push(floorImageId);
+    }
+    if (ceilImageId !== floorImageId && !this.getImage(ceilImageId)) {
+      this.collectedImageIds.push(ceilImageId);
+    }
+  },
+
+  queueImagesToRender: function () {
+    var imageIds = this.collectedImageIds.reverse();
+    this.collectedImageIds = [];
+    if (imageIds.length) {
+      this.queuedImageIds = this.queuedImageIds.concat(imageIds);
+      return true;
+    }
+    return false;
+  },
+
   renderNextImage: function () {
     var pendingImageId;
-    while (this.renderQueue.length) {
-      var imageId = this.renderQueue.pop();
+    while (this.queuedImageIds.length) {
+      var imageId = this.queuedImageIds.pop();
       if (!this.getImage(imageId) && this.isImageVisible(imageId.tx, imageId.ty, imageId.tz)) {
         pendingImageId = imageId;
         break;
