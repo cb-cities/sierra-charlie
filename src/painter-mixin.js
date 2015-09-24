@@ -66,26 +66,6 @@ module.exports = {
     }
   },
 
-  getApproximateImage: function (lx, ly, zoomPower) {
-    var tx = this.localToTileX(lx);
-    var ty = this.localToTileY(ly);
-    for (var tz = Math.round(zoomPower); tz >= 0; tz--) {
-      var imageId = new ImageId(tx, ty, tz);
-      var imageData = this.getRenderedImage(imageId);
-      if (imageData) {
-        return imageData;
-      }
-    }
-    for (var tz = Math.round(zoomPower); tz <= this.props.maxZoomPower; tz++) {
-      var imageId = new ImageId(tx, ty, tz);
-      var imageData = this.getRenderedImage(imageId);
-      if (imageData) {
-        return imageData;
-      }
-    }
-    return null;
-  },
-
   paintTileContents: function (c) {
     var zoomPower  = this.getEasedZoomPower();
     var zoomLevel  = Math.pow(2, zoomPower);
@@ -97,7 +77,10 @@ module.exports = {
     c.translate(0, -this.getTileYCount() * this.props.imageSize);
     for (var lx = this.firstVisibleLocalX; lx <= this.lastVisibleLocalX; lx++) {
       for (var ly = this.firstVisibleLocalY; ly <= this.lastVisibleLocalY; ly++) {
-        var imageData = this.getApproximateImage(lx, ly, zoomPower);
+        var tx = this.localToTileX(lx);
+        var ty = this.localToTileY(ly);
+        var imageId = new ImageId(tx, ty, Math.round(zoomPower));
+        var imageData = this.getRenderedImage(imageId);
         if (imageData) {
           c.drawImage(imageData, lx * this.props.imageSize, (this.getTileYCount() - ly - 1) * this.props.imageSize, this.props.imageSize, this.props.imageSize);
         }
