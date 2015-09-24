@@ -5,8 +5,7 @@
 var r = require("react-wrapper");
 var easeTween = require("ease-tween");
 var tweenState = require("react-tween-state");
-var Loader = require("worker?inline!./loader");
-var MISSING_TILE_IDS = require("./missing-tile-ids");
+var loaderMixin = require("./loader-mixin");
 
 var TILE_SIZE    = 1000;
 var IMAGE_SIZE   = 1024;
@@ -19,12 +18,6 @@ var TILE_Y_COUNT = LAST_TILE_Y - FIRST_TILE_Y + 1;
 
 var MAX_ZOOM_POWER = 8;
 
-
-function isTileValid(tx, ty) {
-  return (
-    tx >= FIRST_TILE_X && tx <= LAST_TILE_X &&
-    ty >= FIRST_TILE_Y && ty <= LAST_TILE_Y);
-}
 
 // function tileToLocalX(tx) {
 //   return tx - FIRST_TILE_X;
@@ -81,7 +74,7 @@ function clampLocalY(ly) {
 
 
 module.exports = {
-  mixins: [tweenState.Mixin],
+  mixins: [tweenState.Mixin, loaderMixin],
 
   easeTweenState: function (name, value, duration, cb) {
     if (!this.easeCounters) {
@@ -139,28 +132,12 @@ module.exports = {
       }.bind(this));
   },
 
-  hasTile: function (tileId) {
-    return tileId in this.tileData;
-  },
-
-  getTile: function (tileId) {
-    return this.tileData[tileId];
-  },
-
-  setTile: function (tileId, tileData) {
-    this.tileData[tileId] = tileData;
-  },
-
-  hasImage: function (imageId) {
-    return imageId in this.imageData;
-  },
-
   getImage: function (imageId) {
-    return this.imageData[imageId];
+    return this.renderedImages[imageId];
   },
 
   setImage: function (imageId, imageData) {
-    this.imageData[imageId] = imageData;
+    this.renderedImages[imageId] = imageData;
   },
 
 
@@ -176,10 +153,8 @@ module.exports = {
     this.node.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
-    this.tileData   = {};
-    this.imageData  = {};
+    this.renderedImages = {};
     this.imageQueue = [];
-    this.startLoader();
     this.computeVisibleTiles();
     // this.queueAllTiles();
     this.loadVisibleTiles();
@@ -190,7 +165,6 @@ module.exports = {
     this.node.removeEventListener("scroll", this.onScroll);
     removeEventListener("resize", this.onResize);
     removeEventListener("keydown", this.onKeyDown);
-    this.stopLoader();
   },
 
   componentDidUpdate: function (prevProps, prevState) {
@@ -278,140 +252,11 @@ module.exports = {
   },
 
 
-  startLoader: function () {
-    this.loader = new Loader();
-    this.loader.addEventListener("message", this.onMessage);
-    this.loader.postMessage({
-        message: "setOrigin",
-        origin:  location.origin
-      });
-  },
-
-  stopLoader: function () {
-    this.loader.terminate();
-    this.loader.removeEventListener("message", this.onMessage);
-  },
-
-  onMessage: function (event) {
-    switch (event.data.message) {
-      case "tileDidLoad":
-        this.tileDidLoad(event.data.tileId, event.data.tileData);
-        break;
-    }
-  },
-
-  queueAllTiles: function () {
-    var tx = localToTileX(Math.floor(this.attentionLeft * TILE_X_COUNT));
-    var ty = localToTileY(Math.floor(this.attentionTop * TILE_Y_COUNT));
-    var k = Math.max(
-      Math.max(tx, LAST_TILE_X - tx),
-      Math.max(ty, LAST_TILE_Y - ty));
-    var tileIds = [];
-    function push(tx, ty) {
-      if (isTileValid(tx, ty)) {
-        var tileId = printTileId(tx, ty);
-        if (!(tileId in MISSING_TILE_IDS)) {
-          tileIds.push(tileId);
-        }
-      }
-    }
-    push(tx, ty);
-    for (var n = 0; n <= k; n++) {
-      for (var i = 0; i < n * 2; i++) {
-        push(tx + n,           ty + i - (n - 1));
-        push(tx - i + (n - 1), ty + n);
-        push(tx - n,           ty - i + (n - 1));
-        push(tx + i - (n - 1), ty - n);
-      }
-    }
-    tileIds.reverse();
-    this.loader.postMessage({
-        message: "queueTiles",
-        tileIds: tileIds
-      });
-  },
-
-  loadVisibleTiles: function () {
-    if (!this.pendingZoom) {
-      clearTimeout(this.pendingLoad);
-      this.pendingLoad = setTimeout(this.loadVisibleTilesNow, 0);
-    }
-  },
-
-  loadVisibleTilesNow: function () {
-    var zoomPower = this.getZoomPower();
-    var tx = localToTileX(Math.floor(this.attentionLeft * TILE_X_COUNT));
-    var ty = localToTileY(Math.floor(this.attentionTop * TILE_Y_COUNT));
-    var k = Math.max(
-      Math.max(tx - this.fvtx, this.lvtx - tx),
-      Math.max(ty - this.fvty, this.lvty - ty));
-    var isTileVisible = this.isTileVisible;
-    var tileIds = [];
-    var hasTile = this.hasTile;
-    var imageIds = [];
-    var hasImage = this.hasImage;
-    function push(tx, ty) {
-      if (isTileVisible(tx, ty)) {
-        var tileId = printTileId(tx, ty);
-        if (!(tileId in MISSING_TILE_IDS)) {
-          if (!hasTile(tileId)) {
-            tileIds.push(tileId);
-          } else {
-            var floorImageId = printImageId(tx, ty, Math.floor(zoomPower));
-            var ceilImageId  = printImageId(tx, ty, Math.ceil(zoomPower));
-            if (!hasImage(floorImageId)) {
-              imageIds.push(floorImageId);
-            }
-            if (ceilImageId !== floorImageId && !hasImage(ceilImageId)) {
-              imageIds.push(ceilImageId);
-            }
-          }
-        }
-      }
-    }
-    push(tx, ty);
-    for (var n = 0; n <= k; n++) {
-      for (var i = 0; i < n * 2; i++) {
-        push(tx + n,           ty + i - (n - 1));
-        push(tx - i + (n - 1), ty + n);
-        push(tx - n,           ty - i + (n - 1));
-        push(tx + i - (n - 1), ty - n);
-      }
-    }
-    tileIds.reverse();
-    imageIds.reverse();
-    this.loader.postMessage({
-        message: "queueTiles",
-        tileIds: tileIds
-      });
-    this.loader.postMessage({
-        message: "loadNextTile"
-      });
-    this.imageQueue = this.imageQueue.concat(imageIds);
-    this.renderNextImage();
-  },
-
-  tileDidLoad: function (tileId, tileData) {
-    this.setTile(tileId, tileData);
-    if (this.isTileIdVisible(tileId)) {
-      var t = scanTileId(tileId);
-      var zoomPower = this.getZoomPower();
-      var floorImageId = printImageId(t.x, t.y, Math.floor(zoomPower));
-      var ceilImageId  = printImageId(t.x, t.y, Math.ceil(zoomPower));
-      this.imageQueue.push(floorImageId);
-      if (ceilImageId !== floorImageId) {
-        this.imageQueue.push(ceilImageId);
-      }
-      this.renderNextImage();
-    }
-  },
-
-
   renderNextImage: function () {
     var pendingImageId;
     while (this.imageQueue.length) {
       var imageId = this.imageQueue.pop();
-      if (!this.hasImage(imageId) && this.isImageIdVisible(imageId)) {
+      if (!this.getImage(imageId) && this.isImageIdVisible(imageId)) {
         pendingImageId = imageId;
         break;
       }

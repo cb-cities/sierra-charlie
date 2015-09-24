@@ -45,7 +45,7 @@ function loadNextTile() {
             loadedTiles[pendingTileId] = true;
             res = res || {};
             postMessage({
-                message:  "tileDidLoad",
+                message:  "onTileLoad",
                 tileId:   pendingTileId,
                 tileData: {
                   roadLinks: res.roadLinks || [],
