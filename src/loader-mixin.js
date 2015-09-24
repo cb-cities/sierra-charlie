@@ -80,6 +80,7 @@ module.exports = {
     var k = Math.max(
       Math.max(tx, this.props.lastTileX - tx),
       Math.max(ty, this.props.lastTileY - ty));
+    var isTileValid = this.isTileValid;
     var tileIds = [];
     function push(tx, ty) {
       if (isTileValid(tx, ty)) {
