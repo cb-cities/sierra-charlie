@@ -124,12 +124,34 @@ module.exports = {
         Math.min(ly, this.getTileYCount() - 1)));
   },
 
+  getEasedAttentionLeft: function () {
+    return this.getEasedState("attentionLeft");
+  },
+
+  getEasedAttentionTop: function () {
+    return this.getEasedState("attentionTop");
+  },
+
   getEasedZoomPower: function () {
     return this.getEasedState("zoomPower");
   },
 
   getEasedZoomLevel: function () {
     return Math.pow(2, this.getEasedZoomPower());
+  },
+
+  easeAttentionLeft: function (attentionLeft, duration) {
+    this.pendingScrollX = true;
+    this.easeState("attentionLeft", attentionLeft, duration, function () {
+        this.pendingScrollX = false;
+      }.bind(this));
+  },
+
+  easeAttentionTop: function (attentionTop, duration) {
+    this.pendingScrollY = true;
+    this.easeState("attentionTop", attentionTop, duration, function () {
+        this.pendingScrollY = false;
+      }.bind(this));
   },
 
   easeZoomPower: function (zoomPower, duration) {
@@ -169,7 +191,7 @@ module.exports = {
   },
 
   onScroll: function (event) {
-    if (!this.pendingZoom) {
+    if (!this.pendingScrollX && !this.pendingScrollY && !this.pendingZoom) {
       this.importScrollPosition();
     }
   },
@@ -189,8 +211,8 @@ module.exports = {
 
   exportScrollPosition: function () {
     var imageSize  = this.props.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.state.attentionLeft * (this.getTileXCount() * imageSize);
-    var scrollTop  = this.state.attentionTop  * (this.getTileYCount() * imageSize);
+    var scrollLeft = this.getEasedAttentionLeft() * (this.getTileXCount() * imageSize);
+    var scrollTop  = this.getEasedAttentionTop() * (this.getTileYCount() * imageSize);
     if (scrollLeft !== this.node.scrollLeft) {
       this.node.scrollLeft = scrollLeft;
     }
@@ -216,8 +238,8 @@ module.exports = {
 
   computeVisibleTiles: function () {
     var imageSize = this.props.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.state.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.state.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
+    var scrollLeft = this.getEasedAttentionLeft() * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.getEasedAttentionTop() * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
     this.firstVisibleLocalX = this.clampLocalX(Math.floor(scrollLeft / imageSize));
     this.lastVisibleLocalX  = this.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / imageSize));
     this.firstVisibleLocalY = this.clampLocalY(Math.floor(scrollTop / imageSize));
