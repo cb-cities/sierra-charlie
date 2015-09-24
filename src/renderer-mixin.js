@@ -22,7 +22,7 @@ module.exports = {
   },
 
   collectImagesToQueue: function (tileId) {
-    var zoomPower = this.getZoomPower();
+    var zoomPower = this.getEasedZoomPower();
     var floorImageId = new ImageId(tileId.tx, tileId.ty, Math.floor(zoomPower));
     var ceilImageId  = new ImageId(tileId.tx, tileId.ty, Math.ceil(zoomPower));
     if (!this.getRenderedImage(floorImageId)) {

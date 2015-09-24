@@ -71,10 +71,10 @@ module.exports = {
 
   isTileVisible: function (tx, ty) {
     var isVisible = (
-      tx >= this.fvtx &&
-      tx <= this.lvtx &&
-      ty >= this.fvty &&
-      ty <= this.lvty);
+      tx >= this.firstVisibleTileX &&
+      tx <= this.lastVisibleTileX &&
+      ty >= this.firstVisibleTileY &&
+      ty <= this.lastVisibleTileY);
     return isVisible;
   },
 
@@ -85,7 +85,7 @@ module.exports = {
   },
 
   isImageVisible: function (tx, ty, tz) {
-    var zoomPower = this.getZoomPower();
+    var zoomPower = this.getEasedZoomPower();
     var isInZoom = (
       tz === Math.floor(zoomPower) ||
       tz === Math.ceil(zoomPower));
@@ -122,12 +122,12 @@ module.exports = {
         Math.min(ly, this.getTileYCount() - 1)));
   },
 
-  getZoomPower: function () {
+  getEasedZoomPower: function () {
     return this.getEasedState("zoomPower");
   },
 
   getZoomLevel: function () {
-    return Math.pow(2, this.getZoomPower());
+    return Math.pow(2, this.getEasedZoomPower());
   },
 
   easeZoomPower: function (zoomPower, duration) {
@@ -217,14 +217,14 @@ module.exports = {
     var imageSize = this.props.imageSize / this.getZoomLevel();
     var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.clientWidth / 2;
     var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.clientHeight / 2;
-    this.fvlx = this.clampLocalX(Math.floor(scrollLeft / imageSize));
-    this.lvlx = this.clampLocalX(Math.floor((scrollLeft + this.clientWidth - 1) / imageSize));
-    this.fvly = this.clampLocalY(Math.floor(scrollTop / imageSize));
-    this.lvly = this.clampLocalY(Math.floor((scrollTop + this.clientHeight - 1) / imageSize));
-    this.fvtx = this.localToTileX(this.fvlx);
-    this.lvtx = this.localToTileX(this.lvlx);
-    this.fvty = this.localToTileY(this.lvly);
-    this.lvty = this.localToTileY(this.fvly);
+    this.firstVisibleLocalX = this.clampLocalX(Math.floor(scrollLeft / imageSize));
+    this.lastVisibleLocalX  = this.clampLocalX(Math.floor((scrollLeft + this.clientWidth - 1) / imageSize));
+    this.firstVisibleLocalY = this.clampLocalY(Math.floor(scrollTop / imageSize));
+    this.lastVisibleLocalY  = this.clampLocalY(Math.floor((scrollTop + this.clientHeight - 1) / imageSize));
+    this.firstVisibleTileX = this.localToTileX(this.firstVisibleLocalX);
+    this.lastVisibleTileX  = this.localToTileX(this.lastVisibleLocalX);
+    this.firstVisibleTileY = this.localToTileY(this.lastVisibleLocalY);
+    this.lastVisibleTileY  = this.localToTileY(this.firstVisibleLocalY);
   },
 
 

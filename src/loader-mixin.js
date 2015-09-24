@@ -129,8 +129,8 @@ module.exports = {
     var tx = this.localToTileX(Math.floor(this.attentionLeft * this.getTileXCount()));
     var ty = this.localToTileY(Math.floor(this.attentionTop * this.getTileYCount()));
     var k = Math.max(
-      Math.max(tx - this.fvtx, this.lvtx - tx),
-      Math.max(ty - this.fvty, this.lvty - ty));
+      Math.max(tx - this.firstVisibleTileX, this.lastVisibleTileX - tx),
+      Math.max(ty - this.firstVisibleTileY, this.lastVisibleTileY - ty));
     spirally(tx, ty, k, function (tx, ty) {
         var tileId = this.getVisibleTileId(tx, ty);
         if (tileId) {

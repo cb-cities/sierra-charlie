@@ -7,7 +7,7 @@ module.exports = {
   paint: function () {
     if (!this.pendingPaint) {
       this.pendingPaint = true;
-      this.storedZoomPower = this.getZoomPower();
+      this.storedZoomPower = this.getEasedZoomPower();
       window.requestAnimationFrame(this.paintNow);
     }
   },
@@ -53,8 +53,8 @@ module.exports = {
     c.font = 24 * Math.sqrt(zoomLevel) + "px " + this.props.borderFont;
     c.textAlign = "left";
     c.textBaseline = "top";
-    for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
-      for (var ly = this.fvly; ly <= this.lvly; ly++) {
+    for (var lx = this.firstVisibleLocalX; lx <= this.lastVisibleLocalX; lx++) {
+      for (var ly = this.firstVisibleLocalY; ly <= this.lastVisibleLocalY; ly++) {
         var tx = this.localToTileX(lx);
         var ty = this.localToTileY(ly);
         if (zoomPower < 3) {
@@ -96,8 +96,8 @@ module.exports = {
     c.translate(-scrollLeft, -scrollTop);
     c.scale(1 / zoomLevel, -1 / zoomLevel);
     c.translate(0, -this.getTileYCount() * this.props.imageSize);
-    for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
-      for (var ly = this.fvly; ly <= this.lvly; ly++) {
+    for (var lx = this.firstVisibleLocalX; lx <= this.lastVisibleLocalX; lx++) {
+      for (var ly = this.firstVisibleLocalY; ly <= this.lastVisibleLocalY; ly++) {
         var imageData = this.getApproximateImage(lx, ly, zoomPower);
         if (imageData) {
           c.drawImage(imageData, lx * this.props.imageSize, (this.getTileYCount() - ly - 1) * this.props.imageSize, this.props.imageSize, this.props.imageSize);
