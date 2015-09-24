@@ -18,11 +18,11 @@ module.exports = {
     this.renderedImages = {};
   },
 
-  setImage: function (imageId, imageData) {
+  setRenderedImage: function (imageId, imageData) {
     this.renderedImages[imageId] = imageData;
   },
 
-  getImage: function (imageId) {
+  getRenderedImage: function (imageId) {
     return this.renderedImages[imageId];
   },
 
@@ -30,10 +30,10 @@ module.exports = {
     var zoomPower = this.getZoomPower();
     var floorImageId = new ImageId(tileId.tx, tileId.ty, Math.floor(zoomPower));
     var ceilImageId  = new ImageId(tileId.tx, tileId.ty, Math.ceil(zoomPower));
-    if (!this.getImage(floorImageId)) {
+    if (!this.getRenderedImage(floorImageId)) {
       this.collectedImageIds.push(floorImageId);
     }
-    if (ceilImageId !== floorImageId && !this.getImage(ceilImageId)) {
+    if (ceilImageId !== floorImageId && !this.getRenderedImage(ceilImageId)) {
       this.collectedImageIds.push(ceilImageId);
     }
   },
@@ -52,14 +52,14 @@ module.exports = {
     var pendingImageId;
     while (this.queuedImageIds.length) {
       var imageId = this.queuedImageIds.pop();
-      if (!this.getImage(imageId) && this.isImageVisible(imageId.tx, imageId.ty, imageId.tz)) {
+      if (!this.getRenderedImage(imageId) && this.isImageVisible(imageId.tx, imageId.ty, imageId.tz)) {
         pendingImageId = imageId;
         break;
       }
     }
     if (pendingImageId) {
       var imageData = this.renderImage(pendingImageId);
-      this.setImage(pendingImageId, imageData);
+      this.setRenderedImage(pendingImageId, imageData);
       this.paint();
       clearTimeout(this.pendingRender);
       this.pendingRender = setTimeout(this.renderNextImage, 0);
@@ -92,7 +92,7 @@ module.exports = {
 
   renderImage: function (imageId) {
     var tileId = new TileId(imageId.tx, imageId.ty);
-    var tileData = this.getTile(tileId);
+    var tileData = this.getLoadedTile(tileId);
     var zoomLevel = computeZoomLevel(imageId.tz);
     var imageSize = window.devicePixelRatio * this.props.imageSize / zoomLevel;
     var canvas = document.createElement("canvas");

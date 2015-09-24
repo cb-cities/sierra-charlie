@@ -41,11 +41,11 @@ module.exports = {
     this.stopLoaderWorker();
   },
 
-  setTile: function (tileId, tileData) {
+  setLoadedTile: function (tileId, tileData) {
     this.loadedTiles[tileId] = tileData;
   },
 
-  getTile: function (tileId) {
+  getLoadedTile: function (tileId) {
     return this.loadedTiles[tileId];
   },
 
@@ -95,7 +95,7 @@ module.exports = {
   },
 
   onTileLoaded: function (tileId, tileData) {
-    this.setTile(tileId, tileData);
+    this.setLoadedTile(tileId, tileData);
     if (this.isTileVisible(tileId.tx, tileId.ty)) {
       this.collectImagesToQueue(tileId);
       if (this.queueImagesToRender()) {
@@ -134,7 +134,7 @@ module.exports = {
     spirally(tx, ty, k, function (tx, ty) {
         var tileId = this.getVisibleTileId(tx, ty);
         if (tileId) {
-          if (!this.getTile(tileId)) {
+          if (!this.getLoadedTile(tileId)) {
             this.collectTileToQueue(tileId);
           } else {
             this.collectImagesToQueue(tileId);

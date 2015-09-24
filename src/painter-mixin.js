@@ -77,14 +77,14 @@ module.exports = {
     var ty = this.localToTileY(ly);
     for (var tz = Math.round(zoomPower); tz >= 0; tz--) {
       var imageId = new ImageId(tx, ty, tz);
-      var imageData = this.getImage(imageId);
+      var imageData = this.getRenderedImage(imageId);
       if (imageData) {
         return imageData;
       }
     }
     for (var tz = Math.round(zoomPower); tz <= this.props.maxZoomPower; tz++) {
       var imageId = new ImageId(tx, ty, tz);
-      var imageData = this.getImage(imageId);
+      var imageData = this.getRenderedImage(imageId);
       if (imageData) {
         return imageData;
       }
