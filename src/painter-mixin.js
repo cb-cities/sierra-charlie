@@ -44,8 +44,8 @@ module.exports = {
     var zoomPower  = this.storedZoomPower;
     var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
-    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
+    var scrollLeft = this.state.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.state.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
     c.translate(-scrollLeft + 0.25, -scrollTop + 0.25);
     c.scale(1 / zoomLevel, 1 / zoomLevel);
     c.lineWidth = 0.5 * zoomLevel;
@@ -91,8 +91,8 @@ module.exports = {
     var zoomPower  = this.storedZoomPower;
     var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
-    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
+    var scrollLeft = this.state.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.state.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
     c.translate(-scrollLeft, -scrollTop);
     c.scale(1 / zoomLevel, -1 / zoomLevel);
     c.translate(0, -this.getTileYCount() * this.props.imageSize);

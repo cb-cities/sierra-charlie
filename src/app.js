@@ -17,12 +17,6 @@ module.exports = {
     rendererMixin
   ],
 
-  getInitialState: function () {
-    return {
-      zoomPower: 3
-    };
-  },
-
   getDefaultProps: function () {
     return {
       tileSize:  1000,
@@ -39,6 +33,14 @@ module.exports = {
       roadNodeColor: "#f93",
       borderColor: "#333",
       borderFont: '"HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif'
+    };
+  },
+
+  getInitialState: function () {
+    return {
+      attentionLeft: 0.4897637424698795,
+      attentionTop: 0.4768826844262295,
+      zoomPower: 3
     };
   },
 
@@ -141,8 +143,6 @@ module.exports = {
   componentDidMount: function () {
     this.node = r.domNode(this);
     this.canvas = this.node.firstChild;
-    this.attentionLeft = 0.4897637424698795;
-    this.attentionTop  = 0.4768826844262295;
     this.node.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
@@ -171,9 +171,6 @@ module.exports = {
   onScroll: function (event) {
     if (!this.pendingZoom) {
       this.importScrollPosition();
-      this.computeVisibleTiles();
-      this.loadVisibleTiles();
-      this.paint();
     }
   },
 
@@ -192,8 +189,8 @@ module.exports = {
 
   exportScrollPosition: function () {
     var imageSize  = this.props.imageSize / this.getZoomLevel();
-    var scrollLeft = this.attentionLeft * (this.getTileXCount() * imageSize);
-    var scrollTop  = this.attentionTop  * (this.getTileYCount() * imageSize);
+    var scrollLeft = this.state.attentionLeft * (this.getTileXCount() * imageSize);
+    var scrollTop  = this.state.attentionTop  * (this.getTileYCount() * imageSize);
     if (scrollLeft !== this.node.scrollLeft) {
       this.node.scrollLeft = scrollLeft;
     }
@@ -204,8 +201,10 @@ module.exports = {
 
   importScrollPosition: function () {
     var imageSize = this.props.imageSize / this.getZoomLevel();
-    this.attentionLeft = this.node.scrollLeft / (this.getTileXCount() * imageSize);
-    this.attentionTop  = this.node.scrollTop / (this.getTileYCount() * imageSize);
+    this.setState({
+        attentionLeft: this.node.scrollLeft / (this.getTileXCount() * imageSize),
+        attentionTop:  this.node.scrollTop / (this.getTileYCount() * imageSize)
+      });
   },
 
   importClientSize: function () {
@@ -217,8 +216,8 @@ module.exports = {
 
   computeVisibleTiles: function () {
     var imageSize = this.props.imageSize / this.getZoomLevel();
-    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
+    var scrollLeft = this.state.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.state.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
     this.firstVisibleLocalX = this.clampLocalX(Math.floor(scrollLeft / imageSize));
     this.lastVisibleLocalX  = this.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / imageSize));
     this.firstVisibleLocalY = this.clampLocalY(Math.floor(scrollTop / imageSize));

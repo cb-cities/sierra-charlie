@@ -105,8 +105,8 @@ module.exports = {
   },
 
   collectAllTilesToQueue: function () {
-    var atx = this.localToTileX(Math.floor(this.attentionLeft * this.getTileXCount()));
-    var aty = this.localToTileY(Math.floor(this.attentionTop * this.getTileYCount()));
+    var atx = this.localToTileX(Math.floor(this.state.attentionLeft * this.getTileXCount()));
+    var aty = this.localToTileY(Math.floor(this.state.attentionTop * this.getTileYCount()));
     var k = Math.max(
       Math.max(atx, this.props.lastTileX - atx),
       Math.max(aty, this.props.lastTileY - aty));
@@ -126,8 +126,8 @@ module.exports = {
   },
 
   loadVisibleTilesNow: function () {
-    var tx = this.localToTileX(Math.floor(this.attentionLeft * this.getTileXCount()));
-    var ty = this.localToTileY(Math.floor(this.attentionTop * this.getTileYCount()));
+    var tx = this.localToTileX(Math.floor(this.state.attentionLeft * this.getTileXCount()));
+    var ty = this.localToTileY(Math.floor(this.state.attentionTop * this.getTileYCount()));
     var k = Math.max(
       Math.max(tx - this.firstVisibleTileX, this.lastVisibleTileX - tx),
       Math.max(ty - this.firstVisibleTileY, this.lastVisibleTileY - ty));
