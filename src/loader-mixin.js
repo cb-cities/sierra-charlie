@@ -89,9 +89,9 @@ module.exports = {
       var zoomPower = this.getZoomPower();
       var floorImageId = printImageId(t.x, t.y, Math.floor(zoomPower));
       var ceilImageId  = printImageId(t.x, t.y, Math.ceil(zoomPower));
-      this.imageQueue.push(floorImageId);
+      this.renderQueue.push(floorImageId);
       if (ceilImageId !== floorImageId) {
-        this.imageQueue.push(ceilImageId);
+        this.renderQueue.push(ceilImageId);
       }
       this.renderNextImage();
     }
@@ -184,7 +184,7 @@ module.exports = {
     this.loader.postMessage({
         message: "loadNextTile"
       });
-    this.imageQueue = this.imageQueue.concat(imageIds);
+    this.renderQueue = this.renderQueue.concat(imageIds);
     this.renderNextImage();
   }
 };
