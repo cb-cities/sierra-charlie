@@ -141,13 +141,12 @@ module.exports = {
   componentDidMount: function () {
     this.node = r.domNode(this);
     this.canvas = this.node.firstChild;
-    this.clientWidth  = this.node.clientWidth;
-    this.clientHeight = this.node.clientHeight;
     this.attentionLeft = 0.4897637424698795;
     this.attentionTop  = 0.4768826844262295;
     this.node.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
+    this.importClientSize();
     this.exportBackgroundColor();
     this.exportScrollPosition();
     this.computeVisibleTiles();
@@ -179,11 +178,7 @@ module.exports = {
   },
 
   onResize: function (event) {
-    this.clientWidth  = this.node.clientWidth;
-    this.clientHeight = this.node.clientHeight;
-    this.computeVisibleTiles();
-    this.loadVisibleTiles();
-    this.paint();
+    this.importClientSize();
   },
 
   exportBackgroundColor: function (prevState) {
@@ -213,14 +208,21 @@ module.exports = {
     this.attentionTop  = this.node.scrollTop / (this.getTileYCount() * imageSize);
   },
 
+  importClientSize: function () {
+    this.setState({
+        clientWidth:  this.node.clientWidth,
+        clientHeight: this.node.clientHeight
+      });
+  },
+
   computeVisibleTiles: function () {
     var imageSize = this.props.imageSize / this.getZoomLevel();
-    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.clientWidth / 2;
-    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.clientHeight / 2;
+    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
     this.firstVisibleLocalX = this.clampLocalX(Math.floor(scrollLeft / imageSize));
-    this.lastVisibleLocalX  = this.clampLocalX(Math.floor((scrollLeft + this.clientWidth - 1) / imageSize));
+    this.lastVisibleLocalX  = this.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / imageSize));
     this.firstVisibleLocalY = this.clampLocalY(Math.floor(scrollTop / imageSize));
-    this.lastVisibleLocalY  = this.clampLocalY(Math.floor((scrollTop + this.clientHeight - 1) / imageSize));
+    this.lastVisibleLocalY  = this.clampLocalY(Math.floor((scrollTop + this.state.clientHeight - 1) / imageSize));
     this.firstVisibleTileX = this.localToTileX(this.firstVisibleLocalX);
     this.lastVisibleTileX  = this.localToTileX(this.lastVisibleLocalX);
     this.firstVisibleTileY = this.localToTileY(this.lastVisibleLocalY);

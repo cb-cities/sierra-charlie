@@ -13,8 +13,8 @@ module.exports = {
   },
 
   paintNow: function () {
-    var width  = window.devicePixelRatio * this.clientWidth;
-    var height = window.devicePixelRatio * this.clientHeight;
+    var width  = window.devicePixelRatio * this.state.clientWidth;
+    var height = window.devicePixelRatio * this.state.clientHeight;
     var canvas = this.canvas;
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width  = width;
@@ -25,7 +25,7 @@ module.exports = {
     c.scale(window.devicePixelRatio, window.devicePixelRatio);
     c.save();
     c.fillStyle = this.props.backgroundColor;
-    c.fillRect(0, 0, this.clientWidth, this.clientHeight);
+    c.fillRect(0, 0, this.state.clientWidth, this.state.clientHeight);
     this.paintTileBorders(c);
     c.restore();
     c.save();
@@ -34,7 +34,7 @@ module.exports = {
     if (this.state.invertColor) {
       c.globalCompositeOperation = "difference";
       c.fillStyle = "#fff";
-      c.fillRect(0, 0, this.clientWidth, this.clientHeight);
+      c.fillRect(0, 0, this.state.clientWidth, this.state.clientHeight);
       c.globalCompositeOperation = "source-over";
     }
     this.pendingPaint = false;
@@ -44,8 +44,8 @@ module.exports = {
     var zoomPower  = this.storedZoomPower;
     var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
-    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.clientWidth / 2;
-    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.clientHeight / 2;
+    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
     c.translate(-scrollLeft + 0.25, -scrollTop + 0.25);
     c.scale(1 / zoomLevel, 1 / zoomLevel);
     c.lineWidth = 0.5 * zoomLevel;
@@ -91,8 +91,8 @@ module.exports = {
     var zoomPower  = this.storedZoomPower;
     var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
-    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.clientWidth / 2;
-    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.clientHeight / 2;
+    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
     c.translate(-scrollLeft, -scrollTop);
     c.scale(1 / zoomLevel, -1 / zoomLevel);
     c.translate(0, -this.getTileYCount() * this.props.imageSize);
