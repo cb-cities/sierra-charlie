@@ -1,41 +1,21 @@
 "use strict";
 
 var r = require("react-wrapper");
-var easeTween = require("ease-tween");
-var tweenState = require("react-tween-state");
 var MISSING_TILE_IDS = require("./missing-tile-ids");
 var TileId = require("./tile-id");
+var easeStateMixin = require("./ease-state-mixin");
 var loaderMixin = require("./loader-mixin");
 var painterMixin = require("./painter-mixin");
 var rendererMixin = require("./renderer-mixin");
 
 
 module.exports = {
-  mixins: [tweenState.Mixin, loaderMixin, rendererMixin, painterMixin],
-
-  easeTweenState: function (name, value, duration, cb) {
-    if (!this.easeCounters) {
-      this.easeCounters = {};
-    }
-    if (!this.easeCounters[name]) {
-      this.easeCounters[name] = 1;
-    } else {
-      this.easeCounters[name]++;
-    }
-    this.tweenState(name, {
-        endValue: value,
-        duration: duration,
-        easing: function (elapsed, from, to) {
-          return from + (to - from) * easeTween.ease(elapsed / duration);
-        },
-        onEnd: function () {
-          if (!--this.easeCounters[name]) {
-            cb();
-          }
-        }.bind(this)
-      });
-  },
-
+  mixins: [
+    easeStateMixin,
+    loaderMixin,
+    painterMixin,
+    rendererMixin
+  ],
 
   getInitialState: function () {
     return {
@@ -135,16 +115,16 @@ module.exports = {
   },
 
   getZoomPower: function () {
-    return this.getTweeningValue("zoomPower");
+    return this.getEasedState("zoomPower");
   },
 
   getZoomLevel: function () {
     return Math.pow(2, this.getZoomPower());
   },
 
-  tweenZoomPower: function (zoomPower, duration) {
+  easeZoomPower: function (zoomPower, duration) {
     this.pendingZoom = true;
-    this.easeTweenState("zoomPower", zoomPower, duration, function () {
+    this.easeState("zoomPower", zoomPower, duration, function () {
         this.pendingZoom = false;
       }.bind(this));
   },
@@ -243,11 +223,11 @@ module.exports = {
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
     if (event.keyCode >= 49 && event.keyCode <= 58) {
-      this.tweenZoomPower(event.keyCode - 49, 500);
+      this.easeZoomPower(event.keyCode - 49, 500);
     } else if (event.keyCode === 187) {
-      this.tweenZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 500);
+      this.easeZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 500);
     } else if (event.keyCode === 189) {
-      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, this.props.maxZoomPower), 500);
+      this.easeZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, this.props.maxZoomPower), 500);
     } else if (event.keyCode === 67) {
       this.setState({
           invertColor: !this.state.invertColor
