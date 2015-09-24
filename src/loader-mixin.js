@@ -6,28 +6,6 @@ var ImageId = require("./image-id");
 var TileId = require("./tile-id");
 
 
-var FIRST_TILE_X = 490;
-var LAST_TILE_X  = 572;
-var FIRST_TILE_Y = 148;
-var LAST_TILE_Y  = 208;
-var TILE_X_COUNT = LAST_TILE_X - FIRST_TILE_X + 1;
-var TILE_Y_COUNT = LAST_TILE_Y - FIRST_TILE_Y + 1;
-
-
-function isTileValid(tx, ty) {
-  return (
-    tx >= FIRST_TILE_X && tx <= LAST_TILE_X &&
-    ty >= FIRST_TILE_Y && ty <= LAST_TILE_Y);
-}
-
-function localToTileX(lx) {
-  return FIRST_TILE_X + lx;
-}
-
-function localToTileY(ly) {
-  return LAST_TILE_Y - ly;
-}
-
 function flatten(tileIds) {
   return (
     tileIds.map(function (tileId) {
@@ -93,11 +71,11 @@ module.exports = {
   },
 
   queueAllTiles: function () {
-    var tx = localToTileX(Math.floor(this.attentionLeft * TILE_X_COUNT));
-    var ty = localToTileY(Math.floor(this.attentionTop * TILE_Y_COUNT));
+    var tx = this.localToTileX(Math.floor(this.attentionLeft * this.getTileXCount()));
+    var ty = this.localToTileY(Math.floor(this.attentionTop * this.getTileYCount()));
     var k = Math.max(
-      Math.max(tx, LAST_TILE_X - tx),
-      Math.max(ty, LAST_TILE_Y - ty));
+      Math.max(tx, this.props.lastTileX - tx),
+      Math.max(ty, this.props.lastTileY - ty));
     var tileIds = [];
     function push(tx, ty) {
       if (isTileValid(tx, ty)) {
@@ -132,8 +110,8 @@ module.exports = {
 
   loadVisibleTilesNow: function () {
     var zoomPower = this.getZoomPower();
-    var tx = localToTileX(Math.floor(this.attentionLeft * TILE_X_COUNT));
-    var ty = localToTileY(Math.floor(this.attentionTop * TILE_Y_COUNT));
+    var tx = this.localToTileX(Math.floor(this.attentionLeft * this.getTileXCount()));
+    var ty = this.localToTileY(Math.floor(this.attentionTop * this.getTileYCount()));
     var k = Math.max(
       Math.max(tx - this.fvtx, this.lvtx - tx),
       Math.max(ty - this.fvty, this.lvty - ty));

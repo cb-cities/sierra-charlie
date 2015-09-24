@@ -3,25 +3,6 @@
 var ImageId = require("./image-id");
 
 
-var IMAGE_SIZE   = 1024;
-var FIRST_TILE_X = 490;
-var LAST_TILE_X  = 572;
-var FIRST_TILE_Y = 148;
-var LAST_TILE_Y  = 208;
-var TILE_X_COUNT = LAST_TILE_X - FIRST_TILE_X + 1;
-var TILE_Y_COUNT = LAST_TILE_Y - FIRST_TILE_Y + 1;
-
-var MAX_ZOOM_POWER = 8;
-
-
-function localToTileX(lx) {
-  return FIRST_TILE_X + lx;
-}
-
-function localToTileY(ly) {
-  return LAST_TILE_Y - ly;
-}
-
 function computeZoomLevel(zoomPower) {
   return Math.pow(2, zoomPower);
 }
@@ -67,9 +48,9 @@ module.exports = {
   paintTileBorders: function (c) {
     var zoomPower  = this.storedZoomPower;
     var zoomLevel  = computeZoomLevel(zoomPower);
-    var imageSize  = IMAGE_SIZE / zoomLevel;
-    var scrollLeft = this.attentionLeft * TILE_X_COUNT * imageSize - this.clientWidth / 2;
-    var scrollTop  = this.attentionTop * TILE_Y_COUNT * imageSize - this.clientHeight / 2;
+    var imageSize  = this.props.imageSize / zoomLevel;
+    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.clientWidth / 2;
+    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.clientHeight / 2;
     c.translate(-scrollLeft + 0.25, -scrollTop + 0.25);
     c.scale(1 / zoomLevel, 1 / zoomLevel);
     c.lineWidth = 0.5 * zoomLevel;
@@ -79,21 +60,21 @@ module.exports = {
     c.textBaseline = "top";
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
-        var tx = localToTileX(lx);
-        var ty = localToTileY(ly);
+        var tx = this.localToTileX(lx);
+        var ty = this.localToTileY(ly);
         if (zoomPower < 3) {
           c.globalAlpha = 1 - (zoomPower - 2);
-          c.fillText(tx + "×" + ty, lx * IMAGE_SIZE + 4 * Math.sqrt(zoomLevel), ly * IMAGE_SIZE);
+          c.fillText(tx + "×" + ty, lx * this.props.imageSize + 4 * Math.sqrt(zoomLevel), ly * this.props.imageSize);
           c.globalAlpha = 1;
         }
-        c.strokeRect(lx * IMAGE_SIZE, ly * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
+        c.strokeRect(lx * this.props.imageSize, ly * this.props.imageSize, this.props.imageSize, this.props.imageSize);
       }
     }
   },
 
   getApproximateImage: function (lx, ly, zoomPower) {
-    var tx = localToTileX(lx);
-    var ty = localToTileY(ly);
+    var tx = this.localToTileX(lx);
+    var ty = this.localToTileY(ly);
     for (var tz = Math.round(zoomPower); tz >= 0; tz--) {
       var imageId = new ImageId(tx, ty, tz);
       var imageData = this.getImage(imageId);
@@ -101,7 +82,7 @@ module.exports = {
         return imageData;
       }
     }
-    for (var tz = Math.round(zoomPower); tz <= MAX_ZOOM_POWER; tz++) {
+    for (var tz = Math.round(zoomPower); tz <= this.props.maxZoomPower; tz++) {
       var imageId = new ImageId(tx, ty, tz);
       var imageData = this.getImage(imageId);
       if (imageData) {
@@ -114,17 +95,17 @@ module.exports = {
   paintTileContents: function (c) {
     var zoomPower  = this.storedZoomPower;
     var zoomLevel  = computeZoomLevel(zoomPower);
-    var imageSize  = IMAGE_SIZE / zoomLevel;
-    var scrollLeft = this.attentionLeft * TILE_X_COUNT * imageSize - this.clientWidth / 2;
-    var scrollTop  = this.attentionTop * TILE_Y_COUNT * imageSize - this.clientHeight / 2;
+    var imageSize  = this.props.imageSize / zoomLevel;
+    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.clientWidth / 2;
+    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.clientHeight / 2;
     c.translate(-scrollLeft, -scrollTop);
     c.scale(1 / zoomLevel, -1 / zoomLevel);
-    c.translate(0, -TILE_Y_COUNT * IMAGE_SIZE);
+    c.translate(0, -this.getTileYCount() * this.props.imageSize);
     for (var lx = this.fvlx; lx <= this.lvlx; lx++) {
       for (var ly = this.fvly; ly <= this.lvly; ly++) {
         var imageData = this.getApproximateImage(lx, ly, zoomPower);
         if (imageData) {
-          c.drawImage(imageData, lx * IMAGE_SIZE, (TILE_Y_COUNT - ly - 1) * IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE);
+          c.drawImage(imageData, lx * this.props.imageSize, (this.getTileYCount() - ly - 1) * this.props.imageSize, this.props.imageSize, this.props.imageSize);
         }
       }
     }

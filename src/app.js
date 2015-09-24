@@ -8,43 +8,8 @@ var rendererMixin = require("./renderer-mixin");
 var painterMixin = require("./painter-mixin");
 
 
-var IMAGE_SIZE   = 1024;
-var FIRST_TILE_X = 490;
-var LAST_TILE_X  = 572;
-var FIRST_TILE_Y = 148;
-var LAST_TILE_Y  = 208;
-var TILE_X_COUNT = LAST_TILE_X - FIRST_TILE_X + 1;
-var TILE_Y_COUNT = LAST_TILE_Y - FIRST_TILE_Y + 1;
-
-var MAX_ZOOM_POWER = 8;
-
-
-// function tileToLocalX(tx) {
-//   return tx - FIRST_TILE_X;
-// }
-//
-// function tileToLocalY(ty) {
-//   return LAST_TILE_Y - ty;
-// }
-
-function localToTileX(lx) {
-  return FIRST_TILE_X + lx;
-}
-
-function localToTileY(ly) {
-  return LAST_TILE_Y - ly;
-}
-
 function computeZoomLevel(zoomPower) {
   return Math.pow(2, zoomPower);
-}
-
-function clampLocalX(lx) {
-  return Math.max(0, Math.min(lx, TILE_X_COUNT - 1));
-}
-
-function clampLocalY(ly) {
-  return Math.max(0, Math.min(ly, TILE_Y_COUNT - 1));
 }
 
 
@@ -83,6 +48,13 @@ module.exports = {
 
   getDefaultProps: function () {
     return {
+      tileSize:  1000,
+      imageSize: 1024,
+      firstTileX: 490,
+      lastTileX:  572,
+      firstTileY: 148,
+      lastTileY:  208,
+      maxZoomPower: 8,
       backgroundColor: "#000",
       inverseBackgroundColor: "#fff",
       roadLinkColor: "#f63",
@@ -90,6 +62,44 @@ module.exports = {
       borderColor: "#333",
       borderFont: '"HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif'
     };
+  },
+
+  getTileXCount: function () {
+    return this.props.lastTileX - this.props.firstTileX + 1;
+  },
+
+  getTileYCount: function () {
+    return this.props.lastTileY - this.props.firstTileY + 1;
+  },
+
+  isTileValid: function (tx, ty) {
+    return (
+      tx >= this.props.firstTileX && tx <= this.props.lastTileX &&
+      ty >= this.props.firstTileY && ty <= this.props.lastTileY);
+  },
+
+  tileToLocalX: function (tx) {
+    return tx - this.props.firstTileX;
+  },
+
+  tileToLocalY: function (ty) {
+    return this.props.lastTileX - ty;
+  },
+
+  localToTileX: function (lx) {
+    return this.props.firstTileX + lx;
+  },
+
+  localToTileY: function(ly) {
+    return this.props.lastTileY - ly;
+  },
+
+  clampLocalX: function (lx) {
+    return Math.max(0, Math.min(lx, this.getTileXCount() - 1));
+  },
+
+  clampLocalY: function (ly) {
+    return Math.max(0, Math.min(ly, this.getTileYCount() - 1));
   },
 
   getZoomPower: function () {
@@ -167,29 +177,29 @@ module.exports = {
   },
 
   exportScrollPosition: function () {
-    var imageSize = IMAGE_SIZE / this.getZoomLevel();
-    this.node.scrollLeft = this.attentionLeft * TILE_X_COUNT * imageSize;
-    this.node.scrollTop  = this.attentionTop * TILE_Y_COUNT * imageSize;
+    var imageSize = this.props.imageSize / this.getZoomLevel();
+    this.node.scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize;
+    this.node.scrollTop  = this.attentionTop * this.getTileYCount() * imageSize;
   },
 
   importScrollPosition: function () {
-    var imageSize = IMAGE_SIZE / this.getZoomLevel();
-    this.attentionLeft = this.node.scrollLeft / (TILE_X_COUNT * imageSize);
-    this.attentionTop  = this.node.scrollTop / (TILE_Y_COUNT * imageSize);
+    var imageSize = this.props.imageSize / this.getZoomLevel();
+    this.attentionLeft = this.node.scrollLeft / (this.getTileXCount() * imageSize);
+    this.attentionTop  = this.node.scrollTop / (this.getTileYCount() * imageSize);
   },
 
   computeVisibleTiles: function () {
-    var imageSize = IMAGE_SIZE / this.getZoomLevel();
-    var scrollLeft = this.attentionLeft * TILE_X_COUNT * imageSize - this.clientWidth / 2;
-    var scrollTop  = this.attentionTop * TILE_Y_COUNT * imageSize - this.clientHeight / 2;
-    this.fvlx = clampLocalX(Math.floor(scrollLeft / imageSize));
-    this.lvlx = clampLocalX(Math.floor((scrollLeft + this.clientWidth - 1) / imageSize));
-    this.fvly = clampLocalY(Math.floor(scrollTop / imageSize));
-    this.lvly = clampLocalY(Math.floor((scrollTop + this.clientHeight - 1) / imageSize));
-    this.fvtx = localToTileX(this.fvlx);
-    this.lvtx = localToTileX(this.lvlx);
-    this.fvty = localToTileY(this.lvly);
-    this.lvty = localToTileY(this.fvly);
+    var imageSize = this.props.imageSize / this.getZoomLevel();
+    var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.clientWidth / 2;
+    var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.clientHeight / 2;
+    this.fvlx = this.clampLocalX(Math.floor(scrollLeft / imageSize));
+    this.lvlx = this.clampLocalX(Math.floor((scrollLeft + this.clientWidth - 1) / imageSize));
+    this.fvly = this.clampLocalY(Math.floor(scrollTop / imageSize));
+    this.lvly = this.clampLocalY(Math.floor((scrollTop + this.clientHeight - 1) / imageSize));
+    this.fvtx = this.localToTileX(this.fvlx);
+    this.lvtx = this.localToTileX(this.lvlx);
+    this.fvty = this.localToTileY(this.lvly);
+    this.lvty = this.localToTileY(this.fvly);
   },
 
   isTileIdVisible: function (tileId) {
@@ -222,7 +232,7 @@ module.exports = {
     } else if (event.keyCode === 187) {
       this.tweenZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 500);
     } else if (event.keyCode === 189) {
-      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, MAX_ZOOM_POWER), 500);
+      this.tweenZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, this.props.maxZoomPower), 500);
     } else if (event.keyCode === 67) {
       this.setState({
           invertColor: !this.state.invertColor
@@ -235,15 +245,15 @@ module.exports = {
   },
 
   render: function () {
-    var imageSize = IMAGE_SIZE / this.getZoomLevel();
+    var imageSize = this.props.imageSize / this.getZoomLevel();
     return (
       r.div("map-frame",
         r.canvas("map-picture"),
         r.div({
             className: "map-space",
             style: {
-              width:  TILE_X_COUNT * imageSize,
-              height: TILE_Y_COUNT * imageSize
+              width:  this.getTileXCount() * imageSize,
+              height: this.getTileYCount() * imageSize
             },
             onClick: this.onClick
           })));
