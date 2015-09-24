@@ -66,27 +66,26 @@ module.exports = {
     }
   },
 
-  prepareRoadLinks: function (roadLinks) {
-    var path = new Path2D();
-    for (var i = 0; i < (roadLinks || []).length; i++) {
-      var ps = roadLinks[i].ps;
-      path.moveTo(ps[0].x, ps[0].y);
-      for (var j = 1; j < ps.length; j++) {
-        path.lineTo(ps[j].x, ps[j].y);
+  renderRoadLinks: function (c, zoomLevel, tileData) {
+    if (!tileData.roadLinksPath) {
+      var path = new Path2D();
+      for (var i = 0; i < tileData.roadLinks.length; i++) {
+        var ps = tileData.roadLinks[i].ps;
+        path.moveTo(ps[0].x, ps[0].y);
+        for (var j = 1; j < ps.length; j++) {
+          path.lineTo(ps[j].x, ps[j].y);
+        }
       }
+      tileData.roadLinksPath = path;
     }
-    return path;
-  },
-
-  renderRoadLinks: function (c, zoomLevel, roadLinksPath) {
     c.lineWidth = 2 * Math.sqrt(zoomLevel) * (this.props.tileSize / this.props.imageSize);
-    c.stroke(roadLinksPath);
+    c.stroke(tileData.roadLinksPath);
   },
 
-  renderRoadNodes: function (c, zoomLevel, roadNodes) {
+  renderRoadNodes: function (c, zoomLevel, tileData) {
     var rectSize = 4 * Math.sqrt(zoomLevel) * (this.props.tileSize / this.props.imageSize);
-    for (var i = 0; i < roadNodes.length; i++) {
-      var p = roadNodes[i].p;
+    for (var i = 0; i < tileData.roadNodes.length; i++) {
+      var p = tileData.roadNodes[i].p;
       c.fillRect(p.x - rectSize, p.y - rectSize, rectSize * 2, rectSize * 2);
     }
   },
@@ -105,11 +104,8 @@ module.exports = {
     c.strokeStyle = this.props.roadLinkColor;
     c.fillStyle = this.props.roadNodeColor;
     c.globalCompositeOperation = "screen";
-    if (!tileData.roadLinksPath) {
-      tileData.roadLinksPath = this.prepareRoadLinks(tileData.roadLinks);
-    }
-    this.renderRoadLinks(c, zoomLevel, tileData.roadLinksPath);
-    this.renderRoadNodes(c, zoomLevel, tileData.roadNodes);
+    this.renderRoadLinks(c, zoomLevel, tileData);
+    this.renderRoadNodes(c, zoomLevel, tileData);
     return canvas;
   }
 };
