@@ -1,6 +1,6 @@
 "use strict";
 
-var Loader = require("worker?inline!./loader");
+var LoaderWorker = require("worker?inline!./loader-worker");
 var MISSING_TILE_IDS = require("./missing-tile-ids");
 var ImageId = require("./image-id");
 var TileId = require("./tile-id");
@@ -39,11 +39,11 @@ function flatten(tileIds) {
 module.exports = {
   componentDidMount: function () {
     this.loadedTiles = {};
-    this.startLoader();
+    this.startLoaderWorker();
   },
 
   componentWillUnmount: function () {
-    this.stopLoader();
+    this.stopLoaderWorker();
   },
 
   getTile: function (tileId) {
@@ -54,18 +54,18 @@ module.exports = {
     this.loadedTiles[tileId] = tileData;
   },
 
-  startLoader: function () {
-    this.loader = new Loader();
-    this.loader.addEventListener("message", this.onMessage);
-    this.loader.postMessage({
+  startLoaderWorker: function () {
+    this.loaderWorker = new LoaderWorker();
+    this.loaderWorker.addEventListener("message", this.onMessage);
+    this.loaderWorker.postMessage({
         message: "setOrigin",
         origin:  location.origin
       });
   },
 
-  stopLoader: function () {
-    this.loader.terminate();
-    this.loader.removeEventListener("message", this.onMessage);
+  stopLoaderWorker: function () {
+    this.loaderWorker.terminate();
+    this.loaderWorker.removeEventListener("message", this.onMessage);
   },
 
   onMessage: function (event) {
@@ -117,7 +117,7 @@ module.exports = {
       }
     }
     tileIds.reverse();
-    this.loader.postMessage({
+    this.loaderWorker.postMessage({
         message:     "queueTiles",
         flatTileIds: flatten(tileIds)
       });
@@ -172,11 +172,11 @@ module.exports = {
     }
     tileIds.reverse();
     imageIds.reverse();
-    this.loader.postMessage({
+    this.loaderWorker.postMessage({
         message:     "queueTiles",
         flatTileIds: flatten(tileIds)
       });
-    this.loader.postMessage({
+    this.loaderWorker.postMessage({
         message: "loadNextTile"
       });
     this.renderQueue = this.renderQueue.concat(imageIds);
