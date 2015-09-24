@@ -107,10 +107,11 @@ module.exports = {
   collectAllTilesToQueue: function () {
     var atx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.getTileXCount()));
     var aty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.getTileYCount()));
-    var k = Math.max(
-      Math.max(atx, this.props.lastTileX - atx),
-      Math.max(aty, this.props.lastTileY - aty));
-    spirally(atx, aty, k, function (tx, ty) {
+    var layerCount = (
+      Math.max(
+        Math.max(atx, this.props.lastTileX - atx),
+        Math.max(aty, this.props.lastTileY - aty)));
+    spirally(atx, aty, layerCount, function (tx, ty) {
         var tileId = this.getValidTileId(tx, ty);
         if (tileId) {
           this.collectTileToQueue(tileId);
@@ -124,12 +125,13 @@ module.exports = {
   },
 
   loadVisibleTilesNow: function () {
-    var tx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.getTileXCount()));
-    var ty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.getTileYCount()));
-    var k = Math.max(
-      Math.max(tx - this.firstVisibleTileX, this.lastVisibleTileX - tx),
-      Math.max(ty - this.firstVisibleTileY, this.lastVisibleTileY - ty));
-    spirally(tx, ty, k, function (tx, ty) {
+    var atx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.getTileXCount()));
+    var aty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.getTileYCount()));
+    var layerCount = (
+      Math.max(
+        Math.max(atx - this.firstVisibleTileX, this.lastVisibleTileX - atx),
+        Math.max(aty - this.firstVisibleTileY, this.lastVisibleTileY - aty)));
+    spirally(atx, aty, layerCount, function (tx, ty) {
         var tileId = this.getVisibleTileId(tx, ty);
         if (tileId) {
           if (!this.getLoadedTile(tileId)) {
