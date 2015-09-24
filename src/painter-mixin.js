@@ -7,7 +7,6 @@ module.exports = {
   paint: function () {
     if (!this.pendingPaint) {
       this.pendingPaint = true;
-      this.storedZoomPower = this.getEasedZoomPower();
       window.requestAnimationFrame(this.paintNow);
     }
   },
@@ -41,7 +40,7 @@ module.exports = {
   },
 
   paintTileBorders: function (c) {
-    var zoomPower  = this.storedZoomPower;
+    var zoomPower  = this.getEasedZoomPower();
     var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
     var scrollLeft = this.getEasedAttentionLeft() * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
@@ -88,7 +87,7 @@ module.exports = {
   },
 
   paintTileContents: function (c) {
-    var zoomPower  = this.storedZoomPower;
+    var zoomPower  = this.getEasedZoomPower();
     var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
     var scrollLeft = this.getEasedAttentionLeft() * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
