@@ -3,7 +3,7 @@
 var http = require("http-request-wrapper");
 
 var origin;
-var tileQueue = [];
+var loadQueue = [];
 var queuedTiles = {};
 var pendingTileId;
 var loadedTiles = {};
@@ -16,26 +16,26 @@ function tileUrl(tileId) {
         ".json"));
 }
 
-function queueTile(tileId) {
-  if (tileId !== pendingTileId && !(tileId in loadedTiles)) {
-    tileQueue.push(tileId);
-    queuedTiles[tileId] = true;
+function queueTile(flatTileId) {
+  if (flatTileId !== pendingTileId && !(flatTileId in loadedTiles)) {
+    loadQueue.push(flatTileId);
+    queuedTiles[flatTileId] = true;
   }
 }
 
-function queueTiles(tileIds) {
-  for (var i = 0; i < tileIds.length; i++) {
-    queueTile(tileIds[i]);
+function queueTiles(flatTileIds) {
+  for (var i = 0; i < flatTileIds.length; i++) {
+    queueTile(flatTileIds[i]);
   }
 }
 
 function loadNextTile() {
   if (!pendingTileId) {
-    while (tileQueue.length) {
-      var tileId = tileQueue.pop();
-      delete queuedTiles[tileId];
-      if (!(tileId in loadedTiles)) {
-        pendingTileId = tileId;
+    while (loadQueue.length) {
+      var flatTileId = loadQueue.pop();
+      delete queuedTiles[flatTileId];
+      if (!(flatTileId in loadedTiles)) {
+        pendingTileId = flatTileId;
         break;
       }
     }
@@ -45,9 +45,9 @@ function loadNextTile() {
             loadedTiles[pendingTileId] = true;
             res = res || {};
             postMessage({
-                message:  "onTileLoad",
-                tileId:   pendingTileId,
-                tileData: {
+                message:    "onTileLoad",
+                flatTileId: pendingTileId,
+                tileData:   {
                   roadLinks: res.roadLinks || [],
                   roadNodes: res.roadNodes || []
                 }
@@ -66,7 +66,7 @@ onmessage = function (event) {
       origin = event.data.origin;
       break;
     case "queueTiles":
-      queueTiles(event.data.tileIds);
+      queueTiles(event.data.flatTileIds);
       break;
     case "loadNextTile":
       loadNextTile();

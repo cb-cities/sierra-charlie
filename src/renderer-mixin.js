@@ -2,25 +2,15 @@
 
 /* global Path2D */
 
+var TileId = require("./tile-id");
+
+
 var TILE_SIZE  = 1000;
 var IMAGE_SIZE = 1024;
 
 
 function computeZoomLevel(zoomPower) {
   return Math.pow(2, zoomPower);
-}
-
-function printTileId(tx, ty) {
-  return tx + "-" + ty;
-}
-
-function scanImageId(imageId) {
-  var txyz = imageId.split("-");
-  return {
-    x: parseInt(txyz[0]),
-    y: parseInt(txyz[1]),
-    z: parseInt(txyz[2])
-  };
 }
 
 
@@ -82,17 +72,16 @@ module.exports = {
   },
 
   renderImage: function (imageId) {
-    var t = scanImageId(imageId);
-    var tileId = printTileId(t.x, t.y);
+    var tileId = new TileId(imageId.tx, imageId.ty);
     var tileData = this.getTile(tileId);
-    var zoomLevel = computeZoomLevel(t.z);
+    var zoomLevel = computeZoomLevel(imageId.tz);
     var imageSize = window.devicePixelRatio * IMAGE_SIZE / zoomLevel;
     var canvas = document.createElement("canvas");
     canvas.width  = imageSize;
     canvas.height = imageSize;
     var c = canvas.getContext("2d");
     c.scale(imageSize / TILE_SIZE, imageSize / TILE_SIZE);
-    c.translate(-t.x * TILE_SIZE, -t.y * TILE_SIZE);
+    c.translate(-imageId.tx * TILE_SIZE, -imageId.ty * TILE_SIZE);
     c.strokeStyle = this.props.roadLinkColor;
     c.fillStyle = this.props.roadNodeColor;
     c.globalCompositeOperation = "screen";

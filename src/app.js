@@ -1,14 +1,13 @@
 "use strict";
 
-/* global Path2D */
-
 var r = require("react-wrapper");
 var easeTween = require("ease-tween");
 var tweenState = require("react-tween-state");
 var loaderMixin = require("./loader-mixin");
 var rendererMixin = require("./renderer-mixin");
+var ImageId = require("./image-id");
 
-var TILE_SIZE    = 1000;
+
 var IMAGE_SIZE   = 1024;
 var FIRST_TILE_X = 490;
 var LAST_TILE_X  = 572;
@@ -38,31 +37,6 @@ function localToTileY(ly) {
 
 function computeZoomLevel(zoomPower) {
   return Math.pow(2, zoomPower);
-}
-
-function printTileId(tx, ty) {
-  return tx + "-" + ty;
-}
-
-function scanTileId(tileId) {
-  var txy = tileId.split("-");
-  return {
-    x: parseInt(txy[0]),
-    y: parseInt(txy[1])
-  };
-}
-
-function printImageId(tx, ty, zoomPower) {
-  return tx + "-" + ty + "-" + zoomPower;
-}
-
-function scanImageId(imageId) {
-  var txyz = imageId.split("-");
-  return {
-    x: parseInt(txyz[0]),
-    y: parseInt(txyz[1]),
-    z: parseInt(txyz[2])
-  };
 }
 
 function clampLocalX(lx) {
@@ -219,8 +193,7 @@ module.exports = {
   },
 
   isTileIdVisible: function (tileId) {
-    var t = scanTileId(tileId);
-    return this.isTileVisible(t.x, t.y);
+    return this.isTileVisible(tileId.tx, tileId.ty);
   },
 
   isTileVisible: function (tx, ty) {
@@ -230,8 +203,7 @@ module.exports = {
   },
 
   isImageIdVisible: function (imageId) {
-    var t = scanImageId(imageId);
-    return this.isImageVisible(t.x, t.y, t.z);
+    return this.isImageVisible(imageId.tx, imageId.ty, imageId.tz);
   },
 
   isImageVisible: function (tx, ty, tz) {
@@ -241,9 +213,6 @@ module.exports = {
         tz === Math.floor(zoomPower) ||
         tz === Math.ceil(zoomPower)));
   },
-
-
-
 
 
   paint: function () {
@@ -313,14 +282,14 @@ module.exports = {
     var tx = localToTileX(lx);
     var ty = localToTileY(ly);
     for (var tz = Math.round(zoomPower); tz >= 0; tz--) {
-      var imageId = printImageId(tx, ty, tz);
+      var imageId = new ImageId(tx, ty, tz);
       var imageData = this.getImage(imageId);
       if (imageData) {
         return imageData;
       }
     }
     for (var tz = Math.round(zoomPower); tz <= MAX_ZOOM_POWER; tz++) {
-      var imageId = printImageId(tx, ty, tz);
+      var imageId = new ImageId(tx, ty, tz);
       var imageData = this.getImage(imageId);
       if (imageData) {
         return imageData;
