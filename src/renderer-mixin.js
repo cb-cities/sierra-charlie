@@ -6,11 +6,6 @@ var ImageId = require("./image-id");
 var TileId = require("./tile-id");
 
 
-function computeZoomLevel(zoomPower) {
-  return Math.pow(2, zoomPower);
-}
-
-
 module.exports = {
   componentDidMount: function () {
     this.collectedImageIds = [];
@@ -93,7 +88,7 @@ module.exports = {
   renderImage: function (imageId) {
     var tileId = new TileId(imageId.tx, imageId.ty);
     var tileData = this.getLoadedTile(tileId);
-    var zoomLevel = computeZoomLevel(imageId.tz);
+    var zoomLevel = Math.pow(2, imageId.tz);
     var imageSize = window.devicePixelRatio * this.props.imageSize / zoomLevel;
     var canvas = document.createElement("canvas");
     canvas.width  = imageSize;

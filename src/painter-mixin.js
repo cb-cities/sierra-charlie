@@ -3,11 +3,6 @@
 var ImageId = require("./image-id");
 
 
-function computeZoomLevel(zoomPower) {
-  return Math.pow(2, zoomPower);
-}
-
-
 module.exports = {
   paint: function () {
     if (!this.pendingPaint) {
@@ -47,7 +42,7 @@ module.exports = {
 
   paintTileBorders: function (c) {
     var zoomPower  = this.storedZoomPower;
-    var zoomLevel  = computeZoomLevel(zoomPower);
+    var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
     var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.clientWidth / 2;
     var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.clientHeight / 2;
@@ -94,7 +89,7 @@ module.exports = {
 
   paintTileContents: function (c) {
     var zoomPower  = this.storedZoomPower;
-    var zoomLevel  = computeZoomLevel(zoomPower);
+    var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
     var scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize - this.clientWidth / 2;
     var scrollTop  = this.attentionTop * this.getTileYCount() * imageSize - this.clientHeight / 2;

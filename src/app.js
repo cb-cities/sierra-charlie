@@ -10,11 +10,6 @@ var painterMixin = require("./painter-mixin");
 var rendererMixin = require("./renderer-mixin");
 
 
-function computeZoomLevel(zoomPower) {
-  return Math.pow(2, zoomPower);
-}
-
-
 module.exports = {
   mixins: [tweenState.Mixin, loaderMixin, rendererMixin, painterMixin],
 
@@ -144,7 +139,7 @@ module.exports = {
   },
 
   getZoomLevel: function () {
-    return computeZoomLevel(this.getZoomPower());
+    return Math.pow(2, this.getZoomPower());
   },
 
   tweenZoomPower: function (zoomPower, duration) {
@@ -156,17 +151,17 @@ module.exports = {
 
 
   componentDidMount: function () {
-    this.exportBackgroundColor();
     this.node = r.domNode(this);
     this.canvas = this.node.firstChild;
     this.clientWidth  = this.node.clientWidth;
     this.clientHeight = this.node.clientHeight;
     this.attentionLeft = 0.4897637424698795;
     this.attentionTop  = 0.4768826844262295;
-    this.exportScrollPosition();
     this.node.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
+    this.exportBackgroundColor();
+    this.exportScrollPosition();
     this.computeVisibleTiles();
     this.loadVisibleTiles();
     this.paint();
@@ -179,9 +174,7 @@ module.exports = {
   },
 
   componentDidUpdate: function (prevProps, prevState) {
-    if (prevState.invertColor !== this.state.invertColor) {
-      this.exportBackgroundColor();
-    }
+    this.exportBackgroundColor(prevState);
     this.exportScrollPosition();
     this.computeVisibleTiles();
     this.loadVisibleTiles();
@@ -205,17 +198,25 @@ module.exports = {
     this.paint();
   },
 
-  exportBackgroundColor: function () {
-    document.body.style.backgroundColor = (
-      !this.state.invertColor ?
-        this.props.backgroundColor :
-        this.props.inverseBackgroundColor);
+  exportBackgroundColor: function (prevState) {
+    if (!prevState || prevState.invertColor !== this.state.invertColor) {
+      document.body.style.backgroundColor = (
+        !this.state.invertColor ?
+          this.props.backgroundColor :
+          this.props.inverseBackgroundColor);
+    }
   },
 
   exportScrollPosition: function () {
-    var imageSize = this.props.imageSize / this.getZoomLevel();
-    this.node.scrollLeft = this.attentionLeft * this.getTileXCount() * imageSize;
-    this.node.scrollTop  = this.attentionTop * this.getTileYCount() * imageSize;
+    var imageSize  = this.props.imageSize / this.getZoomLevel();
+    var scrollLeft = this.attentionLeft * (this.getTileXCount() * imageSize);
+    var scrollTop  = this.attentionTop  * (this.getTileYCount() * imageSize);
+    if (scrollLeft !== this.node.scrollLeft) {
+      this.node.scrollLeft = scrollLeft;
+    }
+    if (scrollTop !== this.node.scrollTop) {
+      this.node.scrollTop = scrollTop;
+    }
   },
 
   importScrollPosition: function () {
