@@ -128,7 +128,7 @@ module.exports = {
     return this.getEasedState("zoomPower");
   },
 
-  getZoomLevel: function () {
+  getEasedZoomLevel: function () {
     return Math.pow(2, this.getEasedZoomPower());
   },
 
@@ -188,7 +188,7 @@ module.exports = {
   },
 
   exportScrollPosition: function () {
-    var imageSize  = this.props.imageSize / this.getZoomLevel();
+    var imageSize  = this.props.imageSize / this.getEasedZoomLevel();
     var scrollLeft = this.state.attentionLeft * (this.getTileXCount() * imageSize);
     var scrollTop  = this.state.attentionTop  * (this.getTileYCount() * imageSize);
     if (scrollLeft !== this.node.scrollLeft) {
@@ -200,7 +200,7 @@ module.exports = {
   },
 
   importScrollPosition: function () {
-    var imageSize = this.props.imageSize / this.getZoomLevel();
+    var imageSize = this.props.imageSize / this.getEasedZoomLevel();
     this.setState({
         attentionLeft: this.node.scrollLeft / (this.getTileXCount() * imageSize),
         attentionTop:  this.node.scrollTop / (this.getTileYCount() * imageSize)
@@ -215,7 +215,7 @@ module.exports = {
   },
 
   computeVisibleTiles: function () {
-    var imageSize = this.props.imageSize / this.getZoomLevel();
+    var imageSize = this.props.imageSize / this.getEasedZoomLevel();
     var scrollLeft = this.state.attentionLeft * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
     var scrollTop  = this.state.attentionTop * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
     this.firstVisibleLocalX = this.clampLocalX(Math.floor(scrollLeft / imageSize));
@@ -249,7 +249,7 @@ module.exports = {
   },
 
   render: function () {
-    var imageSize = this.props.imageSize / this.getZoomLevel();
+    var imageSize = this.props.imageSize / this.getEasedZoomLevel();
     return (
       r.div("map-frame",
         r.canvas("map-picture"),
