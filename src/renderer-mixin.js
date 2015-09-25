@@ -94,8 +94,6 @@ module.exports = {
     canvas.width  = imageSize;
     canvas.height = imageSize;
     var c = canvas.getContext("2d");
-    c.fillStyle = this.props.backgroundColor;
-    c.fillRect(0, 0, imageSize, imageSize);
     c.scale(imageSize / this.props.tileSize, imageSize / this.props.tileSize);
     c.translate(-imageId.tx * this.props.tileSize, -imageId.ty * this.props.tileSize);
     c.strokeStyle = this.props.roadLinkColor;

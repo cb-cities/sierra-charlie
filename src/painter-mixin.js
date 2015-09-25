@@ -67,10 +67,10 @@ module.exports = {
     c.save();
     c.fillStyle = this.props.backgroundColor;
     c.fillRect(0, 0, this.state.clientWidth, this.state.clientHeight);
-    this.paintTileContents(c);
+    this.paintTileBorders(c);
     c.restore();
     c.save();
-    this.paintTileBorders(c);
+    this.paintTileContents(c);
     c.restore();
     if (this.state.invertColor) {
       c.globalCompositeOperation = "difference";
