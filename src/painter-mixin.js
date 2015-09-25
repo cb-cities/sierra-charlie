@@ -33,6 +33,8 @@ module.exports = {
 
   paintTileContents: function (c) {
     var zoomPower  = this.getEasedZoomPower();
+    var floorPower = Math.floor(zoomPower);
+    var ceilPower  = Math.ceil(zoomPower);
     var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
     var scrollLeft = this.getEasedAttentionLeft() * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
@@ -44,10 +46,21 @@ module.exports = {
       for (var ly = this.firstVisibleLocalY; ly <= this.lastVisibleLocalY; ly++) {
         var tx = this.localToTileX(lx);
         var ty = this.localToTileY(ly);
-        var imageId = new ImageId(tx, ty, Math.round(zoomPower));
-        var imageData = this.getRenderedImage(imageId);
-        if (imageData) {
-          c.drawImage(imageData, lx * this.props.imageSize, (this.getTileYCount() - ly - 1) * this.props.imageSize, this.props.imageSize, this.props.imageSize);
+        var floorImageId = new ImageId(tx, ty, floorPower);
+        var floorImageData = this.getRenderedImage(floorImageId);
+        if (floorImageData) {
+          c.globalAlpha = 1 - (zoomPower - floorPower);
+          c.drawImage(floorImageData, lx * this.props.imageSize, (this.getTileYCount() - ly - 1) * this.props.imageSize, this.props.imageSize, this.props.imageSize);
+          c.globalAlpha = 1;
+        }
+        if (floorPower !== ceilPower) {
+          var ceilImageId = new ImageId(tx, ty, ceilPower);
+          var ceilImageData = this.getRenderedImage(ceilImageId);
+          if (ceilImageData) {
+            c.globalAlpha = 1 - (ceilPower - zoomPower);
+            c.drawImage(ceilImageData, lx * this.props.imageSize, (this.getTileYCount() - ly - 1) * this.props.imageSize, this.props.imageSize, this.props.imageSize);
+            c.globalAlpha = 1;
+          }
         }
       }
     }
