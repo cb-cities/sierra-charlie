@@ -1,5 +1,7 @@
 "use strict";
 
+/* global postMessage, onmessage:true */
+
 var assign = require("object-assign");
 var http = require("http-request-wrapper");
 var simplify = require("simplify-js");
