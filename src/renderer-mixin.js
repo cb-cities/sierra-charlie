@@ -14,6 +14,10 @@ module.exports = {
     this.renderedGroups = {};
   },
 
+  componentWillUnmount: function () {
+    clearTimeout(this.pendingRender);
+  },
+
   setRenderedImage: function (imageId, flag) {
     this.renderedImages[imageId] = flag;
   },

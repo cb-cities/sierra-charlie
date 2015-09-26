@@ -39,6 +39,7 @@ module.exports = {
 
   componentWillUnmount: function () {
     this.stopLoaderWorker();
+    clearTimeout(this.pendingLoad);
   },
 
   setLoadedTile: function (tileId, tileData) {
