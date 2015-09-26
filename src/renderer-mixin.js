@@ -36,10 +36,10 @@ module.exports = {
   },
 
   collectImagesToQueue: function (tileId, floorZoomPower, ceilZoomPower) {
-    var tx = tileId.getTileX();
-    var ty = tileId.getTileY();
-    var floorImageId = new iid.ImageId(tx, ty, floorZoomPower);
-    var ceilImageId  = new iid.ImageId(tx, ty, ceilZoomPower);
+    var lx = tileId.getLocalX();
+    var ly = tileId.getLocalY();
+    var floorImageId = new iid.ImageId(lx, ly, floorZoomPower);
+    var ceilImageId  = new iid.ImageId(lx, ly, ceilZoomPower);
     if (!this.getRenderedImage(floorImageId)) {
       this.collectedImageIds.push(floorImageId);
     }
@@ -115,7 +115,9 @@ module.exports = {
     var groupSize  = imageSize * groupCount;
     var gtx = Math.floor(tx / groupCount) * groupCount;
     var gty = Math.floor(ty / groupCount) * groupCount;
-    var groupId = new iid.ImageId(gtx, gty, zoomPower);
+    var glx = defs.tileToLocalX(gtx);
+    var gly = defs.tileToLocalY(gty);
+    var groupId = new iid.ImageId(glx, gly, zoomPower);
     var canvas = this.getRenderedGroup(groupId);
     var c;
     if (!canvas) {

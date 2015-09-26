@@ -57,7 +57,7 @@ module.exports = {
       for (var gty = firstVisibleGroupTileY; gty <= lastVisibleGroupTileY; gty += groupCount) {
         var gly  = defs.tileToLocalY(gty);
         var gldy = (defs.tileYCount - gly - 1) * defs.imageSize;
-        var groupId = new iid.ImageId(gtx, gty, zoomPower);
+        var groupId = new iid.ImageId(glx, gly, zoomPower);
         var canvas = this.getRenderedGroup(groupId);
         if (canvas) {
           c.drawImage(canvas, gldx, gldy, groupSize, groupSize);

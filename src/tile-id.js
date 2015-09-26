@@ -1,5 +1,8 @@
 "use strict";
 
+var defs = require("./defs");
+
+
 function TileId(tx, ty) {
   this._tx = tx;
   this._ty = ty;
@@ -11,6 +14,14 @@ TileId.prototype.toUrl = function () {
 
 TileId.prototype.toString = function () {
   return this._tx + "?" + this._ty;
+};
+
+TileId.prototype.getLocalX = function () {
+  return defs.tileToLocalX(this._tx);
+};
+
+TileId.prototype.getLocalY = function () {
+  return defs.tileToLocalY(this._ty);
 };
 
 TileId.prototype.getTileX = function () {

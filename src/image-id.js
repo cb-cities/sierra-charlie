@@ -1,21 +1,32 @@
 "use strict";
 
-function ImageId(tx, ty, zoomPower) {
-  this._tx = tx;
-  this._ty = ty;
+var defs = require("./defs");
+
+
+function ImageId(lx, ly, zoomPower) {
+  this._lx = lx;
+  this._ly = ly;
   this._zoomPower = zoomPower;
 }
 
 ImageId.prototype.toString = function () {
-  return this._tx + "!" + this._ty + "!" + this._zoomPower;
+  return this._lx + "!" + this._ly + "!" + this._zoomPower;
+};
+
+ImageId.prototype.getLocalX = function () {
+  return this._lx;
+};
+
+ImageId.prototype.getLocalY = function () {
+  return this._ly;
 };
 
 ImageId.prototype.getTileX = function () {
-  return this._tx;
+  return defs.localToTileX(this._lx);
 };
 
 ImageId.prototype.getTileY = function () {
-  return this._ty;
+  return defs.localToTileY(this._ly);
 };
 
 ImageId.prototype.getZoomPower = function () {
