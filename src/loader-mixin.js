@@ -97,15 +97,7 @@ module.exports = {
 
   onTileLoaded: function (tileId, tileData) {
     this.setLoadedTile(tileId, tileData);
-    if (this.isTileVisible(tileId.tx, tileId.ty)) {
-      var zoomPower = this.getEasedZoomPower();
-      var floorZoomPower = Math.floor(zoomPower);
-      var ceilZoomPower  = Math.ceil(zoomPower);
-      this.collectImagesToQueue(tileId, floorZoomPower, ceilZoomPower);
-      if (this.queueImagesToRender()) {
-        this.renderNextImage();
-      }
-    }
+    this.loadVisibleTiles();
   },
 
   collectAllTilesToQueue: function () {
