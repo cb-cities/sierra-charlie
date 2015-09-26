@@ -19,11 +19,11 @@ function inflate(tileId) {
 function spirally(tx, ty, k, cb) {
   cb(tx, ty);
   for (var n = 0; n <= k; n++) {
-    for (var i = 0; i < n * 2; i++) {
-      cb(tx + n,           ty + i - (n - 1));
-      cb(tx - i + (n - 1), ty + n);
-      cb(tx - n,           ty - i + (n - 1));
-      cb(tx + i - (n - 1), ty - n);
+    for (var i = 1; i <= n * 2; i++) {
+      cb(tx + n,     ty + n - i);
+      cb(tx - n + i, ty + n);
+      cb(tx - n,     ty - n + i);
+      cb(tx + n - i, ty - n);
     }
   }
 }
