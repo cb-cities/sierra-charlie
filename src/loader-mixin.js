@@ -107,8 +107,8 @@ module.exports = {
         Math.max(atx, this.props.lastTileX - atx),
         Math.max(aty, this.props.lastTileY - aty)));
     spirally(atx, aty, layerCount, function (tx, ty) {
-        var tileId = this.getValidTileId(tx, ty);
-        if (tileId) {
+        if (this.isTileValid(tx, ty)) {
+          var tileId = new tid.TileId(tx, ty);
           this.collectTileToQueue(tileId);
         }
       }.bind(this));
@@ -125,8 +125,8 @@ module.exports = {
     var floorZoomPower = Math.floor(easedZoomPower);
     var ceilZoomPower  = Math.ceil(easedZoomPower);
     spirally(atx, aty, layerCount, function (tx, ty) {
-        var tileId = this.getVisibleTileId(tx, ty);
-        if (tileId) {
+        if (this.isTileVisible(tx, ty)) {
+          var tileId = new tid.TileId(tx, ty);
           if (!this.getLoadedTile(tileId)) {
             this.collectTileToQueue(tileId);
           } else {

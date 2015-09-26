@@ -44,15 +44,12 @@ module.exports = {
     };
   },
 
-  getValidTileId: function (tx, ty) {
-    var isValid = (
+  isTileValid: function (tx, ty) {
+    return (
       tx >= this.props.firstTileX &&
       tx <= this.props.lastTileX &&
       ty >= this.props.firstTileY &&
       ty <= this.props.lastTileY);
-    return (
-      !isValid ? null :
-        new tid.TileId(tx, ty));
   },
 
   isTileVisible: function (tx, ty) {
@@ -62,12 +59,6 @@ module.exports = {
       ty >= this.firstVisibleTileY &&
       ty <= this.lastVisibleTileY);
     return isVisible;
-  },
-
-  getVisibleTileId: function (tx, ty) {
-    return (
-      !this.isTileVisible(tx, ty) ? null :
-        new tid.TileId(tx, ty));
   },
 
   isImageVisible: function (tx, ty, zoomPower) {
