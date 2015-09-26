@@ -1,6 +1,7 @@
 "use strict";
 
 var LoaderWorker = require("worker?inline!./loader-worker");
+var defs = require("./defs");
 var tid = require("./tile-id");
 
 
@@ -100,14 +101,14 @@ module.exports = {
   },
 
   collectAllTilesToQueue: function () {
-    var atx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.props.tileXCount));
-    var aty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.props.tileYCount));
+    var atx = defs.localToTileX(Math.floor(this.getEasedAttentionLeft() * defs.tileXCount));
+    var aty = defs.localToTileY(Math.floor(this.getEasedAttentionTop() * defs.tileYCount));
     var layerCount = (
       Math.max(
-        Math.max(atx, this.props.lastTileX - atx),
-        Math.max(aty, this.props.lastTileY - aty)));
+        Math.max(atx, defs.lastTileX - atx),
+        Math.max(aty, defs.lastTileY - aty)));
     spirally(atx, aty, layerCount, function (tx, ty) {
-        if (this.isTileValid(tx, ty)) {
+        if (defs.isTileValid(tx, ty)) {
           var tileId = new tid.TileId(tx, ty);
           this.collectTileToQueue(tileId);
         }
@@ -115,8 +116,8 @@ module.exports = {
   },
 
   loadVisibleTilesNow: function () {
-    var atx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.props.tileXCount));
-    var aty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.props.tileYCount));
+    var atx = defs.localToTileX(Math.floor(this.getEasedAttentionLeft() * defs.tileXCount));
+    var aty = defs.localToTileY(Math.floor(this.getEasedAttentionTop() * defs.tileYCount));
     var layerCount = (
       Math.max(
         Math.max(atx - this.firstVisibleTileX, this.lastVisibleTileX - atx),

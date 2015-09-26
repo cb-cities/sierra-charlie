@@ -2,6 +2,7 @@
 
 /* global Path2D */
 
+var defs = require("./defs");
 var iid = require("./image-id");
 var tid = require("./tile-id");
 
@@ -89,12 +90,12 @@ module.exports = {
       }
       tileData.roadLinksPath = path;
     }
-    c.lineWidth = 2 * Math.sqrt(zoomLevel) * (this.props.tileSize / this.props.imageSize);
+    c.lineWidth = 2 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
     c.stroke(tileData.roadLinksPath);
   },
 
   renderRoadNodes: function (c, zoomLevel, tileData) {
-    var rectSize = 4 * Math.sqrt(zoomLevel) * (this.props.tileSize / this.props.imageSize);
+    var rectSize = 4 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
     for (var i = 0; i < tileData.roadNodes.length; i++) {
       var p = tileData.roadNodes[i].p;
       c.fillRect(p.x - rectSize, p.y - rectSize, rectSize * 2, rectSize * 2);
@@ -109,7 +110,7 @@ module.exports = {
     var zoomPower  = imageId.getZoomPower();
     var zoomLevel  = Math.pow(2, zoomPower);
     var groupCount = zoomLevel;
-    var imageSize  = window.devicePixelRatio * this.props.imageSize / zoomLevel;
+    var imageSize  = window.devicePixelRatio * defs.imageSize / zoomLevel;
     var groupSize  = imageSize * groupCount;
     var gtx = Math.floor(tx / groupCount) * groupCount;
     var gty = Math.floor(ty / groupCount) * groupCount;
@@ -123,8 +124,8 @@ module.exports = {
       c = canvas.getContext("2d");
       c.strokeStyle = this.props.roadLinkColor;
       c.fillStyle   = this.props.roadNodeColor;
-      c.scale(imageSize / this.props.tileSize, imageSize / this.props.tileSize);
-      c.translate(-gtx * this.props.tileSize, -gty * this.props.tileSize);
+      c.scale(imageSize / defs.tileSize, imageSize / defs.tileSize);
+      c.translate(-gtx * defs.tileSize, -gty * defs.tileSize);
       this.setRenderedGroup(groupId, canvas);
     } else {
       c = canvas.getContext("2d");
