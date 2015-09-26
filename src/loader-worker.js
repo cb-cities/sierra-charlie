@@ -2,6 +2,8 @@
 
 var http = require("http-request-wrapper");
 var simplify = require("simplify-js");
+var MISSING_TILE_IDS = require("./missing-tile-ids");
+
 
 var origin;
 var queuedTileIds = [];
@@ -28,6 +30,17 @@ function queueTilesToLoad(tileIds) {
   }
 }
 
+function postLoadedTile(tileId, roadLinks, roadNodes) {
+  postMessage({
+      message:  "tileLoaded",
+      tileId:   tileId,
+      tileData: {
+        roadLinks: roadLinks || [],
+        roadNodes: roadNodes || []
+      }
+    });
+}
+
 function loadNextTile() {
   if (!pendingTileId) {
     while (queuedTileIds.length) {
@@ -37,7 +50,12 @@ function loadNextTile() {
         break;
       }
     }
-    if (pendingTileId) {
+    if (pendingTileId in MISSING_TILE_IDS) {
+      loadedTileIds[pendingTileId] = true;
+      postLoadedTile(pendingTileId);
+      pendingTileId = null;
+      loadNextTile();
+    } else if (pendingTileId) {
       http.getJsonResource(getTileUrl(pendingTileId), function (res, err) {
           if (!err || err.type === "clientError") {
             loadedTileIds[pendingTileId] = true;
@@ -55,14 +73,7 @@ function loadNextTile() {
                 }
               }
             }
-            postMessage({
-                message:  "tileLoaded",
-                tileId:   pendingTileId,
-                tileData: {
-                  roadLinks: roadLinks,
-                  roadNodes: res.roadNodes || []
-                }
-              });
+            postLoadedTile(pendingTileId, roadLinks, res.roadNodes);
           }
           pendingTileId = null;
           loadNextTile();

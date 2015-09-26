@@ -1,7 +1,6 @@
 "use strict";
 
 var r = require("react-wrapper");
-var MISSING_TILE_IDS = require("./missing-tile-ids");
 var TileId = require("./tile-id");
 var easeStateMixin = require("./ease-state-mixin");
 var loaderMixin = require("./loader-mixin");
@@ -27,7 +26,6 @@ module.exports = {
       firstTileY: 148,
       lastTileY:  208,
       tileYCount: 208 - 148 + 1,
-      missingTileIds: MISSING_TILE_IDS,
       maxZoomPower: 8,
       backgroundColor: "#000",
       inverseBackgroundColor: "#fff",
@@ -46,14 +44,6 @@ module.exports = {
     };
   },
 
-  getTileId: function (tx, ty) {
-    var tileId = new TileId(tx, ty);
-    if (tileId in this.props.missingTileIds) {
-      return null;
-    }
-    return tileId;
-  },
-
   getValidTileId: function (tx, ty) {
     var isValid = (
       tx >= this.props.firstTileX &&
@@ -62,7 +52,7 @@ module.exports = {
       ty <= this.props.lastTileY);
     return (
       !isValid ? null :
-        this.getTileId(tx, ty));
+        new TileId(tx, ty));
   },
 
   isTileVisible: function (tx, ty) {
@@ -77,7 +67,7 @@ module.exports = {
   getVisibleTileId: function (tx, ty) {
     return (
       !this.isTileVisible(tx, ty) ? null :
-        this.getTileId(tx, ty));
+        new TileId(tx, ty));
   },
 
   isImageVisible: function (tx, ty, tz) {
