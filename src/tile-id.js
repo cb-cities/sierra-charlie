@@ -8,24 +8,10 @@ function TileId(lx, ly) {
   this._ly = ly;
 }
 
-TileId.prototype.toUrl = function () {
-  return defs.localToTileX(this._lx) + "-" + defs.localToTileY(this._ly);
-};
-
-TileId.prototype.toString = function () {
-  return this._lx + "?" + this._ly;
-};
-
-TileId.prototype.getLocalX = function () {
-  return this._lx;
-};
-
-TileId.prototype.getLocalY = function () {
-  return this._ly;
-};
-
 module.exports = {
-  TileId: TileId,
+  fromLocal: function (lx, ly) {
+    return new TileId(lx, ly);
+  },
 
   fromUrl: function (s) {
     var t = s.split("-");
@@ -33,6 +19,22 @@ module.exports = {
   },
 
   fromImageId: function (imageId) {
-    return new TileId(imageId.getLocalX(), imageId.getLocalY());
+    return new TileId(imageId._lx, imageId._ly);
+  },
+
+  getLocalX: function (tileId) {
+    return tileId._lx;
+  },
+
+  getLocalY: function (tileId) {
+    return tileId._ly;
+  },
+
+  toUrl: function (tileId) {
+    return defs.localToTileX(tileId._lx) + "-" + defs.localToTileY(tileId._ly);
+  },
+
+  toKey: function (tileId) {
+    return tileId._lx + "?" + tileId._ly;
   }
 };

@@ -31,11 +31,11 @@ module.exports = {
   },
 
   setLoadedTile: function (tileId, tileData) {
-    this.loadedTiles[tileId] = tileData;
+    this.loadedTiles[tid.toKey(tileId)] = tileData;
   },
 
   getLoadedTile: function (tileId) {
-    return this.loadedTiles[tileId];
+    return this.loadedTiles[tid.toKey(tileId)];
   },
 
   startLoaderWorker: function () {
@@ -63,7 +63,7 @@ module.exports = {
       this.loaderWorker.postMessage({
           message: "loadTiles",
           tileIds: tileIds.map(function (tileId) {
-              return tileId.toUrl();
+              return tid.toUrl(tileId);
             })
         });
     }
@@ -90,7 +90,7 @@ module.exports = {
     var ceilZoomPower  = Math.ceil(easedZoomPower);
     spirally(alx, aly, layerCount, function (lx, ly) {
         if (this.isTileVisible(lx, ly)) {
-          var tileId = new tid.TileId(lx, ly);
+          var tileId = tid.fromLocal(lx, ly);
           if (!this.getLoadedTile(tileId)) {
             this.collectTileToQueue(tileId);
           } else {

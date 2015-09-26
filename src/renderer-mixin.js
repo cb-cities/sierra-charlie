@@ -20,19 +20,19 @@ module.exports = {
   },
 
   setRenderedImage: function (imageId, flag) {
-    this.renderedImages[imageId] = flag;
+    this.renderedImages[iid.toKey(imageId)] = flag;
   },
 
   getRenderedImage: function (imageId) {
-    return this.renderedImages[imageId];
+    return this.renderedImages[iid.toKey(imageId)];
   },
 
   setRenderedGroup: function (groupId, canvas) {
-    this.renderedGroups[groupId] = canvas;
+    this.renderedGroups[iid.toKey(groupId)] = canvas;
   },
 
   getRenderedGroup: function (groupId) {
-    return this.renderedGroups[groupId];
+    return this.renderedGroups[iid.toKey(groupId)];
   },
 
   collectImagesToQueue: function (tileId, floorZoomPower, ceilZoomPower) {
@@ -61,9 +61,9 @@ module.exports = {
     var pendingImageId;
     while (this.queuedImageIds.length) {
       var imageId = this.queuedImageIds.pop();
-      var lx = imageId.getLocalX();
-      var ly = imageId.getLocalY();
-      var zoomPower = imageId.getZoomPower();
+      var lx = iid.getLocalX(imageId);
+      var ly = iid.getLocalY(imageId);
+      var zoomPower = iid.getZoomPower(imageId);
       if (!this.getRenderedImage(imageId) && this.isImageVisible(lx, ly, zoomPower)) {
         pendingImageId = imageId;
         break;
@@ -104,14 +104,14 @@ module.exports = {
   renderImage: function (imageId) {
     var tileId = tid.fromImageId(imageId);
     var tileData = this.getLoadedTile(tileId);
-    var zoomPower  = imageId.getZoomPower();
+    var zoomPower  = iid.getZoomPower(imageId);
     var zoomLevel  = Math.pow(2, zoomPower);
     var groupCount = zoomLevel;
     var imageSize  = window.devicePixelRatio * defs.imageSize / zoomLevel;
     var groupSize  = imageSize * groupCount;
-    var gx = Math.floor(imageId.getLocalX() / groupCount) * groupCount;
-    var gy = Math.floor(imageId.getLocalY() / groupCount) * groupCount;
-    var groupId = new iid.ImageId(gx, gy, zoomPower);
+    var gx = Math.floor(iid.getLocalX(imageId) / groupCount) * groupCount;
+    var gy = Math.floor(iid.getLocalY(imageId) / groupCount) * groupCount;
+    var groupId = iid.fromLocal(gx, gy, zoomPower);
     var canvas = this.getRenderedGroup(groupId);
     var c;
     if (!canvas) {

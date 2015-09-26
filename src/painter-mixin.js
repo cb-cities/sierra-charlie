@@ -54,7 +54,7 @@ module.exports = {
       var gdx = gx * defs.imageSize;
       for (var gy = firstVisibleGroupY; gy <= lastVisibleGroupY; gy += groupCount) {
         var gdy = gy * defs.imageSize;
-        var groupId = new iid.ImageId(gx, gy, zoomPower);
+        var groupId = iid.fromLocal(gx, gy, zoomPower);
         var canvas = this.getRenderedGroup(groupId);
         if (canvas) {
           c.drawImage(canvas, gdx, gdy, groupSize, groupSize);
