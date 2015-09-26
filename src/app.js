@@ -1,11 +1,11 @@
 "use strict";
 
 var r = require("react-wrapper");
-var TileId = require("./tile-id");
 var easeStateMixin = require("./ease-state-mixin");
 var loaderMixin = require("./loader-mixin");
 var painterMixin = require("./painter-mixin");
 var rendererMixin = require("./renderer-mixin");
+var tid = require("./tile-id");
 
 
 module.exports = {
@@ -52,7 +52,7 @@ module.exports = {
       ty <= this.props.lastTileY);
     return (
       !isValid ? null :
-        new TileId(tx, ty));
+        new tid.TileId(tx, ty));
   },
 
   isTileVisible: function (tx, ty) {
@@ -67,14 +67,14 @@ module.exports = {
   getVisibleTileId: function (tx, ty) {
     return (
       !this.isTileVisible(tx, ty) ? null :
-        new TileId(tx, ty));
+        new tid.TileId(tx, ty));
   },
 
-  isImageVisible: function (tx, ty, tz) {
+  isImageVisible: function (tx, ty, zoomPower) {
     var easedZoomPower = this.getEasedZoomPower();
     var isInZoom = (
-      tz === Math.floor(easedZoomPower) ||
-      tz === Math.ceil(easedZoomPower));
+      zoomPower === Math.floor(easedZoomPower) ||
+      zoomPower === Math.ceil(easedZoomPower));
     return (
       isInZoom &&
       this.isTileVisible(tx, ty));

@@ -1,6 +1,6 @@
 "use strict";
 
-var ImageId = require("./image-id");
+var iid = require("./image-id");
 
 
 module.exports = {
@@ -56,7 +56,7 @@ module.exports = {
       for (var gty = firstVisibleGroupTileY; gty <= lastVisibleGroupTileY; gty += groupCount) {
         var gly  = this.tileToLocalY(gty);
         var gldy = (this.props.tileYCount - gly - 1) * this.props.imageSize;
-        var groupId = new ImageId(gtx, gty, zoomPower);
+        var groupId = new iid.ImageId(gtx, gty, zoomPower);
         var canvas = this.getRenderedGroup(groupId);
         if (canvas) {
           c.drawImage(canvas, gldx, gldy, groupSize, groupSize);

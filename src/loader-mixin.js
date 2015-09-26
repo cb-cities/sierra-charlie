@@ -1,19 +1,18 @@
 "use strict";
 
 var LoaderWorker = require("worker?inline!./loader-worker");
-var TileId = require("./tile-id");
+var tid = require("./tile-id");
 
 
 function deflate(tileIds) {
   return (
     tileIds.map(function (tileId) {
-        return tileId.toString();
+        return tileId.toUrl();
       }));
 }
 
 function inflate(tileId) {
-  var t = tileId.split("-");
-  return new TileId(parseInt(t[0]), parseInt(t[1]));
+  return tid.fromUrl(tileId);
 }
 
 function spirally(tx, ty, k, cb) {

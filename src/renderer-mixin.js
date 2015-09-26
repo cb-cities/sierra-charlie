@@ -2,8 +2,8 @@
 
 /* global Path2D */
 
-var ImageId = require("./image-id");
-var TileId = require("./tile-id");
+var iid = require("./image-id");
+var tid = require("./tile-id");
 
 
 module.exports = {
@@ -35,8 +35,10 @@ module.exports = {
   },
 
   collectImagesToQueue: function (tileId, floorZoomPower, ceilZoomPower) {
-    var floorImageId = new ImageId(tileId.tx, tileId.ty, floorZoomPower);
-    var ceilImageId  = new ImageId(tileId.tx, tileId.ty, ceilZoomPower);
+    var tx = tileId.getTileX();
+    var ty = tileId.getTileY();
+    var floorImageId = new iid.ImageId(tx, ty, floorZoomPower);
+    var ceilImageId  = new iid.ImageId(tx, ty, ceilZoomPower);
     if (!this.getRenderedImage(floorImageId)) {
       this.collectedImageIds.push(floorImageId);
     }
@@ -59,7 +61,10 @@ module.exports = {
     var pendingImageId;
     while (this.queuedImageIds.length) {
       var imageId = this.queuedImageIds.pop();
-      if (!this.getRenderedImage(imageId) && this.isImageVisible(imageId.tx, imageId.ty, imageId.tz)) {
+      var tx = imageId.getTileX();
+      var ty = imageId.getTileY();
+      var zoomPower = imageId.getZoomPower();
+      if (!this.getRenderedImage(imageId) && this.isImageVisible(tx, ty, zoomPower)) {
         pendingImageId = imageId;
         break;
       }
@@ -97,16 +102,18 @@ module.exports = {
   },
 
   renderImage: function (imageId) {
-    var tileId = new TileId(imageId.tx, imageId.ty);
+    var tx = imageId.getTileX();
+    var ty = imageId.getTileY();
+    var tileId = new tid.TileId(tx, ty);
     var tileData = this.getLoadedTile(tileId);
-    var zoomPower  = imageId.tz;
+    var zoomPower  = imageId.getZoomPower();
     var zoomLevel  = Math.pow(2, zoomPower);
     var groupCount = zoomLevel;
     var imageSize  = window.devicePixelRatio * this.props.imageSize / zoomLevel;
     var groupSize  = imageSize * groupCount;
-    var gtx = Math.floor(imageId.tx / groupCount) * groupCount;
-    var gty = Math.floor(imageId.ty / groupCount) * groupCount;
-    var groupId = new ImageId(gtx, gty, zoomPower);
+    var gtx = Math.floor(tx / groupCount) * groupCount;
+    var gty = Math.floor(ty / groupCount) * groupCount;
+    var groupId = new iid.ImageId(gtx, gty, zoomPower);
     var canvas = this.getRenderedGroup(groupId);
     var c;
     if (!canvas) {
