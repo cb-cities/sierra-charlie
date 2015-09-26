@@ -11,14 +11,23 @@ module.exports = {
     this.collectedImageIds = [];
     this.queuedImageIds = [];
     this.renderedImages = {};
+    this.renderedGroups = {};
   },
 
-  setRenderedImage: function (imageId, imageData) {
-    this.renderedImages[imageId] = imageData;
+  setRenderedImage: function (imageId, flag) {
+    this.renderedImages[imageId] = flag;
   },
 
   getRenderedImage: function (imageId) {
     return this.renderedImages[imageId];
+  },
+
+  setRenderedGroup: function (groupId, canvas) {
+    this.renderedGroups[groupId] = canvas;
+  },
+
+  getRenderedGroup: function (groupId) {
+    return this.renderedGroups[groupId];
   },
 
   collectImagesToQueue: function (tileId, floorZoomPower, ceilZoomPower) {
@@ -52,8 +61,7 @@ module.exports = {
       }
     }
     if (pendingImageId) {
-      var imageData = this.renderImage(pendingImageId);
-      this.setRenderedImage(pendingImageId, imageData);
+      this.renderImage(pendingImageId);
       this.paint();
       clearTimeout(this.pendingRender);
       this.pendingRender = setTimeout(this.renderNextImage, 0);
@@ -87,19 +95,34 @@ module.exports = {
   renderImage: function (imageId) {
     var tileId = new TileId(imageId.tx, imageId.ty);
     var tileData = this.getLoadedTile(tileId);
-    var zoomLevel = Math.pow(2, imageId.tz);
-    var imageSize = window.devicePixelRatio * this.props.imageSize / zoomLevel;
-    var canvas = document.createElement("canvas");
-    canvas.width  = imageSize;
-    canvas.height = imageSize;
-    var c = canvas.getContext("2d");
-    c.scale(imageSize / this.props.tileSize, imageSize / this.props.tileSize);
-    c.translate(-imageId.tx * this.props.tileSize, -imageId.ty * this.props.tileSize);
-    c.strokeStyle = this.props.roadLinkColor;
-    c.fillStyle = this.props.roadNodeColor;
-    c.globalCompositeOperation = "screen";
+    var zoomPower  = imageId.tz;
+    var roundPower = zoomPower;
+    var zoomLevel  = Math.pow(2, zoomPower);
+    var groupCount = Math.pow(2, roundPower);
+    var imageSize  = window.devicePixelRatio * this.props.imageSize / zoomLevel;
+    var groupSize  = imageSize * groupCount;
+    var gtx = Math.floor(imageId.tx / groupCount) * groupCount;
+    var gty = Math.floor(imageId.ty / groupCount) * groupCount;
+    var groupId = new ImageId(gtx, gty, roundPower);
+    var canvas = this.getRenderedGroup(groupId);
+    var c;
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.width  = groupSize;
+      canvas.height = groupSize;
+      c = canvas.getContext("2d");
+      c.strokeStyle = this.props.roadLinkColor;
+      c.fillStyle   = this.props.roadNodeColor;
+      c.scale(imageSize / this.props.tileSize, imageSize / this.props.tileSize);
+      c.translate(-gtx * this.props.tileSize, -gty * this.props.tileSize);
+      this.setRenderedGroup(groupId, canvas);
+    } else {
+      c = canvas.getContext("2d");
+    }
     this.renderRoadLinks(c, zoomLevel, tileData);
+    c.globalCompositeOperation = "screen";
     this.renderRoadNodes(c, zoomLevel, tileData);
-    return canvas;
+    c.globalCompositeOperation = "source-over";
+    this.setRenderedImage(imageId, true);
   }
 };

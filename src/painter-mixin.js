@@ -33,21 +33,28 @@ module.exports = {
 
   paintTileContents: function (c) {
     var zoomPower  = this.getEasedZoomPower();
+    var roundPower = Math.round(zoomPower);
     var zoomLevel  = Math.pow(2, zoomPower);
+    var groupCount = Math.pow(2, roundPower);
     var imageSize  = this.props.imageSize / zoomLevel;
+    var groupSize  = this.props.imageSize * groupCount;
     var scrollLeft = this.getEasedAttentionLeft() * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
     var scrollTop  = this.getEasedAttentionTop() * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
     c.translate(-scrollLeft, -scrollTop);
     c.scale(1 / zoomLevel, -1 / zoomLevel);
     c.translate(0, -this.getTileYCount() * this.props.imageSize);
-    for (var lx = this.firstVisibleLocalX; lx <= this.lastVisibleLocalX; lx++) {
-      for (var ly = this.firstVisibleLocalY; ly <= this.lastVisibleLocalY; ly++) {
-        var tx = this.localToTileX(lx);
-        var ty = this.localToTileY(ly);
-        var imageId = new ImageId(tx, ty, Math.round(zoomPower));
-        var imageData = this.getRenderedImage(imageId);
-        if (imageData) {
-          c.drawImage(imageData, lx * this.props.imageSize, (this.getTileYCount() - ly - 1) * this.props.imageSize, this.props.imageSize, this.props.imageSize);
+    var firstVisibleGroupTileX = Math.floor(this.firstVisibleTileX / groupCount) * groupCount;
+    var lastVisibleGroupTileX  = Math.floor(this.lastVisibleTileX / groupCount) * groupCount;
+    var firstVisibleGroupTileY = Math.floor(this.firstVisibleTileY / groupCount) * groupCount;
+    var lastVisibleGroupTileY  = Math.floor(this.lastVisibleTileY / groupCount) * groupCount;
+    for (var gtx = firstVisibleGroupTileX; gtx <= lastVisibleGroupTileX; gtx += groupCount) {
+      for (var gty = firstVisibleGroupTileY; gty <= lastVisibleGroupTileY; gty += groupCount) {
+        var glx = this.tileToLocalX(gtx);
+        var gly = this.tileToLocalY(gty);
+        var groupId = new ImageId(gtx, gty, roundPower);
+        var canvas = this.getRenderedGroup(groupId);
+        if (canvas) {
+          c.drawImage(canvas, glx * this.props.imageSize, (this.getTileYCount() - gly - 1) * this.props.imageSize, groupSize, groupSize);
         }
       }
     }
