@@ -13,7 +13,7 @@ function deflate(tileIds) {
 
 function inflate(tileId) {
   var t = tileId.split("-");
-  return new TileId(t[0], t[1]);
+  return new TileId(parseInt(t[0]), parseInt(t[1]));
 }
 
 function spirally(tx, ty, k, cb) {
