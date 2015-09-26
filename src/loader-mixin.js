@@ -97,7 +97,10 @@ module.exports = {
   onTileLoaded: function (tileId, tileData) {
     this.setLoadedTile(tileId, tileData);
     if (this.isTileVisible(tileId.tx, tileId.ty)) {
-      this.collectImagesToQueue(tileId);
+      var zoomPower = this.getEasedZoomPower();
+      var floorZoomPower = Math.floor(zoomPower);
+      var ceilZoomPower  = Math.ceil(zoomPower);
+      this.collectImagesToQueue(tileId, floorZoomPower, ceilZoomPower);
       if (this.queueImagesToRender()) {
         this.renderNextImage();
       }
@@ -126,13 +129,16 @@ module.exports = {
       Math.max(
         Math.max(atx - this.firstVisibleTileX, this.lastVisibleTileX - atx),
         Math.max(aty - this.firstVisibleTileY, this.lastVisibleTileY - aty)));
+    var zoomPower = this.getEasedZoomPower();
+    var floorZoomPower = Math.floor(zoomPower);
+    var ceilZoomPower  = Math.ceil(zoomPower);
     spirally(atx, aty, layerCount, function (tx, ty) {
         var tileId = this.getVisibleTileId(tx, ty);
         if (tileId) {
           if (!this.getLoadedTile(tileId)) {
             this.collectTileToQueue(tileId);
           } else {
-            this.collectImagesToQueue(tileId);
+            this.collectImagesToQueue(tileId, floorZoomPower, ceilZoomPower);
           }
         }
       }.bind(this));

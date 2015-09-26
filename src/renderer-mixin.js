@@ -21,10 +21,9 @@ module.exports = {
     return this.renderedImages[imageId];
   },
 
-  collectImagesToQueue: function (tileId) {
-    var zoomPower = this.getEasedZoomPower();
-    var floorImageId = new ImageId(tileId.tx, tileId.ty, Math.floor(zoomPower));
-    var ceilImageId  = new ImageId(tileId.tx, tileId.ty, Math.ceil(zoomPower));
+  collectImagesToQueue: function (tileId, floorZoomPower, ceilZoomPower) {
+    var floorImageId = new ImageId(tileId.tx, tileId.ty, floorZoomPower);
+    var ceilImageId  = new ImageId(tileId.tx, tileId.ty, ceilZoomPower);
     if (!this.getRenderedImage(floorImageId)) {
       this.collectedImageIds.push(floorImageId);
     }
