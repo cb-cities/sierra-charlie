@@ -46,9 +46,11 @@ module.exports = {
 
   isImageVisible: function (lx, ly, zoomPower) {
     var easedZoomPower = this.getEasedZoomPower();
+    var floorZoomPower = Math.floor(easedZoomPower);
+    var ceilZoomPower  = Math.ceil(easedZoomPower);
     var isInZoom = (
-      zoomPower === Math.floor(easedZoomPower) ||
-      zoomPower === Math.ceil(easedZoomPower));
+      zoomPower === floorZoomPower ||
+      zoomPower === ceilZoomPower);
     return (
       isInZoom &&
       this.isTileVisible(lx, ly));

@@ -61,8 +61,8 @@ module.exports = {
     var pendingImageId;
     while (this.queuedImageIds.length) {
       var imageId = this.queuedImageIds.pop();
-      var lx = defs.tileToLocalX(imageId.getTileX());
-      var ly = defs.tileToLocalY(imageId.getTileY());
+      var lx = imageId.getLocalX();
+      var ly = imageId.getLocalY();
       var zoomPower = imageId.getZoomPower();
       if (!this.getRenderedImage(imageId) && this.isImageVisible(lx, ly, zoomPower)) {
         pendingImageId = imageId;
