@@ -176,10 +176,6 @@ module.exports = {
     this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / easedImageSize));
     this.firstVisibleLocalY = defs.clampLocalY(Math.floor(scrollTop / easedImageSize));
     this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((scrollTop + this.state.clientHeight - 1) / easedImageSize));
-    this.firstVisibleTileX = defs.localToTileX(this.firstVisibleLocalX);
-    this.lastVisibleTileX  = defs.localToTileX(this.lastVisibleLocalX);
-    this.firstVisibleTileY = defs.localToTileY(this.lastVisibleLocalY);
-    this.lastVisibleTileY  = defs.localToTileY(this.firstVisibleLocalY);
   },
 
 

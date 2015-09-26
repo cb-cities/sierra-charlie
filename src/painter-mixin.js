@@ -42,25 +42,22 @@ module.exports = {
     var scrollLeft = this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2;
     var scrollTop  = this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2;
     c.translate(-scrollLeft, -scrollTop);
-    c.scale(1 / easedZoomLevel, -1 / easedZoomLevel);
-    c.translate(0, -defs.tileYCount * defs.imageSize);
+    c.scale(1 / easedZoomLevel, 1 / easedZoomLevel);
     var zoomPower  = Math.round(easedZoomPower);
     var groupCount = Math.pow(2, zoomPower);
     var groupSize  = defs.imageSize * groupCount;
-    var firstVisibleGroupTileX = Math.floor(this.firstVisibleTileX / groupCount) * groupCount;
-    var lastVisibleGroupTileX  = Math.floor(this.lastVisibleTileX / groupCount) * groupCount;
-    var firstVisibleGroupTileY = Math.floor(this.firstVisibleTileY / groupCount) * groupCount;
-    var lastVisibleGroupTileY  = Math.floor(this.lastVisibleTileY / groupCount) * groupCount;
-    for (var gtx = firstVisibleGroupTileX; gtx <= lastVisibleGroupTileX; gtx += groupCount) {
-      var glx  = defs.tileToLocalX(gtx);
-      var gldx = glx * defs.imageSize;
-      for (var gty = firstVisibleGroupTileY; gty <= lastVisibleGroupTileY; gty += groupCount) {
-        var gly  = defs.tileToLocalY(gty);
-        var gldy = (defs.tileYCount - gly - 1) * defs.imageSize;
-        var groupId = new iid.ImageId(glx, gly, zoomPower);
+    var firstVisibleGroupX = Math.floor(this.firstVisibleLocalX / groupCount) * groupCount;
+    var lastVisibleGroupX  = Math.floor(this.lastVisibleLocalX / groupCount) * groupCount;
+    var firstVisibleGroupY = Math.floor(this.firstVisibleLocalY / groupCount) * groupCount;
+    var lastVisibleGroupY  = Math.floor(this.lastVisibleLocalY / groupCount) * groupCount;
+    for (var gx = firstVisibleGroupX; gx <= lastVisibleGroupX; gx += groupCount) {
+      var gdx = gx * defs.imageSize;
+      for (var gy = firstVisibleGroupY; gy <= lastVisibleGroupY; gy += groupCount) {
+        var gdy = gy * defs.imageSize;
+        var groupId = new iid.ImageId(gx, gy, zoomPower);
         var canvas = this.getRenderedGroup(groupId);
         if (canvas) {
-          c.drawImage(canvas, gldx, gldy, groupSize, groupSize);
+          c.drawImage(canvas, gdx, gdy, groupSize, groupSize);
         }
       }
     }

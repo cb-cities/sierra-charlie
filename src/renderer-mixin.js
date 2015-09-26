@@ -102,8 +102,6 @@ module.exports = {
   },
 
   renderImage: function (imageId) {
-    var tx = imageId.getTileX();
-    var ty = imageId.getTileY();
     var tileId = tid.fromImageId(imageId);
     var tileData = this.getLoadedTile(tileId);
     var zoomPower  = imageId.getZoomPower();
@@ -111,11 +109,9 @@ module.exports = {
     var groupCount = zoomLevel;
     var imageSize  = window.devicePixelRatio * defs.imageSize / zoomLevel;
     var groupSize  = imageSize * groupCount;
-    var gtx = Math.floor(tx / groupCount) * groupCount;
-    var gty = Math.floor(ty / groupCount) * groupCount;
-    var glx = defs.tileToLocalX(gtx);
-    var gly = defs.tileToLocalY(gty);
-    var groupId = new iid.ImageId(glx, gly, zoomPower);
+    var gx = Math.floor(imageId.getLocalX() / groupCount) * groupCount;
+    var gy = Math.floor(imageId.getLocalY() / groupCount) * groupCount;
+    var groupId = new iid.ImageId(gx, gy, zoomPower);
     var canvas = this.getRenderedGroup(groupId);
     var c;
     if (!canvas) {
@@ -125,8 +121,8 @@ module.exports = {
       c = canvas.getContext("2d");
       c.strokeStyle = this.props.roadLinkColor;
       c.fillStyle   = this.props.roadNodeColor;
-      c.scale(imageSize / defs.tileSize, imageSize / defs.tileSize);
-      c.translate(-gtx * defs.tileSize, -gty * defs.tileSize);
+      c.scale(imageSize / defs.tileSize, -imageSize / defs.tileSize);
+      c.translate(-defs.localToTileX(gx) * defs.tileSize, -defs.localToTileY(gy - 1) * defs.tileSize);
       this.setRenderedGroup(groupId, canvas);
     } else {
       c = canvas.getContext("2d");

@@ -21,14 +21,6 @@ ImageId.prototype.getLocalY = function () {
   return this._ly;
 };
 
-ImageId.prototype.getTileX = function () {
-  return defs.localToTileX(this._lx);
-};
-
-ImageId.prototype.getTileY = function () {
-  return defs.localToTileY(this._ly);
-};
-
 ImageId.prototype.getZoomPower = function () {
   return this._zoomPower;
 };

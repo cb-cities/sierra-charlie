@@ -9,7 +9,7 @@ function TileId(lx, ly) {
 }
 
 TileId.prototype.toUrl = function () {
-  return this.getTileX() + "-" + this.getTileY();
+  return defs.localToTileX(this._lx) + "-" + defs.localToTileY(this._ly);
 };
 
 TileId.prototype.toString = function () {
@@ -22,14 +22,6 @@ TileId.prototype.getLocalX = function () {
 
 TileId.prototype.getLocalY = function () {
   return this._ly;
-};
-
-TileId.prototype.getTileX = function () {
-  return defs.localToTileX(this._lx);
-};
-
-TileId.prototype.getTileY = function () {
-  return defs.localToTileY(this._ly);
 };
 
 module.exports = {

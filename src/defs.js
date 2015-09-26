@@ -18,14 +18,6 @@ module.exports = {
   tileYCount: tileYCount,
   maxZoomPower: 8,
 
-  isTileValid: function (tx, ty) {
-    return (
-      tx >= firstTileX &&
-      tx <= lastTileX &&
-      ty >= firstTileY &&
-      ty <= lastTileY);
-  },
-
   tileToLocalX: function (tx) {
     return tx - firstTileX;
   },
@@ -38,7 +30,7 @@ module.exports = {
     return firstTileX + lx;
   },
 
-  localToTileY: function(ly) {
+  localToTileY: function (ly) {
     return lastTileY - ly;
   },
 
