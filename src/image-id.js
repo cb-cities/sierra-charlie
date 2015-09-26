@@ -34,5 +34,9 @@ ImageId.prototype.getZoomPower = function () {
 };
 
 module.exports = {
-  ImageId: ImageId
+  ImageId: ImageId,
+
+  fromTileId: function (tileId, zoomPower) {
+    return new ImageId(tileId.getLocalX(), tileId.getLocalY(), zoomPower);
+  }
 };

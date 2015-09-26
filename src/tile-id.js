@@ -38,5 +38,9 @@ module.exports = {
   fromUrl: function (s) {
     var t = s.split("-");
     return new TileId(defs.tileToLocalX(parseInt(t[0])), defs.tileToLocalY(parseInt(t[1])));
+  },
+
+  fromImageId: function (imageId) {
+    return new TileId(imageId.getLocalX(), imageId.getLocalY());
   }
 };

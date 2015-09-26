@@ -36,10 +36,8 @@ module.exports = {
   },
 
   collectImagesToQueue: function (tileId, floorZoomPower, ceilZoomPower) {
-    var lx = tileId.getLocalX();
-    var ly = tileId.getLocalY();
-    var floorImageId = new iid.ImageId(lx, ly, floorZoomPower);
-    var ceilImageId  = new iid.ImageId(lx, ly, ceilZoomPower);
+    var floorImageId = iid.fromTileId(tileId, floorZoomPower);
+    var ceilImageId  = iid.fromTileId(tileId, ceilZoomPower);
     if (!this.getRenderedImage(floorImageId)) {
       this.collectedImageIds.push(floorImageId);
     }
@@ -106,9 +104,7 @@ module.exports = {
   renderImage: function (imageId) {
     var tx = imageId.getTileX();
     var ty = imageId.getTileY();
-    var lx = defs.tileToLocalX(tx);
-    var ly = defs.tileToLocalY(ty);
-    var tileId = new tid.TileId(lx, ly);
+    var tileId = tid.fromImageId(imageId);
     var tileData = this.getLoadedTile(tileId);
     var zoomPower  = imageId.getZoomPower();
     var zoomLevel  = Math.pow(2, zoomPower);
