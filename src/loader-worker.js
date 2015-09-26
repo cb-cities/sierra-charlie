@@ -1,5 +1,6 @@
 "use strict";
 
+var assign = require("object-assign");
 var http = require("http-request-wrapper");
 var simplify = require("simplify-js");
 var MISSING_TILE_IDS = require("./missing-tile-ids");
@@ -41,6 +42,20 @@ function postLoadedTile(tileId, roadLinks, roadNodes) {
     });
 }
 
+function simplifyRoadLinks(roadLinks) {
+  var simpleRoadLinks = [];
+  if (roadLinks) {
+    for (var i = 0; i < roadLinks.length; i++) {
+      if (roadLinks[i].ps.length > 1) {
+        simpleRoadLinks.push(assign(roadLinks[i], {
+            ps: simplify(roadLinks[i].ps, 1)
+          }));
+      }
+    }
+  }
+  return simpleRoadLinks;
+}
+
 function loadNextTile() {
   if (!pendingTileId) {
     while (queuedTileIds.length) {
@@ -59,21 +74,9 @@ function loadNextTile() {
       http.getJsonResource(getTileUrl(pendingTileId), function (res, err) {
           if (!err || err.type === "clientError") {
             loadedTileIds[pendingTileId] = true;
-            res = res || {};
-            var roadLinks = [];
-            if (res.roadLinks) {
-              for (var i = 0; i < res.roadLinks.length; i++) {
-                var roadLink = res.roadLinks[i];
-                if (roadLink.ps.length > 1) {
-                  roadLinks.push({
-                      toid:   roadLink.toid,
-                      length: roadLink.length,
-                      ps:     simplify(roadLink.ps, 1)
-                    });
-                }
-              }
-            }
-            postLoadedTile(pendingTileId, roadLinks, res.roadNodes);
+            var roadLinks = res && simplifyRoadLinks(res.roadLinks);
+            var roadNodes = res && res.roadNodes;
+            postLoadedTile(pendingTileId, roadLinks, roadNodes);
           }
           pendingTileId = null;
           loadNextTile();
