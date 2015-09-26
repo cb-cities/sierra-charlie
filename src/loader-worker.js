@@ -1,6 +1,7 @@
 "use strict";
 
 var http = require("http-request-wrapper");
+var simplify = require("simplify-js");
 
 var origin;
 var queuedTileIds = [];
@@ -41,11 +42,24 @@ function loadNextTile() {
           if (!err || err.type === "clientError") {
             loadedTileIds[pendingTileId] = true;
             res = res || {};
+            var roadLinks = [];
+            if (res.roadLinks) {
+              for (var i = 0; i < res.roadLinks.length; i++) {
+                var roadLink = res.roadLinks[i];
+                if (roadLink.ps.length > 1) {
+                  roadLinks.push({
+                      toid:   roadLink.toid,
+                      length: roadLink.length,
+                      ps:     simplify(roadLink.ps, 1)
+                    });
+                }
+              }
+            }
             postMessage({
                 message:  "tileLoaded",
                 tileId:   pendingTileId,
                 tileData: {
-                  roadLinks: res.roadLinks || [],
+                  roadLinks: roadLinks,
                   roadNodes: res.roadNodes || []
                 }
               });
