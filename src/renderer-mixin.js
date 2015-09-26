@@ -106,7 +106,9 @@ module.exports = {
   renderImage: function (imageId) {
     var tx = imageId.getTileX();
     var ty = imageId.getTileY();
-    var tileId = new tid.TileId(tx, ty);
+    var lx = defs.tileToLocalX(tx);
+    var ly = defs.tileToLocalY(ty);
+    var tileId = new tid.TileId(lx, ly);
     var tileData = this.getLoadedTile(tileId);
     var zoomPower  = imageId.getZoomPower();
     var zoomLevel  = Math.pow(2, zoomPower);

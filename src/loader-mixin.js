@@ -90,9 +90,7 @@ module.exports = {
     var ceilZoomPower  = Math.ceil(easedZoomPower);
     spirally(alx, aly, layerCount, function (lx, ly) {
         if (this.isTileVisible(lx, ly)) {
-          var tx = defs.localToTileX(lx);
-          var ty = defs.localToTileY(ly);
-          var tileId = new tid.TileId(tx, ty);
+          var tileId = new tid.TileId(lx, ly);
           if (!this.getLoadedTile(tileId)) {
             this.collectTileToQueue(tileId);
           } else {

@@ -3,33 +3,33 @@
 var defs = require("./defs");
 
 
-function TileId(tx, ty) {
-  this._tx = tx;
-  this._ty = ty;
+function TileId(lx, ly) {
+  this._lx = lx;
+  this._ly = ly;
 }
 
 TileId.prototype.toUrl = function () {
-  return this._tx + "-" + this._ty;
+  return this.getTileX() + "-" + this.getTileY();
 };
 
 TileId.prototype.toString = function () {
-  return this._tx + "?" + this._ty;
+  return this._lx + "?" + this._ly;
 };
 
 TileId.prototype.getLocalX = function () {
-  return defs.tileToLocalX(this._tx);
+  return this._lx;
 };
 
 TileId.prototype.getLocalY = function () {
-  return defs.tileToLocalY(this._ty);
+  return this._ly;
 };
 
 TileId.prototype.getTileX = function () {
-  return this._tx;
+  return defs.localToTileX(this._lx);
 };
 
 TileId.prototype.getTileY = function () {
-  return this._ty;
+  return defs.localToTileY(this._ly);
 };
 
 module.exports = {
@@ -37,6 +37,6 @@ module.exports = {
 
   fromUrl: function (s) {
     var t = s.split("-");
-    return new TileId(parseInt(t[0]), parseInt(t[1]));
+    return new TileId(defs.tileToLocalX(parseInt(t[0])), defs.tileToLocalY(parseInt(t[1])));
   }
 };
