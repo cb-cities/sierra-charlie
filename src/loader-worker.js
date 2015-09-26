@@ -6,6 +6,7 @@ var assign = require("object-assign");
 var http = require("http-request-wrapper");
 var simplify = require("simplify-js");
 var MISSING_TILE_IDS = require("./missing-tile-ids");
+var tid = require("./tile-id");
 
 
 var origin;
@@ -13,13 +14,6 @@ var queuedTileIds = [];
 var pendingTileId;
 var loadedTileIds = {};
 
-function getTileUrl(tileId) {
-  return (
-    origin + "/json/tile-" + tileId + (
-      process.env.NODE_ENV === "production" ?
-        ".json.gz" :
-        ".json"));
-}
 
 function queueTilesToLoad(tileIds) {
   queuedTileIds = [];
@@ -72,7 +66,7 @@ function loadNextTile() {
       pendingTileId = null;
       loadNextTile();
     } else if (pendingTileId) {
-      http.getJsonResource(getTileUrl(pendingTileId), function (tileData, err) {
+      http.getJsonResource(origin + tid.toPath(pendingTileId), function (tileData, err) {
           if (!err || err.type === "clientError") {
             loadedTileIds[pendingTileId] = true;
             postLoadedTile(pendingTileId, tileData);

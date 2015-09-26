@@ -1,34 +1,30 @@
 "use strict";
 
+var tid = require("./tile-id");
 
-function ImageId(lx, ly, zoomPower) {
-  this._lx = lx;
-  this._ly = ly;
-  this._zoomPower = zoomPower;
-}
 
-module.exports = {
+var _ = module.exports = {
   fromLocal: function (lx, ly, zoomPower) {
-    return new ImageId(lx, ly, zoomPower);
+    return (lx << 16) | (ly << 8) | zoomPower;
   },
 
   fromTileId: function (tileId, zoomPower) {
-    return new ImageId(tileId._lx, tileId._ly, zoomPower);
+    return (tileId << 8) | zoomPower;
   },
 
   getLocalX: function (imageId) {
-    return imageId._lx;
+    return imageId >> 16;
   },
 
   getLocalY: function (imageId) {
-    return imageId._ly;
+    return (imageId >> 8) & 0xFF;
   },
 
   getZoomPower: function (imageId) {
-    return imageId._zoomPower;
+    return imageId & 0xFF;
   },
 
-  toKey: function (imageId) {
-    return imageId._lx + "!" + imageId._ly + "!" + imageId._zoomPower;
+  toTileId: function (imageId) {
+    return tid.fromLocal(_.getLocalX(imageId), _.getLocalY(imageId));
   }
 };

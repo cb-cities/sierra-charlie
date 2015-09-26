@@ -31,11 +31,11 @@ module.exports = {
   },
 
   setLoadedTile: function (tileId, tileData) {
-    this.loadedTiles[tid.toKey(tileId)] = tileData;
+    this.loadedTiles[tileId] = tileData;
   },
 
   getLoadedTile: function (tileId) {
-    return this.loadedTiles[tid.toKey(tileId)];
+    return this.loadedTiles[tileId];
   },
 
   startLoaderWorker: function () {
@@ -62,9 +62,7 @@ module.exports = {
     if (tileIds.length) {
       this.loaderWorker.postMessage({
           message: "loadTiles",
-          tileIds: tileIds.map(function (tileId) {
-              return tid.toUrl(tileId);
-            })
+          tileIds: tileIds
         });
     }
   },
@@ -72,7 +70,7 @@ module.exports = {
   onMessage: function (event) {
     switch (event.data.message) {
       case "tileLoaded":
-        this.setLoadedTile(tid.fromUrl(event.data.tileId), event.data.tileData);
+        this.setLoadedTile(event.data.tileId, event.data.tileData);
         this.processVisibleTiles();
         break;
     }

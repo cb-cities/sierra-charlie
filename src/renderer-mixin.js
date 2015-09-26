@@ -4,7 +4,6 @@
 
 var defs = require("./defs");
 var iid = require("./image-id");
-var tid = require("./tile-id");
 
 
 module.exports = {
@@ -20,19 +19,19 @@ module.exports = {
   },
 
   setRenderedImage: function (imageId, flag) {
-    this.renderedImages[iid.toKey(imageId)] = flag;
+    this.renderedImages[imageId] = flag;
   },
 
   getRenderedImage: function (imageId) {
-    return this.renderedImages[iid.toKey(imageId)];
+    return this.renderedImages[imageId];
   },
 
   setRenderedGroup: function (groupId, canvas) {
-    this.renderedGroups[iid.toKey(groupId)] = canvas;
+    this.renderedGroups[groupId] = canvas;
   },
 
   getRenderedGroup: function (groupId) {
-    return this.renderedGroups[iid.toKey(groupId)];
+    return this.renderedGroups[groupId];
   },
 
   collectImagesToQueue: function (tileId, floorZoomPower, ceilZoomPower) {
@@ -102,7 +101,7 @@ module.exports = {
   },
 
   renderImage: function (imageId) {
-    var tileId = tid.fromImageId(imageId);
+    var tileId = iid.toTileId(imageId);
     var tileData = this.getLoadedTile(tileId);
     var zoomPower  = iid.getZoomPower(imageId);
     var zoomLevel  = Math.pow(2, zoomPower);

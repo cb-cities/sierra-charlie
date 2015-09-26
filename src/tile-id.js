@@ -3,38 +3,47 @@
 var defs = require("./defs");
 
 
-function TileId(lx, ly) {
-  this._lx = lx;
-  this._ly = ly;
-}
-
-module.exports = {
+var _ = module.exports = {
   fromLocal: function (lx, ly) {
-    return new TileId(lx, ly);
+    return (lx << 8) | ly;
+  },
+
+  fromTile: function (tx, ty) {
+    var lx = defs.tileToLocalX(tx);
+    var ly = defs.tileToLocalY(ty);
+    return _.fromLocal(lx, ly);
   },
 
   fromUrl: function (s) {
     var t = s.split("-");
-    return new TileId(defs.tileToLocalX(parseInt(t[0])), defs.tileToLocalY(parseInt(t[1])));
-  },
-
-  fromImageId: function (imageId) {
-    return new TileId(imageId._lx, imageId._ly);
+    var tx = parseInt(t[0]);
+    var ty = parseInt(t[1]);
+    return _.fromTile(tx, ty);
   },
 
   getLocalX: function (tileId) {
-    return tileId._lx;
+    return tileId >> 8;
   },
 
   getLocalY: function (tileId) {
-    return tileId._ly;
+    return tileId & 0xFF;
   },
 
-  toUrl: function (tileId) {
-    return defs.localToTileX(tileId._lx) + "-" + defs.localToTileY(tileId._ly);
+  getTileX: function (tileId) {
+    return defs.localToTileX(_.getLocalX(tileId));
   },
 
-  toKey: function (tileId) {
-    return tileId._lx + "?" + tileId._ly;
+  getTileY: function (tileId) {
+    return defs.localToTileY(_.getLocalY(tileId));
+  },
+
+  toPath: function (tileId) {
+    var tx = _.getTileX(tileId);
+    var ty = _.getTileY(tileId);
+    return (
+      "/json/tile-" + tx + "-" + ty + (
+        process.env.NODE_ENV === "production" ?
+          ".json.gz" :
+          ".json"));
   }
 };
