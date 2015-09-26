@@ -8,6 +8,7 @@ module.exports = {
     var easedZoomPower = this.getEasedZoomPower();
     var easedZoomLevel = Math.pow(2, easedZoomPower);
     var easedImageSize = this.props.imageSize / easedZoomLevel;
+    var easedTextSize  = 4 * Math.sqrt(easedZoomLevel);
     var scrollLeft = this.getEasedAttentionLeft() * this.props.tileXCount * easedImageSize - this.state.clientWidth / 2;
     var scrollTop  = this.getEasedAttentionTop() * this.props.tileYCount * easedImageSize - this.state.clientHeight / 2;
     c.translate(-scrollLeft + 0.25, -scrollTop + 0.25);
@@ -18,15 +19,17 @@ module.exports = {
     c.textAlign = "left";
     c.textBaseline = "top";
     for (var lx = this.firstVisibleLocalX; lx <= this.lastVisibleLocalX; lx++) {
+      var tx  = this.localToTileX(lx);
+      var ldx = lx * this.props.imageSize;
       for (var ly = this.firstVisibleLocalY; ly <= this.lastVisibleLocalY; ly++) {
-        var tx = this.localToTileX(lx);
-        var ty = this.localToTileY(ly);
+        var ty  = this.localToTileY(ly);
+        var ldy = ly * this.props.imageSize;
         if (easedZoomPower < 3) {
           c.globalAlpha = 1 - (easedZoomPower - 2);
-          c.fillText(tx + "×" + ty, lx * this.props.imageSize + 4 * Math.sqrt(easedZoomLevel), ly * this.props.imageSize);
+          c.fillText(tx + "×" + ty, ldx + easedTextSize, ldy);
           c.globalAlpha = 1;
         }
-        c.strokeRect(lx * this.props.imageSize, ly * this.props.imageSize, this.props.imageSize, this.props.imageSize);
+        c.strokeRect(ldx, ldy, this.props.imageSize, this.props.imageSize);
       }
     }
   },
@@ -48,13 +51,15 @@ module.exports = {
     var firstVisibleGroupTileY = Math.floor(this.firstVisibleTileY / groupCount) * groupCount;
     var lastVisibleGroupTileY  = Math.floor(this.lastVisibleTileY / groupCount) * groupCount;
     for (var gtx = firstVisibleGroupTileX; gtx <= lastVisibleGroupTileX; gtx += groupCount) {
+      var glx  = this.tileToLocalX(gtx);
+      var gldx = glx * this.props.imageSize;
       for (var gty = firstVisibleGroupTileY; gty <= lastVisibleGroupTileY; gty += groupCount) {
-        var glx = this.tileToLocalX(gtx);
-        var gly = this.tileToLocalY(gty);
+        var gly  = this.tileToLocalY(gty);
+        var gldy = (this.props.tileYCount - gly - 1) * this.props.imageSize;
         var groupId = new ImageId(gtx, gty, zoomPower);
         var canvas = this.getRenderedGroup(groupId);
         if (canvas) {
-          c.drawImage(canvas, glx * this.props.imageSize, (this.props.tileYCount - gly - 1) * this.props.imageSize, groupSize, groupSize);
+          c.drawImage(canvas, gldx, gldy, groupSize, groupSize);
         }
       }
     }
