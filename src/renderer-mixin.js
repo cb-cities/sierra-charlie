@@ -60,10 +60,7 @@ module.exports = {
     var pendingImageId;
     while (this.queuedImageIds.length) {
       var imageId = this.queuedImageIds.pop();
-      var lx = iid.getLocalX(imageId);
-      var ly = iid.getLocalY(imageId);
-      var zoomPower = iid.getZoomPower(imageId);
-      if (!this.getRenderedImage(imageId) && this.isImageVisible(lx, ly, zoomPower)) {
+      if (!this.getRenderedImage(imageId) && this.isImageVisible(imageId)) {
         pendingImageId = imageId;
         break;
       }

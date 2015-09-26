@@ -6,6 +6,8 @@ var easeStateMixin = require("./ease-state-mixin");
 var loaderMixin = require("./loader-mixin");
 var painterMixin = require("./painter-mixin");
 var rendererMixin = require("./renderer-mixin");
+var iid = require("./image-id");
+var tid = require("./tile-id");
 
 
 module.exports = {
@@ -35,7 +37,9 @@ module.exports = {
     };
   },
 
-  isTileVisible: function (lx, ly) {
+  isTileVisible: function (tileId) {
+    var lx = tid.getLocalX(tileId);
+    var ly = tid.getLocalY(tileId);
     var isVisible = (
       lx >= this.firstVisibleLocalX &&
       lx <= this.lastVisibleLocalX &&
@@ -44,16 +48,15 @@ module.exports = {
     return isVisible;
   },
 
-  isImageVisible: function (lx, ly, zoomPower) {
+  isImageVisible: function (imageId) {
+    var zoomPower = iid.getZoomPower(imageId);
     var easedZoomPower = this.getEasedZoomPower();
-    var floorZoomPower = Math.floor(easedZoomPower);
-    var ceilZoomPower  = Math.ceil(easedZoomPower);
     var isInZoom = (
-      zoomPower === floorZoomPower ||
-      zoomPower === ceilZoomPower);
+      zoomPower === Math.floor(easedZoomPower) ||
+      zoomPower === Math.ceil(easedZoomPower));
     return (
       isInZoom &&
-      this.isTileVisible(lx, ly));
+      this.isTileVisible(iid.toTileId(imageId)));
   },
 
   getEasedAttentionLeft: function () {

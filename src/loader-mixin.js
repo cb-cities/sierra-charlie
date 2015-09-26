@@ -87,8 +87,8 @@ module.exports = {
     var floorZoomPower = Math.floor(easedZoomPower);
     var ceilZoomPower  = Math.ceil(easedZoomPower);
     spirally(alx, aly, layerCount, function (lx, ly) {
-        if (this.isTileVisible(lx, ly)) {
-          var tileId = tid.fromLocal(lx, ly);
+        var tileId = tid.fromLocal(lx, ly);
+        if (this.isTileVisible(tileId)) {
           if (!this.getLoadedTile(tileId)) {
             this.collectTileToQueue(tileId);
           } else {
