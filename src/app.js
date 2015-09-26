@@ -101,7 +101,7 @@ module.exports = {
   },
 
   tileToLocalY: function (ty) {
-    return this.props.lastTileX - ty;
+    return this.props.lastTileY - ty;
   },
 
   localToTileX: function (lx) {
