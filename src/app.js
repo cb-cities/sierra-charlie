@@ -35,23 +35,23 @@ module.exports = {
     };
   },
 
-  isTileVisible: function (tx, ty) {
+  isTileVisible: function (lx, ly) {
     var isVisible = (
-      tx >= this.firstVisibleTileX &&
-      tx <= this.lastVisibleTileX &&
-      ty >= this.firstVisibleTileY &&
-      ty <= this.lastVisibleTileY);
+      lx >= this.firstVisibleLocalX &&
+      lx <= this.lastVisibleLocalX &&
+      ly >= this.firstVisibleLocalY &&
+      ly <= this.lastVisibleLocalY);
     return isVisible;
   },
 
-  isImageVisible: function (tx, ty, zoomPower) {
+  isImageVisible: function (lx, ly, zoomPower) {
     var easedZoomPower = this.getEasedZoomPower();
     var isInZoom = (
       zoomPower === Math.floor(easedZoomPower) ||
       zoomPower === Math.ceil(easedZoomPower));
     return (
       isInZoom &&
-      this.isTileVisible(tx, ty));
+      this.isTileVisible(lx, ly));
   },
 
   getEasedAttentionLeft: function () {

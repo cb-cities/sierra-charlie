@@ -79,17 +79,19 @@ module.exports = {
   },
 
   processVisibleTilesNow: function () {
-    var atx = defs.localToTileX(Math.floor(this.getEasedAttentionLeft() * defs.tileXCount));
-    var aty = defs.localToTileY(Math.floor(this.getEasedAttentionTop() * defs.tileYCount));
+    var alx = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount);
+    var aly = Math.floor(this.getEasedAttentionTop() * defs.tileYCount);
     var layerCount = (
       Math.max(
-        Math.max(atx - this.firstVisibleTileX, this.lastVisibleTileX - atx),
-        Math.max(aty - this.firstVisibleTileY, this.lastVisibleTileY - aty)));
+        Math.max(alx - this.firstVisibleLocalX, this.lastVisibleLocalX - alx),
+        Math.max(aly - this.firstVisibleLocalY, this.lastVisibleLocalY - aly)));
     var easedZoomPower = this.getEasedZoomPower();
     var floorZoomPower = Math.floor(easedZoomPower);
     var ceilZoomPower  = Math.ceil(easedZoomPower);
-    spirally(atx, aty, layerCount, function (tx, ty) {
-        if (this.isTileVisible(tx, ty)) {
+    spirally(alx, aly, layerCount, function (lx, ly) {
+        if (this.isTileVisible(lx, ly)) {
+          var tx = defs.localToTileX(lx);
+          var ty = defs.localToTileY(ly);
           var tileId = new tid.TileId(tx, ty);
           if (!this.getLoadedTile(tileId)) {
             this.collectTileToQueue(tileId);
