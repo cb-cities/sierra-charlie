@@ -51,11 +51,12 @@ module.exports = {
   queueImagesToRender: function () {
     var imageIds = this.collectedImageIds.reverse();
     this.collectedImageIds = [];
-    if (imageIds.length) {
-      this.queuedImageIds = this.queuedImageIds.concat(imageIds);
-      return true;
+    this.queuedImageIds = [];
+    for (var i = 0; i < imageIds.length; i++) {
+      if (!(imageIds[i] in this.renderedImages)) {
+        this.queuedImageIds.push(imageIds[i]);
+      }
     }
-    return false;
   },
 
   renderNextImage: function () {

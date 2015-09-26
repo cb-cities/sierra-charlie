@@ -5,17 +5,6 @@ var defs = require("./defs");
 var tid = require("./tile-id");
 
 
-function deflate(tileIds) {
-  return (
-    tileIds.map(function (tileId) {
-        return tileId.toUrl();
-      }));
-}
-
-function inflate(tileId) {
-  return tid.fromUrl(tileId);
-}
-
 function spirally(tx, ty, k, cb) {
   cb(tx, ty);
   for (var n = 0; n <= k; n++) {
@@ -34,12 +23,11 @@ module.exports = {
     this.collectedTileIds = [];
     this.loadedTiles = {};
     this.startLoaderWorker();
-    // this.collectAllTilesToQueue();
   },
 
   componentWillUnmount: function () {
     this.stopLoaderWorker();
-    clearTimeout(this.pendingLoad);
+    clearTimeout(this.pendingProcess);
   },
 
   setLoadedTile: function (tileId, tileData) {
@@ -68,54 +56,29 @@ module.exports = {
     this.collectedTileIds.push(tileId);
   },
 
-  queueTilesToLoad: function () {
+  loadTiles: function () {
     var tileIds = this.collectedTileIds.reverse();
     this.collectedTileIds = [];
     if (tileIds.length) {
       this.loaderWorker.postMessage({
-          message: "queueTilesToLoad",
-          tileIds: deflate(tileIds)
+          message: "loadTiles",
+          tileIds: tileIds.map(function (tileId) {
+              return tileId.toUrl();
+            })
         });
-      return true;
     }
-    return false;
-  },
-
-  loadNextTile: function () {
-    this.loaderWorker.postMessage({
-        message: "loadNextTile"
-      });
   },
 
   onMessage: function (event) {
     switch (event.data.message) {
       case "tileLoaded":
-        this.onTileLoaded(inflate(event.data.tileId), event.data.tileData);
+        this.setLoadedTile(tid.fromUrl(event.data.tileId), event.data.tileData);
+        this.processVisibleTiles();
         break;
     }
   },
 
-  onTileLoaded: function (tileId, tileData) {
-    this.setLoadedTile(tileId, tileData);
-    this.loadVisibleTiles();
-  },
-
-  collectAllTilesToQueue: function () {
-    var atx = defs.localToTileX(Math.floor(this.getEasedAttentionLeft() * defs.tileXCount));
-    var aty = defs.localToTileY(Math.floor(this.getEasedAttentionTop() * defs.tileYCount));
-    var layerCount = (
-      Math.max(
-        Math.max(atx, defs.lastTileX - atx),
-        Math.max(aty, defs.lastTileY - aty)));
-    spirally(atx, aty, layerCount, function (tx, ty) {
-        if (defs.isTileValid(tx, ty)) {
-          var tileId = new tid.TileId(tx, ty);
-          this.collectTileToQueue(tileId);
-        }
-      }.bind(this));
-  },
-
-  loadVisibleTilesNow: function () {
+  processVisibleTilesNow: function () {
     var atx = defs.localToTileX(Math.floor(this.getEasedAttentionLeft() * defs.tileXCount));
     var aty = defs.localToTileY(Math.floor(this.getEasedAttentionTop() * defs.tileYCount));
     var layerCount = (
@@ -135,16 +98,13 @@ module.exports = {
           }
         }
       }.bind(this));
-    if (this.queueTilesToLoad()) {
-      this.loadNextTile();
-    }
-    if (this.queueImagesToRender()) {
-      this.renderNextImage();
-    }
+    this.loadTiles();
+    this.queueImagesToRender();
+    this.renderNextImage();
   },
 
-  loadVisibleTiles: function () {
-    clearTimeout(this.pendingLoad);
-    this.pendingLoad = setTimeout(this.loadVisibleTilesNow, 0);
+  processVisibleTiles: function () {
+    clearTimeout(this.pendingProcess);
+    this.pendingProcess = setTimeout(this.processVisibleTilesNow, 0);
   }
 };

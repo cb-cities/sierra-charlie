@@ -21,41 +21,40 @@ function getTileUrl(tileId) {
         ".json"));
 }
 
-function queueTileToLoad(tileId) {
-  if (tileId !== pendingTileId && !(tileId in loadedTileIds)) {
-    queuedTileIds.push(tileId);
-  }
-}
-
 function queueTilesToLoad(tileIds) {
+  queuedTileIds = [];
   for (var i = 0; i < tileIds.length; i++) {
-    queueTileToLoad(tileIds[i]);
+    if (tileIds[i] !== pendingTileId && !(tileIds[i] in loadedTileIds)) {
+      queuedTileIds.push(tileIds[i]);
+    }
   }
-}
-
-function postLoadedTile(tileId, roadLinks, roadNodes) {
-  postMessage({
-      message:  "tileLoaded",
-      tileId:   tileId,
-      tileData: {
-        roadLinks: roadLinks || [],
-        roadNodes: roadNodes || []
-      }
-    });
 }
 
 function simplifyRoadLinks(roadLinks) {
   var simpleRoadLinks = [];
-  if (roadLinks) {
-    for (var i = 0; i < roadLinks.length; i++) {
-      if (roadLinks[i].ps.length > 1) {
-        simpleRoadLinks.push(assign(roadLinks[i], {
-            ps: simplify(roadLinks[i].ps, 1)
-          }));
-      }
+  for (var i = 0; i < roadLinks.length; i++) {
+    if (roadLinks[i].ps.length > 1) {
+      simpleRoadLinks.push(assign(roadLinks[i], {
+          ps: simplify(roadLinks[i].ps, 1)
+        }));
     }
   }
   return simpleRoadLinks;
+}
+
+function processTileData(tileData) {
+  return assign(tileData, {
+      roadLinks: simplifyRoadLinks(tileData.roadLinks || []),
+      roadNodes: tileData.roadNodes || []
+    });
+}
+
+function postLoadedTile(tileId, tileData) {
+  postMessage({
+      message:  "tileLoaded",
+      tileId:   tileId,
+      tileData: processTileData(tileData || {})
+    });
 }
 
 function loadNextTile() {
@@ -69,16 +68,14 @@ function loadNextTile() {
     }
     if (pendingTileId in MISSING_TILE_IDS) {
       loadedTileIds[pendingTileId] = true;
-      postLoadedTile(pendingTileId);
+      postLoadedTile(pendingTileId, null);
       pendingTileId = null;
       loadNextTile();
     } else if (pendingTileId) {
-      http.getJsonResource(getTileUrl(pendingTileId), function (res, err) {
+      http.getJsonResource(getTileUrl(pendingTileId), function (tileData, err) {
           if (!err || err.type === "clientError") {
             loadedTileIds[pendingTileId] = true;
-            var roadLinks = res && simplifyRoadLinks(res.roadLinks);
-            var roadNodes = res && res.roadNodes;
-            postLoadedTile(pendingTileId, roadLinks, roadNodes);
+            postLoadedTile(pendingTileId, tileData);
           }
           pendingTileId = null;
           loadNextTile();
@@ -92,10 +89,8 @@ onmessage = function (event) {
     case "setOrigin":
       origin = event.data.origin;
       break;
-    case "queueTilesToLoad":
+    case "loadTiles":
       queueTilesToLoad(event.data.tileIds);
-      break;
-    case "loadNextTile":
       loadNextTile();
       break;
   }

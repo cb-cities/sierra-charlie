@@ -102,7 +102,7 @@ module.exports = {
     this.exportBackgroundColor();
     this.exportScrollPosition();
     this.computeVisibleTiles();
-    this.loadVisibleTiles();
+    this.processVisibleTiles();
     this.paint();
   },
 
@@ -116,7 +116,7 @@ module.exports = {
     this.exportBackgroundColor(prevState);
     this.exportScrollPosition();
     this.computeVisibleTiles();
-    this.loadVisibleTiles();
+    this.processVisibleTiles();
     this.paint();
   },
 
