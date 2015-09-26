@@ -5,7 +5,7 @@
 var assign = require("object-assign");
 var http = require("http-request-wrapper");
 var simplify = require("simplify-js");
-var MISSING_TILE_IDS = require("./missing-tile-ids");
+var missingTileIds = require("./missing-tile-ids");
 var tid = require("./tile-id");
 
 
@@ -60,7 +60,7 @@ function loadNextTile() {
         break;
       }
     }
-    if (pendingTileId in MISSING_TILE_IDS) {
+    if (pendingTileId in missingTileIds) {
       loadedTileIds[pendingTileId] = true;
       postLoadedTile(pendingTileId, null);
       pendingTileId = null;
