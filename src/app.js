@@ -23,8 +23,10 @@ module.exports = {
       imageSize: 1024,
       firstTileX: 490,
       lastTileX:  572,
+      tileXCount: 572 - 490 + 1,
       firstTileY: 148,
       lastTileY:  208,
+      tileYCount: 208 - 148 + 1,
       missingTileIds: MISSING_TILE_IDS,
       maxZoomPower: 8,
       backgroundColor: "#000",
@@ -42,14 +44,6 @@ module.exports = {
       attentionTop: 0.4768826844262295,
       zoomPower: 3
     };
-  },
-
-  getTileXCount: function () {
-    return this.props.lastTileX - this.props.firstTileX + 1;
-  },
-
-  getTileYCount: function () {
-    return this.props.lastTileY - this.props.firstTileY + 1;
   },
 
   getTileId: function (tx, ty) {
@@ -115,13 +109,13 @@ module.exports = {
   clampLocalX: function (lx) {
     return (
       Math.max(0,
-        Math.min(lx, this.getTileXCount() - 1)));
+        Math.min(lx, this.props.tileXCount - 1)));
   },
 
   clampLocalY: function (ly) {
     return (
       Math.max(0,
-        Math.min(ly, this.getTileYCount() - 1)));
+        Math.min(ly, this.props.tileYCount - 1)));
   },
 
   getEasedAttentionLeft: function () {
@@ -211,8 +205,8 @@ module.exports = {
 
   exportScrollPosition: function () {
     var imageSize  = this.props.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.getEasedAttentionLeft() * (this.getTileXCount() * imageSize);
-    var scrollTop  = this.getEasedAttentionTop() * (this.getTileYCount() * imageSize);
+    var scrollLeft = this.getEasedAttentionLeft() * (this.props.tileXCount * imageSize);
+    var scrollTop  = this.getEasedAttentionTop() * (this.props.tileYCount * imageSize);
     if (scrollLeft !== this.node.scrollLeft) {
       this.node.scrollLeft = scrollLeft;
     }
@@ -224,8 +218,8 @@ module.exports = {
   importScrollPosition: function () {
     var imageSize = this.props.imageSize / this.getEasedZoomLevel();
     this.setState({
-        attentionLeft: this.node.scrollLeft / (this.getTileXCount() * imageSize),
-        attentionTop:  this.node.scrollTop / (this.getTileYCount() * imageSize)
+        attentionLeft: this.node.scrollLeft / (this.props.tileXCount * imageSize),
+        attentionTop:  this.node.scrollTop / (this.props.tileYCount * imageSize)
       });
   },
 
@@ -238,8 +232,8 @@ module.exports = {
 
   computeVisibleTiles: function () {
     var imageSize = this.props.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.getEasedAttentionLeft() * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.getEasedAttentionTop() * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
+    var scrollLeft = this.getEasedAttentionLeft() * this.props.tileXCount * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.getEasedAttentionTop() * this.props.tileYCount * imageSize - this.state.clientHeight / 2;
     this.firstVisibleLocalX = this.clampLocalX(Math.floor(scrollLeft / imageSize));
     this.lastVisibleLocalX  = this.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / imageSize));
     this.firstVisibleLocalY = this.clampLocalY(Math.floor(scrollTop / imageSize));
@@ -254,8 +248,8 @@ module.exports = {
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
     var imageSize = this.props.imageSize / this.getEasedZoomLevel();
-    var pageWidth  = 1 / (this.getTileXCount() / (this.state.clientWidth / imageSize));
-    var pageHeight = 1 / (this.getTileYCount() / (this.state.clientHeight / imageSize));
+    var pageWidth  = 1 / (this.props.tileXCount / (this.state.clientWidth / imageSize));
+    var pageHeight = 1 / (this.props.tileYCount / (this.state.clientHeight / imageSize));
     switch (event.keyCode) {
       case 37: // left
         this.easeAttentionLeft(Math.max(0, this.state.attentionLeft - pageWidth / 10), 500);
@@ -311,8 +305,8 @@ module.exports = {
         r.div({
             className: "map-space",
             style: {
-              width:  this.getTileXCount() * imageSize,
-              height: this.getTileYCount() * imageSize
+              width:  this.props.tileXCount * imageSize,
+              height: this.props.tileYCount * imageSize
             },
             onClick: this.onClick
           })));

@@ -8,8 +8,8 @@ module.exports = {
     var zoomPower  = this.getEasedZoomPower();
     var zoomLevel  = Math.pow(2, zoomPower);
     var imageSize  = this.props.imageSize / zoomLevel;
-    var scrollLeft = this.getEasedAttentionLeft() * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.getEasedAttentionTop() * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
+    var scrollLeft = this.getEasedAttentionLeft() * this.props.tileXCount * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.getEasedAttentionTop() * this.props.tileYCount * imageSize - this.state.clientHeight / 2;
     c.translate(-scrollLeft + 0.25, -scrollTop + 0.25);
     c.scale(1 / zoomLevel, 1 / zoomLevel);
     c.lineWidth = 0.5 * zoomLevel;
@@ -38,11 +38,11 @@ module.exports = {
     var groupCount = Math.pow(2, roundPower);
     var imageSize  = this.props.imageSize / zoomLevel;
     var groupSize  = this.props.imageSize * groupCount;
-    var scrollLeft = this.getEasedAttentionLeft() * this.getTileXCount() * imageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.getEasedAttentionTop() * this.getTileYCount() * imageSize - this.state.clientHeight / 2;
+    var scrollLeft = this.getEasedAttentionLeft() * this.props.tileXCount * imageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.getEasedAttentionTop() * this.props.tileYCount * imageSize - this.state.clientHeight / 2;
     c.translate(-scrollLeft, -scrollTop);
     c.scale(1 / zoomLevel, -1 / zoomLevel);
-    c.translate(0, -this.getTileYCount() * this.props.imageSize);
+    c.translate(0, -this.props.tileYCount * this.props.imageSize);
     var firstVisibleGroupTileX = Math.floor(this.firstVisibleTileX / groupCount) * groupCount;
     var lastVisibleGroupTileX  = Math.floor(this.lastVisibleTileX / groupCount) * groupCount;
     var firstVisibleGroupTileY = Math.floor(this.firstVisibleTileY / groupCount) * groupCount;
@@ -54,7 +54,7 @@ module.exports = {
         var groupId = new ImageId(gtx, gty, roundPower);
         var canvas = this.getRenderedGroup(groupId);
         if (canvas) {
-          c.drawImage(canvas, glx * this.props.imageSize, (this.getTileYCount() - gly - 1) * this.props.imageSize, groupSize, groupSize);
+          c.drawImage(canvas, glx * this.props.imageSize, (this.props.tileYCount - gly - 1) * this.props.imageSize, groupSize, groupSize);
         }
       }
     }

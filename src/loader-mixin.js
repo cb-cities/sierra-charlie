@@ -109,8 +109,8 @@ module.exports = {
   },
 
   collectAllTilesToQueue: function () {
-    var atx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.getTileXCount()));
-    var aty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.getTileYCount()));
+    var atx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.props.tileXCount));
+    var aty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.props.tileYCount));
     var layerCount = (
       Math.max(
         Math.max(atx, this.props.lastTileX - atx),
@@ -124,8 +124,8 @@ module.exports = {
   },
 
   loadVisibleTilesNow: function () {
-    var atx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.getTileXCount()));
-    var aty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.getTileYCount()));
+    var atx = this.localToTileX(Math.floor(this.getEasedAttentionLeft() * this.props.tileXCount));
+    var aty = this.localToTileY(Math.floor(this.getEasedAttentionTop() * this.props.tileYCount));
     var layerCount = (
       Math.max(
         Math.max(atx - this.firstVisibleTileX, this.lastVisibleTileX - atx),
