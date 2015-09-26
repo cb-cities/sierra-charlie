@@ -81,10 +81,10 @@ module.exports = {
   },
 
   isImageVisible: function (tx, ty, tz) {
-    var zoomPower = this.getEasedZoomPower();
+    var easedZoomPower = this.getEasedZoomPower();
     var isInZoom = (
-      tz === Math.floor(zoomPower) ||
-      tz === Math.ceil(zoomPower));
+      tz === Math.floor(easedZoomPower) ||
+      tz === Math.ceil(easedZoomPower));
     return (
       isInZoom &&
       this.isTileVisible(tx, ty));
@@ -204,9 +204,9 @@ module.exports = {
   },
 
   exportScrollPosition: function () {
-    var imageSize  = this.props.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.getEasedAttentionLeft() * (this.props.tileXCount * imageSize);
-    var scrollTop  = this.getEasedAttentionTop() * (this.props.tileYCount * imageSize);
+    var easedImageSize = this.props.imageSize / this.getEasedZoomLevel();
+    var scrollLeft = this.getEasedAttentionLeft() * (this.props.tileXCount * easedImageSize);
+    var scrollTop  = this.getEasedAttentionTop() * (this.props.tileYCount * easedImageSize);
     if (scrollLeft !== this.node.scrollLeft) {
       this.node.scrollLeft = scrollLeft;
     }
@@ -216,10 +216,10 @@ module.exports = {
   },
 
   importScrollPosition: function () {
-    var imageSize = this.props.imageSize / this.getEasedZoomLevel();
+    var easedImageSize = this.props.imageSize / this.getEasedZoomLevel();
     this.setState({
-        attentionLeft: this.node.scrollLeft / (this.props.tileXCount * imageSize),
-        attentionTop:  this.node.scrollTop / (this.props.tileYCount * imageSize)
+        attentionLeft: this.node.scrollLeft / (this.props.tileXCount * easedImageSize),
+        attentionTop:  this.node.scrollTop / (this.props.tileYCount * easedImageSize)
       });
   },
 
@@ -231,13 +231,13 @@ module.exports = {
   },
 
   computeVisibleTiles: function () {
-    var imageSize = this.props.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.getEasedAttentionLeft() * this.props.tileXCount * imageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.getEasedAttentionTop() * this.props.tileYCount * imageSize - this.state.clientHeight / 2;
-    this.firstVisibleLocalX = this.clampLocalX(Math.floor(scrollLeft / imageSize));
-    this.lastVisibleLocalX  = this.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / imageSize));
-    this.firstVisibleLocalY = this.clampLocalY(Math.floor(scrollTop / imageSize));
-    this.lastVisibleLocalY  = this.clampLocalY(Math.floor((scrollTop + this.state.clientHeight - 1) / imageSize));
+    var easedImageSize = this.props.imageSize / this.getEasedZoomLevel();
+    var scrollLeft = this.getEasedAttentionLeft() * this.props.tileXCount * easedImageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.getEasedAttentionTop() * this.props.tileYCount * easedImageSize - this.state.clientHeight / 2;
+    this.firstVisibleLocalX = this.clampLocalX(Math.floor(scrollLeft / easedImageSize));
+    this.lastVisibleLocalX  = this.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / easedImageSize));
+    this.firstVisibleLocalY = this.clampLocalY(Math.floor(scrollTop / easedImageSize));
+    this.lastVisibleLocalY  = this.clampLocalY(Math.floor((scrollTop + this.state.clientHeight - 1) / easedImageSize));
     this.firstVisibleTileX = this.localToTileX(this.firstVisibleLocalX);
     this.lastVisibleTileX  = this.localToTileX(this.lastVisibleLocalX);
     this.firstVisibleTileY = this.localToTileY(this.lastVisibleLocalY);
@@ -247,9 +247,9 @@ module.exports = {
 
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
-    var imageSize = this.props.imageSize / this.getEasedZoomLevel();
-    var pageWidth  = 1 / (this.props.tileXCount / (this.state.clientWidth / imageSize));
-    var pageHeight = 1 / (this.props.tileYCount / (this.state.clientHeight / imageSize));
+    var easedImageSize = this.props.imageSize / this.getEasedZoomLevel();
+    var pageWidth  = 1 / (this.props.tileXCount * easedImageSize / this.state.clientWidth);
+    var pageHeight = 1 / (this.props.tileYCount * easedImageSize / this.state.clientHeight);
     switch (event.keyCode) {
       case 37: // left
         this.easeAttentionLeft(Math.max(0, this.state.attentionLeft - pageWidth / 10), 500);
@@ -298,15 +298,15 @@ module.exports = {
   },
 
   render: function () {
-    var imageSize = this.props.imageSize / this.getEasedZoomLevel();
+    var easedImageSize = this.props.imageSize / this.getEasedZoomLevel();
     return (
       r.div("map-frame",
         r.canvas("map-picture"),
         r.div({
             className: "map-space",
             style: {
-              width:  this.props.tileXCount * imageSize,
-              height: this.props.tileYCount * imageSize
+              width:  this.props.tileXCount * easedImageSize,
+              height: this.props.tileYCount * easedImageSize
             },
             onClick: this.onClick
           })));

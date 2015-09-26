@@ -100,14 +100,13 @@ module.exports = {
     var tileId = new TileId(imageId.tx, imageId.ty);
     var tileData = this.getLoadedTile(tileId);
     var zoomPower  = imageId.tz;
-    var roundPower = zoomPower;
     var zoomLevel  = Math.pow(2, zoomPower);
-    var groupCount = Math.pow(2, roundPower);
+    var groupCount = zoomLevel;
     var imageSize  = window.devicePixelRatio * this.props.imageSize / zoomLevel;
     var groupSize  = imageSize * groupCount;
     var gtx = Math.floor(imageId.tx / groupCount) * groupCount;
     var gty = Math.floor(imageId.ty / groupCount) * groupCount;
-    var groupId = new ImageId(gtx, gty, roundPower);
+    var groupId = new ImageId(gtx, gty, zoomPower);
     var canvas = this.getRenderedGroup(groupId);
     var c;
     if (!canvas) {

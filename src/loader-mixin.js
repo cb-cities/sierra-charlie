@@ -122,9 +122,9 @@ module.exports = {
       Math.max(
         Math.max(atx - this.firstVisibleTileX, this.lastVisibleTileX - atx),
         Math.max(aty - this.firstVisibleTileY, this.lastVisibleTileY - aty)));
-    var zoomPower = this.getEasedZoomPower();
-    var floorZoomPower = Math.floor(zoomPower);
-    var ceilZoomPower  = Math.ceil(zoomPower);
+    var easedZoomPower = this.getEasedZoomPower();
+    var floorZoomPower = Math.floor(easedZoomPower);
+    var ceilZoomPower  = Math.ceil(easedZoomPower);
     spirally(atx, aty, layerCount, function (tx, ty) {
         var tileId = this.getVisibleTileId(tx, ty);
         if (tileId) {
