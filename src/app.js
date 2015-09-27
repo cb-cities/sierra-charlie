@@ -229,8 +229,21 @@ module.exports = {
     }
   },
 
-  onClick: function (event) {
-    // console.log("click", event.clientX, event.clientY);
+  onDoubleClick: function (event) {
+    // console.log("doubleClick", event.clientX, event.clientY);
+    var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
+    var scrollLeft = this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2;
+    var scrollTop  = this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2;
+    var delay = !event.shiftKey ? 500 : 2500;
+    var left = (scrollLeft + event.clientX) / (defs.tileXCount * easedImageSize);
+    var top  = (scrollTop + event.clientY) / (defs.tileYCount * easedImageSize);
+    this.easeAttentionLeft(Math.max(0, Math.min(left, 1)), delay);
+    this.easeAttentionTop(Math.max(0, Math.min(top, 1)), delay);
+    if (!event.altKey) {
+      this.easeZoomPower(Math.max(0, this.state.zoomPower - 1), delay);
+    } else {
+      this.easeZoomPower(Math.min(this.state.zoomPower + 1, defs.maxZoomPower), delay);
+    }
   },
 
   render: function () {
@@ -244,7 +257,7 @@ module.exports = {
               width:  defs.tileXCount * easedImageSize,
               height: defs.tileYCount * easedImageSize
             },
-            onClick: this.onClick
+            onDoubleClick: this.onDoubleClick
           })));
   }
 };
