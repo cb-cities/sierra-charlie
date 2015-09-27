@@ -22,7 +22,7 @@ module.exports = {
     return {
       attentionLeft: 0.4897637424698795,
       attentionTop: 0.4768826844262295,
-      zoomPower: 3,
+      zoomPower: 4,
       processMode: 0
     };
   },
