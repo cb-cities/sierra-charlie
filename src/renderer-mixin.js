@@ -92,8 +92,8 @@ module.exports = {
       canvas.width  = groupSize;
       canvas.height = groupSize;
       c = canvas.getContext("2d");
-      c.strokeStyle = this.props.roadLinkColor;
-      c.fillStyle   = this.props.roadNodeColor;
+      c.strokeStyle = defs.roadLinkColor;
+      c.fillStyle   = defs.roadNodeColor;
       c.scale(imageSize / defs.tileSize, -imageSize / defs.tileSize);
       c.translate(-defs.localToTileX(gx) * defs.tileSize, -defs.localToTileY(gy - 1) * defs.tileSize);
       this.setRenderedGroup(groupId, canvas);

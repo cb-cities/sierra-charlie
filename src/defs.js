@@ -50,5 +50,16 @@ module.exports = {
     return (
       Math.max(0,
         Math.min(ly, tileYCount - 1)));
-  }
+  },
+
+  backgroundColor:        "#000",
+  inverseBackgroundColor: "#fff",
+
+  roadLinkColor: "#f63",
+  roadNodeColor: "#f93",
+
+  borderColor: "#333",
+
+  labelColor: "#333",
+  labelFont: '"HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif'
 };

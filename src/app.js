@@ -18,17 +18,6 @@ module.exports = {
     rendererMixin
   ],
 
-  getDefaultProps: function () {
-    return {
-      backgroundColor: "#000",
-      inverseBackgroundColor: "#fff",
-      roadLinkColor: "#f63",
-      roadNodeColor: "#f93",
-      borderColor: "#333",
-      borderFont: '"HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif'
-    };
-  },
-
   getInitialState: function () {
     return {
       attentionLeft: 0.4897637424698795,
@@ -140,8 +129,8 @@ module.exports = {
     if (!prevState || prevState.invertColor !== this.state.invertColor) {
       document.body.style.backgroundColor = (
         !this.state.invertColor ?
-          this.props.backgroundColor :
-          this.props.inverseBackgroundColor);
+          defs.backgroundColor :
+          defs.inverseBackgroundColor);
     }
   },
 
