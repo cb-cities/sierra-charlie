@@ -65,7 +65,8 @@ var tiles = [
 
 var missingTileIds = {};
 for (var i = 0; i < tiles.length; i++) {
-  missingTileIds[tid.fromTile(tiles[i][0], tiles[i][1])] = true;
+  var tileId = tid.fromTile(tiles[i][0], tiles[i][1]);
+  missingTileIds[tileId] = true;
 }
 
 module.exports = missingTileIds;
