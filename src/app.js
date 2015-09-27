@@ -136,8 +136,8 @@ module.exports = {
 
   exportScrollPosition: function () {
     var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize;
-    var scrollTop  = this.getEasedAttentionTop() * defs.tileYCount * easedImageSize;
+    var scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize);
+    var scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize);
     if (scrollLeft !== this.node.scrollLeft) {
       this.node.scrollLeft = scrollLeft;
     }
@@ -163,8 +163,8 @@ module.exports = {
 
   computeVisibleTiles: function () {
     var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2;
+    var scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2);
+    var scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2);
     this.firstVisibleLocalX = defs.clampLocalX(Math.floor(scrollLeft / easedImageSize));
     this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / easedImageSize));
     this.firstVisibleLocalY = defs.clampLocalY(Math.floor(scrollTop / easedImageSize));
@@ -227,8 +227,8 @@ module.exports = {
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
     var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2;
-    var scrollTop  = this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2;
+    var scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2);
+    var scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2);
     var delay = !event.shiftKey ? 500 : 2500;
     var left = (scrollLeft + event.clientX) / (defs.tileXCount * easedImageSize);
     var top  = (scrollTop + event.clientY) / (defs.tileYCount * easedImageSize);

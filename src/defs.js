@@ -61,5 +61,5 @@ module.exports = {
   borderColor: "#333",
 
   labelColor: "#333",
-  labelFont: '"HelveticaNeue-UltraLight", Helvetica, Arial, sans-serif'
+  labelFont: '"HelveticaNeue-Light", Helvetica, Arial, sans-serif'
 };
