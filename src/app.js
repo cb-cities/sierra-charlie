@@ -146,8 +146,8 @@ module.exports = {
 
   exportScrollPosition: function () {
     var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = this.getEasedAttentionLeft() * (defs.tileXCount * easedImageSize);
-    var scrollTop  = this.getEasedAttentionTop() * (defs.tileYCount * easedImageSize);
+    var scrollLeft = this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize;
+    var scrollTop  = this.getEasedAttentionTop() * defs.tileYCount * easedImageSize;
     if (scrollLeft !== this.node.scrollLeft) {
       this.node.scrollLeft = scrollLeft;
     }
