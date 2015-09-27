@@ -187,36 +187,35 @@ module.exports = {
     var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
     var pageWidth  = 1 / (defs.tileXCount * easedImageSize / this.state.clientWidth);
     var pageHeight = 1 / (defs.tileYCount * easedImageSize / this.state.clientHeight);
+    var delay = event.shiftKey ? 2500 : 500;
     switch (event.keyCode) {
       case 37: // left
-        this.easeAttentionLeft(Math.max(0, this.state.attentionLeft - pageWidth / 10), 500);
+      case 36: // home
+        var left = this.state.attentionLeft - pageWidth / (event.keyCode === 36 ? 1 : 10);
+        this.easeAttentionLeft(Math.max(0, left), delay);
         break;
       case 39: // right
-        this.easeAttentionLeft(Math.min(this.state.attentionLeft + pageWidth / 10, 1), 500);
+      case 35: // end
+        var left = this.state.attentionLeft + pageWidth / (event.keyCode === 35 ? 1 : 10);
+        this.easeAttentionLeft(Math.min(left, 1), delay);
         break;
       case 38: // up
-        this.easeAttentionTop(Math.max(0, this.state.attentionTop - pageHeight / 10), 500);
+      case 33: // page up
+        var top = this.state.attentionTop - pageHeight / (event.keyCode === 33 ? 1 : 10);
+        this.easeAttentionTop(Math.max(0, top), delay);
         break;
       case 40: // down
-        this.easeAttentionTop(Math.min(this.state.attentionTop + pageHeight / 10, 1), 500);
-        break;
-      case 36: // home
-        this.easeAttentionLeft(Math.max(0, this.state.attentionLeft - pageWidth), 500);
-        break;
-      case 35: // end
-        this.easeAttentionLeft(Math.min(this.state.attentionLeft + pageWidth, 1), 500);
-        break;
-      case 33: // page up
-        this.easeAttentionTop(Math.max(0, this.state.attentionTop - pageHeight), 500);
-        break;
       case 34: // page down
-        this.easeAttentionTop(Math.min(this.state.attentionTop + pageHeight, 1), 500);
+        var top = this.state.attentionTop + pageHeight / (event.keyCode === 34 ? 1 : 10);
+        this.easeAttentionTop(Math.min(top, 1), delay);
         break;
       case 187: // minus
-        this.easeZoomPower(Math.max(0, (Math.round(this.state.zoomPower * 10) - 2) / 10), 500);
+        var zoomPower = (Math.round(this.state.zoomPower * 10) - 2) / 10;
+        this.easeZoomPower(Math.max(0, zoomPower), delay);
         break;
       case 189: // plus
-        this.easeZoomPower(Math.min((Math.round(this.state.zoomPower * 10) + 2) / 10, defs.maxZoomPower), 500);
+        var zoomPower = (Math.round(this.state.zoomPower * 10) + 2) / 10;
+        this.easeZoomPower(Math.min(zoomPower, defs.maxZoomPower), delay);
         break;
       case 67: // c
         this.setState({
@@ -225,7 +224,7 @@ module.exports = {
         break;
       default:
         if (event.keyCode >= 49 && event.keyCode <= 58) {
-          this.easeZoomPower(event.keyCode - 49, 500);
+          this.easeZoomPower(event.keyCode - 49, delay);
         }
     }
   },
