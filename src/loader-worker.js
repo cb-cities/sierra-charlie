@@ -36,10 +36,20 @@ function simplifyRoadLinks(roadLinks) {
   return simpleRoadLinks;
 }
 
+function simplifyRoadNodes(roadNodes) {
+  for (var i = 0; i < roadNodes.length; i++) {
+    assign(roadNodes[i].p, {
+        x: Math.round(roadNodes[i].p.x),
+        y: Math.round(roadNodes[i].p.y)
+      });
+  }
+  return roadNodes;
+}
+
 function processTileData(tileData) {
   return assign(tileData, {
       roadLinks: simplifyRoadLinks(tileData.roadLinks || []),
-      roadNodes: tileData.roadNodes || []
+      roadNodes: simplifyRoadNodes(tileData.roadNodes || [])
     });
 }
 
