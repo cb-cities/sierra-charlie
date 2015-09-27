@@ -136,14 +136,8 @@ module.exports = {
 
   exportScrollPosition: function () {
     var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize);
-    var scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize);
-    if (scrollLeft !== this.node.scrollLeft) {
-      this.node.scrollLeft = scrollLeft;
-    }
-    if (scrollTop !== this.node.scrollTop) {
-      this.node.scrollTop = scrollTop;
-    }
+    this.node.scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize);
+    this.node.scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize);
   },
 
   importScrollPosition: function () {
