@@ -63,14 +63,16 @@ module.exports = {
       tileData.roadLinksPath = path;
     }
     c.lineWidth = 2 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
+    c.strokeStyle = defs.roadLinkColor;
     c.stroke(tileData.roadLinksPath);
   },
 
   renderRoadNodes: function (c, zoomLevel, tileData) {
-    var rectSize = 4 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
+    var nodeSize = 8 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
+    c.fillStyle = defs.roadNodeColor;
     for (var i = 0; i < tileData.roadNodes.length; i++) {
       var p = tileData.roadNodes[i].p;
-      c.fillRect(p.x - rectSize, p.y - rectSize, rectSize * 2, rectSize * 2);
+      c.fillRect(p.x - nodeSize / 2, p.y - nodeSize / 2, nodeSize, nodeSize);
     }
   },
 
@@ -92,16 +94,14 @@ module.exports = {
       canvas.width  = groupSize;
       canvas.height = groupSize;
       c = canvas.getContext("2d");
-      c.strokeStyle = defs.roadLinkColor;
-      c.fillStyle   = defs.roadNodeColor;
       c.scale(imageSize / defs.tileSize, -imageSize / defs.tileSize);
       c.translate(-defs.localToTileX(gx) * defs.tileSize, -defs.localToTileY(gy - 1) * defs.tileSize);
       this.setRenderedGroup(groupId, canvas);
     } else {
       c = canvas.getContext("2d");
     }
-    this.renderRoadLinks(c, zoomLevel, tileData);
     c.globalCompositeOperation = "screen";
+    this.renderRoadLinks(c, zoomLevel, tileData);
     this.renderRoadNodes(c, zoomLevel, tileData);
     c.globalCompositeOperation = "source-over";
     this.setRenderedImage(imageId, true);
