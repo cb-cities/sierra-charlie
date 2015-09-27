@@ -9,7 +9,7 @@ var tileXCount = lastTileX - firstTileX + 1;
 var tileYCount = lastTileY - firstTileY + 1;
 
 
-module.exports = {
+var _ = module.exports = {
   tileSize:  1000,
   imageSize: 1024,
 
@@ -38,6 +38,14 @@ module.exports = {
 
   localToTileY: function (ly) {
     return lastTileY - ly;
+  },
+
+  localToNationalGridX: function (x) {
+    return _.localToTileX(x) * 1000;
+  },
+
+  localToNationalGridY: function (y) {
+    return _.localToTileY(y) * 1000;
   },
 
   clampLocalX: function (lx) {

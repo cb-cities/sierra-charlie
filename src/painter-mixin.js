@@ -2,6 +2,7 @@
 
 /* global Path2D */
 
+var nnng = require("nnng");
 var defs = require("./defs");
 var iid = require("./image-id");
 
@@ -40,12 +41,15 @@ module.exports = {
     c.textAlign = "left";
     c.textBaseline = "top";
     for (var lx = this.firstVisibleLocalX; lx <= this.lastVisibleLocalX; lx++) {
-      var tx  = defs.localToTileX(lx);
       var ldx = lx * defs.imageSize;
+      var ngx = defs.localToNationalGridX(lx);
       for (var ly = this.firstVisibleLocalY; ly <= this.lastVisibleLocalY; ly++) {
-        var ty  = defs.localToTileY(ly);
         var ldy = ly * defs.imageSize;
-        c.fillText(tx + "," + ty, ldx + easedTextMargin, ldy);
+        var ngy = defs.localToNationalGridY(ly);
+        var latLon = nnng.from(ngx, ngy);
+        var lat = latLon[0].toFixed(6);
+        var lon = latLon[1].toFixed(6);
+        c.fillText(ngx + "N, " + ngy + "E (" + lat + "N, " + lon + "E)", ldx + easedTextMargin, ldy);
       }
     }
   },
