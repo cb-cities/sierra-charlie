@@ -218,7 +218,7 @@ module.exports = {
           });
         break;
       default:
-        if (event.keyCode >= 49 && event.keyCode <= 58) {
+        if (event.keyCode >= 49 && event.keyCode <= 56) {
           this.easeZoomPower(event.keyCode - 49, delay);
         }
     }
