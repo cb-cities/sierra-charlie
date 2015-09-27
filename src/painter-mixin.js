@@ -49,7 +49,7 @@ module.exports = {
         var latLon = nnng.from(ngx, ngy);
         var lat = latLon[0].toFixed(6);
         var lon = latLon[1].toFixed(6);
-        c.fillText(ngx + "N, " + ngy + "E (" + lat + "N, " + lon + "E)", ldx + easedTextMargin, ldy);
+        c.fillText(ngx + "N," + ngy + "E (" + lat + "N," + lon + "E)", ldx + easedTextMargin, ldy);
       }
     }
   },
