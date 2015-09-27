@@ -43,7 +43,7 @@ function processTileData(tileData) {
     });
 }
 
-function postLoadedTile(tileId, tileData) {
+function respondWithLoadedTile(tileId, tileData) {
   postMessage({
       message:  "tileLoaded",
       tileId:   tileId,
@@ -62,14 +62,14 @@ function loadNextTile() {
     }
     if (pendingTileId in missingTileIds) {
       loadedTileIds[pendingTileId] = true;
-      postLoadedTile(pendingTileId, null);
+      respondWithLoadedTile(pendingTileId, null);
       pendingTileId = null;
       loadNextTile();
     } else if (pendingTileId) {
       http.getJsonResource(origin + tid.toPath(pendingTileId), function (tileData, err) {
           if (!err || err.type === "clientError") {
             loadedTileIds[pendingTileId] = true;
-            postLoadedTile(pendingTileId, tileData);
+            respondWithLoadedTile(pendingTileId, tileData);
           }
           pendingTileId = null;
           loadNextTile();
