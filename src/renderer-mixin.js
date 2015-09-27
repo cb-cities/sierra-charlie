@@ -8,7 +8,6 @@ var iid = require("./image-id");
 
 module.exports = {
   componentDidMount: function () {
-    this.collectedImageIds = [];
     this.queuedImageIds = [];
     this.renderedImages = {};
     this.renderedGroups = {};
@@ -32,28 +31,6 @@ module.exports = {
 
   getRenderedGroup: function (groupId) {
     return this.renderedGroups[groupId];
-  },
-
-  collectImagesToQueue: function (tileId, floorZoomPower, ceilZoomPower) {
-    var floorImageId = iid.fromTileId(tileId, floorZoomPower);
-    var ceilImageId  = iid.fromTileId(tileId, ceilZoomPower);
-    if (!this.getRenderedImage(floorImageId)) {
-      this.collectedImageIds.push(floorImageId);
-    }
-    if (ceilImageId !== floorImageId && !this.getRenderedImage(ceilImageId)) {
-      this.collectedImageIds.push(ceilImageId);
-    }
-  },
-
-  queueImagesToRender: function () {
-    var imageIds = this.collectedImageIds.reverse();
-    this.collectedImageIds = [];
-    this.queuedImageIds = [];
-    for (var i = 0; i < imageIds.length; i++) {
-      if (!(imageIds[i] in this.renderedImages)) {
-        this.queuedImageIds.push(imageIds[i]);
-      }
-    }
   },
 
   renderNextImage: function () {

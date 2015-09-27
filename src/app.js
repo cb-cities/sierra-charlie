@@ -33,7 +33,8 @@ module.exports = {
     return {
       attentionLeft: 0.4897637424698795,
       attentionTop: 0.4768826844262295,
-      zoomPower: 3
+      zoomPower: 3,
+      processMode: 0
     };
   },
 
@@ -220,6 +221,11 @@ module.exports = {
       case 67: // c
         this.setState({
             invertColor: !this.state.invertColor
+          });
+        break;
+      case 77: // m
+        this.setState({
+            processMode: (this.state.processMode + 1) % (defs.maxProcessMode + 1)
           });
         break;
       default:
