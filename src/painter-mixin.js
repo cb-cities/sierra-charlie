@@ -91,6 +91,7 @@ module.exports = {
     }
     this.paintTileBorders(c);
     c.restore();
+    c.save();
     c.translate(-this.scrollLeft, -this.scrollTop);
     c.scale(1 / this.easedZoomLevel, 1 / this.easedZoomLevel);
     this.paintTileContents(c);
