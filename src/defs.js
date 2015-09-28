@@ -22,7 +22,6 @@ var _ = module.exports = {
   tileYCount: tileYCount,
 
   maxZoomPower: 7,
-  maxProcessMode: 2,
 
   tileToLocalX: function (tx) {
     return tx - firstTileX;

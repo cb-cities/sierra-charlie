@@ -6,8 +6,6 @@ var easeStateMixin = require("./ease-state-mixin");
 var loaderMixin = require("./loader-mixin");
 var painterMixin = require("./painter-mixin");
 var rendererMixin = require("./renderer-mixin");
-var iid = require("./image-id");
-var tid = require("./tile-id");
 
 
 module.exports = {
@@ -22,31 +20,17 @@ module.exports = {
     return {
       attentionLeft: 0.4897637424698795,
       attentionTop: 0.4768826844262295,
-      zoomPower: 4,
-      processMode: 0
+      zoomPower: 4
     };
   },
 
-  isTileVisible: function (tileId) {
-    var lx = tid.getLocalX(tileId);
-    var ly = tid.getLocalY(tileId);
+  isTileVisible: function (lx, ly) {
     var isVisible = (
       lx >= this.firstVisibleLocalX &&
       lx <= this.lastVisibleLocalX &&
       ly >= this.firstVisibleLocalY &&
       ly <= this.lastVisibleLocalY);
     return isVisible;
-  },
-
-  isImageVisible: function (imageId) {
-    var zoomPower = iid.getZoomPower(imageId);
-    var easedZoomPower = this.getEasedZoomPower();
-    var isInZoom = (
-      zoomPower === Math.floor(easedZoomPower) ||
-      zoomPower === Math.ceil(easedZoomPower));
-    return (
-      isInZoom &&
-      this.isTileVisible(iid.toTileId(imageId)));
   },
 
   getEasedAttentionLeft: function () {
@@ -97,8 +81,8 @@ module.exports = {
     this.exportBackgroundColor();
     this.exportScrollPosition();
     this.computeVisibleTiles();
-    this.processVisibleTiles();
-    this.paint();
+    this.requestQueueingVisibleTilesToLoad();
+    this.requestPainting();
   },
 
   componentWillUnmount: function () {
@@ -111,8 +95,9 @@ module.exports = {
     this.exportBackgroundColor(prevState);
     this.exportScrollPosition();
     this.computeVisibleTiles();
-    this.processVisibleTiles();
-    this.paint();
+    this.requestQueueingVisibleTilesToLoad();
+    this.requestQueueingVisibleImagesToRender();
+    this.requestPainting();
   },
 
   onScroll: function (event) {
@@ -165,6 +150,30 @@ module.exports = {
     this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((scrollTop + this.state.clientHeight - 1) / easedImageSize));
   },
 
+  spirally: function (cb) {
+    var ax = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount);
+    var ay = Math.floor(this.getEasedAttentionTop() * defs.tileYCount);
+    var layerCount = (
+      Math.max(
+        Math.max(ax - this.firstVisibleLocalX, this.lastVisibleLocalX - ax),
+        Math.max(ay - this.firstVisibleLocalY, this.lastVisibleLocalY - ay)));
+    cb(ax, ay);
+    for (var l = 0; l <= layerCount; l++) {
+      for (var i = 1; i <= l * 2; i++) {
+        cb(ax + l, ay - l + i);
+      }
+      for (var i = 1; i <= l * 2; i++) {
+        cb(ax + l - i, ay + l);
+      }
+      for (var i = 1; i <= l * 2; i++) {
+        cb(ax - l, ay + l - i);
+      }
+      for (var i = 1; i <= l * 2; i++) {
+        cb(ax - l + i, ay - l);
+      }
+    }
+  },
+
 
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
@@ -204,11 +213,6 @@ module.exports = {
       case 67: // c
         this.setState({
             invertColor: !this.state.invertColor
-          });
-        break;
-      case 77: // m
-        this.setState({
-            processMode: (this.state.processMode + 1) % (defs.maxProcessMode + 1)
           });
         break;
       default:

@@ -75,7 +75,7 @@ module.exports = {
     }
   },
 
-  paintNow: function () {
+  paint: function () {
     var width  = window.devicePixelRatio * this.state.clientWidth;
     var height = window.devicePixelRatio * this.state.clientHeight;
     var canvas = this.canvas;
@@ -118,10 +118,10 @@ module.exports = {
     this.pendingPaint = false;
   },
 
-  paint: function () {
+  requestPainting: function () {
     if (!this.pendingPaint) {
       this.pendingPaint = true;
-      window.requestAnimationFrame(this.paintNow);
+      window.requestAnimationFrame(this.paint);
     }
   }
 };

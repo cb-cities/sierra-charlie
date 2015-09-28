@@ -4,6 +4,7 @@
 
 var defs = require("./defs");
 var iid = require("./image-id");
+var tid = require("./tile-id");
 
 
 module.exports = {
@@ -15,6 +16,7 @@ module.exports = {
 
   componentWillUnmount: function () {
     clearTimeout(this.pendingRender);
+    clearTimeout(this.pendingQueueToRender);
   },
 
   setRenderedImage: function (imageId, flag) {
@@ -31,23 +33,6 @@ module.exports = {
 
   getRenderedGroup: function (groupId) {
     return this.renderedGroups[groupId];
-  },
-
-  renderNextImage: function () {
-    var pendingImageId;
-    while (this.queuedImageIds.length) {
-      var imageId = this.queuedImageIds.pop();
-      if (!this.getRenderedImage(imageId) && this.isImageVisible(imageId)) {
-        pendingImageId = imageId;
-        break;
-      }
-    }
-    if (pendingImageId) {
-      this.renderImage(pendingImageId);
-      this.paint();
-      clearTimeout(this.pendingRender);
-      this.pendingRender = setTimeout(this.renderNextImage, 0);
-    }
   },
 
   renderRoadLinks: function (c, zoomLevel, tileData) {
@@ -97,5 +82,57 @@ module.exports = {
     this.renderRoadNodes(c, zoomLevel, tileData);
     c.globalCompositeOperation = "source-over";
     this.setRenderedImage(imageId, true);
+  },
+
+  renderNextImage: function () {
+    var pendingImageId;
+    while (this.queuedImageIds.length) {
+      var imageId = this.queuedImageIds.pop();
+      if (!this.getRenderedImage(imageId)) {
+        pendingImageId = imageId;
+        break;
+      }
+    }
+    if (pendingImageId) {
+      this.renderImage(pendingImageId);
+      this.requestPainting();
+      this.requestRenderingImages();
+    }
+  },
+
+  requestRenderingImages: function () {
+    clearTimeout(this.pendingRender);
+    this.pendingRender = setTimeout(this.renderNextImage, 0);
+  },
+
+  queueVisibleImagesToRender: function () {
+    var easedZoomPower = this.getEasedZoomPower();
+    var floorZoomPower = Math.floor(easedZoomPower);
+    var ceilZoomPower  = Math.ceil(easedZoomPower);
+    var imageIds = [];
+    this.spirally(function (lx, ly) {
+        if (this.isTileVisible(lx, ly)) {
+          var tileId = tid.fromLocal(lx, ly);
+          if (this.getLoadedTile(tileId)) {
+            var floorImageId = iid.fromTileId(tileId, floorZoomPower);
+            if (!this.getRenderedImage(floorImageId)) {
+              imageIds.push(floorImageId);
+            }
+            if (floorZoomPower !== ceilZoomPower) {
+              var ceilImageId = iid.fromTileId(tileId, ceilZoomPower);
+              if (!this.getRenderedImage(ceilImageId)) {
+                imageIds.push(ceilImageId);
+              }
+            }
+          }
+        }
+      }.bind(this));
+    this.queuedImageIds = imageIds.reverse();
+    this.requestRenderingImages();
+  },
+
+  requestQueueingVisibleImagesToRender: function () {
+    clearTimeout(this.pendingQueueToRender);
+    this.pendingQueueToRender = setTimeout(this.queueVisibleImagesToRender, 0);
   }
 };

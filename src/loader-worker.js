@@ -58,14 +58,6 @@ function processTileData(tileData) {
     });
 }
 
-function respondWithLoadedTile(tileId, tileData) {
-  postMessage({
-      message:  "tileLoaded",
-      tileId:   tileId,
-      tileData: processTileData(tileData || {})
-    });
-}
-
 function postLoadedTileGroup(tileGroupId, tileGroupData) {
   var firstTileX = tgid.toFirstTileX(tileGroupId);
   var lastTileX  = tgid.toLastTileX(tileGroupId);
@@ -75,7 +67,11 @@ function postLoadedTileGroup(tileGroupId, tileGroupData) {
     for (var tx = firstTileX; tx <= lastTileX; tx++) {
       var tileId   = tid.fromTile(tx, ty);
       var tileData = tileGroupData[tid.toKey(tileId)];
-      respondWithLoadedTile(tileId, tileData);
+      postMessage({
+          message:  "tileLoaded",
+          tileId:   tileId,
+          tileData: processTileData(tileData || {})
+        });
     }
   }
 }
