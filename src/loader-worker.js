@@ -5,21 +5,22 @@
 var assign = require("object-assign");
 var http = require("http-request-wrapper");
 var simplify = require("simplify-js");
-var missingTileIds = require("./missing-tile-ids");
 var tid = require("./tile-id");
+var tgid = require("./tile-group-id");
 
 
 var origin;
-var queuedTileIds = [];
-var pendingTileId;
-var loadedTileIds = {};
+var queuedTileGroupIds = [];
+var pendingTileGroupId;
+var loadedTileGroupIds = {};
 
 
 function queueTilesToLoad(tileIds) {
-  queuedTileIds = [];
+  queuedTileGroupIds = [];
   for (var i = 0; i < tileIds.length; i++) {
-    if (tileIds[i] !== pendingTileId && !(tileIds[i] in loadedTileIds)) {
-      queuedTileIds.push(tileIds[i]);
+    var tileGroupId = tgid.fromTileId(tileIds[i]);
+    if (tileGroupId !== pendingTileGroupId && !(tileGroupId in loadedTileGroupIds)) {
+      queuedTileGroupIds.push(tileGroupId);
     }
   }
 }
@@ -51,28 +52,38 @@ function respondWithLoadedTile(tileId, tileData) {
     });
 }
 
-function loadNextTile() {
-  if (!pendingTileId) {
-    while (queuedTileIds.length) {
-      var tileId = queuedTileIds.pop();
-      if (!(tileId in loadedTileIds)) {
-        pendingTileId = tileId;
+function postLoadedTileGroup(tileGroupId, tileGroupData) {
+  var firstTileX = tgid.toFirstTileX(tileGroupId);
+  var lastTileX  = tgid.toLastTileX(tileGroupId);
+  var firstTileY = tgid.toFirstTileY(tileGroupId);
+  var lastTileY  = tgid.toLastTileY(tileGroupId);
+  for (var ty = lastTileY; ty >= firstTileY; ty--) {
+    for (var tx = firstTileX; tx <= lastTileX; tx++) {
+      var tileId   = tid.fromTile(tx, ty);
+      var tileData = tileGroupData[tid.toKey(tileId)];
+      respondWithLoadedTile(tileId, tileData);
+    }
+  }
+}
+
+function loadNextTileGroup() {
+  if (!pendingTileGroupId) {
+    while (queuedTileGroupIds.length) {
+      var tileGroupId = queuedTileGroupIds.pop();
+      if (!(tileGroupId in loadedTileGroupIds)) {
+        pendingTileGroupId = tileGroupId;
         break;
       }
     }
-    if (pendingTileId in missingTileIds) {
-      loadedTileIds[pendingTileId] = true;
-      respondWithLoadedTile(pendingTileId, null);
-      pendingTileId = null;
-      loadNextTile();
-    } else if (pendingTileId) {
-      http.getJsonResource(origin + tid.toPath(pendingTileId), function (tileData, err) {
+    if (pendingTileGroupId) {
+      var tileGroupUrl = tgid.toUrl(origin, pendingTileGroupId);
+      http.getJsonResource(tileGroupUrl, function (tileGroupData, err) {
           if (!err || err.type === "clientError") {
-            loadedTileIds[pendingTileId] = true;
-            respondWithLoadedTile(pendingTileId, tileData);
+            loadedTileGroupIds[pendingTileGroupId] = true;
+            postLoadedTileGroup(pendingTileGroupId, tileGroupData || {});
           }
-          pendingTileId = null;
-          loadNextTile();
+          pendingTileGroupId = null;
+          loadNextTileGroup();
         });
     }
   }
@@ -85,7 +96,7 @@ onmessage = function (event) {
       break;
     case "loadTiles":
       queueTilesToLoad(event.data.tileIds);
-      loadNextTile();
+      loadNextTileGroup();
       break;
   }
 };
