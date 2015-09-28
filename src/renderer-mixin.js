@@ -107,23 +107,36 @@ module.exports = {
 
   queueVisibleImagesToRender: function () {
     var imageIds = [];
-    this.spirally(function (lx, ly) {
-        if (this.isTileVisible(lx, ly)) {
-          var tileId = tid.fromLocal(lx, ly);
-          if (this.getLoadedTile(tileId)) {
-            var floorImageId = iid.fromTileId(tileId, this.floorZoomPower);
-            if (!this.getRenderedImage(floorImageId)) {
-              imageIds.push(floorImageId);
+    if (this.floorZoomPower === this.ceilZoomPower) {
+      this.spirally(function (lx, ly) {
+          if (this.isTileVisible(lx, ly)) {
+            var tileId = tid.fromLocal(lx, ly);
+            if (this.getLoadedTile(tileId)) {
+              var imageId = iid.fromTileId(tileId, this.roundZoomPower);
+              if (!this.getRenderedImage(imageId)) {
+                imageIds.push(imageId);
+              }
             }
-            if (this.floorZoomPower !== this.ceilZoomPower) {
+          }
+        }.bind(this));
+
+    } else {
+      this.spirally(function (lx, ly) {
+          if (this.isTileVisible(lx, ly)) {
+            var tileId = tid.fromLocal(lx, ly);
+            if (this.getLoadedTile(tileId)) {
+              var floorImageId = iid.fromTileId(tileId, this.floorZoomPower);
+              if (!this.getRenderedImage(floorImageId)) {
+                imageIds.push(floorImageId);
+              }
               var ceilImageId = iid.fromTileId(tileId, this.ceilZoomPower);
               if (!this.getRenderedImage(ceilImageId)) {
                 imageIds.push(ceilImageId);
               }
             }
           }
-        }
-      }.bind(this));
+        }.bind(this));
+    }
     this.queuedImageIds = imageIds.reverse();
     this.requestRenderingImages();
   },
