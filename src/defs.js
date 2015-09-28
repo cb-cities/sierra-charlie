@@ -1,5 +1,8 @@
 "use strict";
 
+var tileSize  = 1000;
+var imageSize = 1024;
+
 var firstTileX = 490;
 var lastTileX  = 572;
 var firstTileY = 148;
@@ -10,8 +13,8 @@ var tileYCount = lastTileY - firstTileY + 1;
 
 
 var _ = module.exports = {
-  tileSize:  1000,
-  imageSize: 1024,
+  tileSize:  tileSize,
+  imageSize: imageSize,
 
   firstTileX: firstTileX,
   lastTileX:  lastTileX,
@@ -20,6 +23,9 @@ var _ = module.exports = {
 
   tileXCount: tileXCount,
   tileYCount: tileYCount,
+
+  width:  tileXCount * imageSize,
+  height: tileYCount * imageSize,
 
   maxZoomPower: 7,
 

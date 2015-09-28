@@ -11,21 +11,19 @@ module.exports = {
   paintTileBorders: function (c) {
     if (!this.tileBordersPath) {
       var path = new Path2D();
-      var lmx = defs.tileXCount * defs.imageSize;
-      var lmy = defs.tileYCount * defs.imageSize;
       path.moveTo(0, 0);
-      path.lineTo(0, lmy);
+      path.lineTo(0, defs.height);
       for (var lx = 1; lx <= defs.tileXCount; lx++) {
         var ldx = lx * defs.imageSize;
         path.moveTo(ldx, 0);
-        path.lineTo(ldx, lmy);
+        path.lineTo(ldx, defs.height);
       }
       path.moveTo(0, 0);
-      path.lineTo(lmx, 0);
+      path.lineTo(defs.width, 0);
       for (var ly = 1; ly <= defs.tileYCount; ly++) {
         var ldy = ly * defs.imageSize;
         path.moveTo(0, ldy);
-        path.lineTo(lmx, ldy);
+        path.lineTo(defs.width, ldy);
       }
       this.tileBordersPath = path;
     }
