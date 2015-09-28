@@ -25,6 +25,18 @@ function queueTilesToLoad(tileIds) {
   }
 }
 
+function convertRoadLinksToSvgData(roadLinks) {
+  var svgData = "";
+  for (var i = 0; i < roadLinks.length; i++) {
+    var ps = roadLinks[i].ps;
+    svgData += "M " + ps[0].x + " " + ps[0].y + " ";
+    for (var j = 0; j < ps.length; j++) {
+      svgData += "L " + ps[j].x + " " + ps[j].y + " ";
+    }
+  }
+  return svgData;
+}
+
 function simplifyRoadLinks(roadLinks) {
   var simpleRoadLinks = [];
   for (var i = 0; i < roadLinks.length; i++) {
@@ -38,9 +50,11 @@ function simplifyRoadLinks(roadLinks) {
 }
 
 function processTileData(tileData) {
+  var simpleRoadLinks = simplifyRoadLinks(tileData.roadLinks || []);
   return assign(tileData, {
-      roadLinks: simplifyRoadLinks(tileData.roadLinks || []),
-      roadNodes: tileData.roadNodes || []
+      roadLinks: simpleRoadLinks,
+      roadNodes: tileData.roadNodes || [],
+      roadLinksSvgData: convertRoadLinksToSvgData(simpleRoadLinks)
     });
 }
 

@@ -52,15 +52,7 @@ module.exports = {
 
   renderRoadLinks: function (c, zoomLevel, tileData) {
     if (!tileData.roadLinksPath) {
-      var path = new Path2D();
-      for (var i = 0; i < tileData.roadLinks.length; i++) {
-        var ps = tileData.roadLinks[i].ps;
-        path.moveTo(ps[0].x, ps[0].y);
-        for (var j = 1; j < ps.length; j++) {
-          path.lineTo(ps[j].x, ps[j].y);
-        }
-      }
-      tileData.roadLinksPath = path;
+      tileData.roadLinksPath = new Path2D(tileData.roadLinksSvgData);
     }
     c.lineWidth = 2 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
     c.strokeStyle = defs.roadLinkColor;
