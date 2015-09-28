@@ -33,22 +33,6 @@ module.exports = {
     return isVisible;
   },
 
-  getEasedAttentionLeft: function () {
-    return this.getEasedState("attentionLeft");
-  },
-
-  getEasedAttentionTop: function () {
-    return this.getEasedState("attentionTop");
-  },
-
-  getEasedZoomPower: function () {
-    return this.getEasedState("zoomPower");
-  },
-
-  getEasedZoomLevel: function () {
-    return Math.pow(2, this.getEasedZoomPower());
-  },
-
   easeAttentionLeft: function (attentionLeft, duration) {
     this.pendingScrollX = true;
     this.easeState("attentionLeft", attentionLeft, duration, function () {
@@ -120,27 +104,32 @@ module.exports = {
   },
 
   importScrollPosition: function () {
-    var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
     this.setState({
-        attentionLeft: this.node.scrollLeft / (defs.tileXCount * easedImageSize),
-        attentionTop:  this.node.scrollTop / (defs.tileYCount * easedImageSize)
+        attentionLeft: this.node.scrollLeft / (defs.tileXCount * this.easedImageSize),
+        attentionTop:  this.node.scrollTop / (defs.tileYCount * this.easedImageSize)
       });
   },
 
   computeDerivedState: function () {
-    var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2);
-    var scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2);
-    this.firstVisibleLocalX = defs.clampLocalX(Math.floor(scrollLeft / easedImageSize));
-    this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / easedImageSize));
-    this.firstVisibleLocalY = defs.clampLocalY(Math.floor(scrollTop / easedImageSize));
-    this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((scrollTop + this.state.clientHeight - 1) / easedImageSize));
+    this.easedAttentionLeft = this.getEasedState("attentionLeft");
+    this.easedAttentionTop  = this.getEasedState("attentionTop");
+    this.easedZoomPower = this.getEasedState("zoomPower");
+    this.floorZoomPower = Math.floor(this.easedZoomPower);
+    this.roundZoomPower = Math.round(this.easedZoomPower);
+    this.ceilZoomPower  = Math.ceil(this.easedZoomPower);
+    this.easedZoomLevel = Math.pow(2, this.easedZoomPower);
+    this.easedImageSize = defs.imageSize / this.easedZoomLevel;
+    var scrollLeft = Math.floor(this.easedAttentionLeft * defs.tileXCount * this.easedImageSize - this.state.clientWidth / 2);
+    var scrollTop  = Math.floor(this.easedAttentionTop * defs.tileYCount * this.easedImageSize - this.state.clientHeight / 2);
+    this.firstVisibleLocalX = defs.clampLocalX(Math.floor(scrollLeft / this.easedImageSize));
+    this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / this.easedImageSize));
+    this.firstVisibleLocalY = defs.clampLocalY(Math.floor(scrollTop / this.easedImageSize));
+    this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((scrollTop + this.state.clientHeight - 1) / this.easedImageSize));
   },
 
   exportScrollPosition: function () {
-    var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    this.node.scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize);
-    this.node.scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize);
+    this.node.scrollLeft = Math.floor(this.easedAttentionLeft * defs.tileXCount * this.easedImageSize);
+    this.node.scrollTop  = Math.floor(this.easedAttentionTop * defs.tileYCount * this.easedImageSize);
   },
 
   exportBackgroundColor: function (prevState) {
@@ -153,8 +142,8 @@ module.exports = {
   },
 
   spirally: function (cb) {
-    var ax = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount);
-    var ay = Math.floor(this.getEasedAttentionTop() * defs.tileYCount);
+    var ax = Math.floor(this.easedAttentionLeft * defs.tileXCount);
+    var ay = Math.floor(this.easedAttentionTop * defs.tileYCount);
     var layerCount = (
       Math.max(
         Math.max(ax - this.firstVisibleLocalX, this.lastVisibleLocalX - ax),
@@ -179,9 +168,8 @@ module.exports = {
 
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
-    var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    var pageWidth  = 1 / (defs.tileXCount * easedImageSize / this.state.clientWidth);
-    var pageHeight = 1 / (defs.tileYCount * easedImageSize / this.state.clientHeight);
+    var pageWidth  = 1 / (defs.tileXCount * this.easedImageSize / this.state.clientWidth);
+    var pageHeight = 1 / (defs.tileYCount * this.easedImageSize / this.state.clientHeight);
     var delay = event.shiftKey ? 2500 : 500;
     switch (event.keyCode) {
       case 37: // left
@@ -226,12 +214,11 @@ module.exports = {
 
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    var scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2);
-    var scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2);
+    var scrollLeft = Math.floor(this.easedAttentionLeft * defs.tileXCount * this.easedImageSize - this.state.clientWidth / 2);
+    var scrollTop  = Math.floor(this.easedAttentionTop * defs.tileYCount * this.easedImageSize - this.state.clientHeight / 2);
     var delay = !event.shiftKey ? 500 : 2500;
-    var left = (scrollLeft + event.clientX) / (defs.tileXCount * easedImageSize);
-    var top  = (scrollTop + event.clientY) / (defs.tileYCount * easedImageSize);
+    var left = (scrollLeft + event.clientX) / (defs.tileXCount * this.easedImageSize);
+    var top  = (scrollTop + event.clientY) / (defs.tileYCount * this.easedImageSize);
     this.easeAttentionLeft(Math.max(0, Math.min(left, 1)), delay);
     this.easeAttentionTop(Math.max(0, Math.min(top, 1)), delay);
     if (!event.altKey) {
@@ -242,15 +229,14 @@ module.exports = {
   },
 
   render: function () {
-    var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
     return (
       r.div("map-frame",
         r.canvas("map-picture"),
         r.div({
             className: "map-space",
             style: {
-              width:  defs.tileXCount * easedImageSize,
-              height: defs.tileYCount * easedImageSize
+              width:  defs.tileXCount * this.easedImageSize,
+              height: defs.tileYCount * this.easedImageSize
             },
             onDoubleClick: this.onDoubleClick
           })));

@@ -8,7 +8,7 @@ var iid = require("./image-id");
 
 
 module.exports = {
-  paintTileBorders: function (c, easedZoomLevel) {
+  paintTileBorders: function (c) {
     if (!this.tileBordersPath) {
       var path = new Path2D();
       var lmx = defs.tileXCount * defs.imageSize;
@@ -29,13 +29,13 @@ module.exports = {
       }
       this.tileBordersPath = path;
     }
-    c.lineWidth = easedZoomLevel / window.devicePixelRatio;
+    c.lineWidth = this.easedZoomLevel / window.devicePixelRatio;
     c.strokeStyle = defs.borderColor;
     c.stroke(this.tileBordersPath);
   },
 
-  paintTileLabels: function (c, easedZoomLevel) {
-    var easedTextMargin = 4 * Math.sqrt(easedZoomLevel);
+  paintTileLabels: function (c) {
+    var easedTextMargin = 4 * Math.sqrt(this.easedZoomLevel);
     c.fillStyle = defs.labelColor;
     c.font = 32 + "px " + defs.labelFont;
     c.textAlign = "left";
@@ -54,9 +54,8 @@ module.exports = {
     }
   },
 
-  paintTileContents: function (c, easedZoomPower) {
-    var zoomPower  = Math.round(easedZoomPower);
-    var groupCount = Math.pow(2, zoomPower);
+  paintTileContents: function (c) {
+    var groupCount = Math.pow(2, this.roundZoomPower);
     var groupSize  = defs.imageSize * groupCount;
     var firstVisibleGroupX = Math.floor(this.firstVisibleLocalX / groupCount) * groupCount;
     var lastVisibleGroupX  = Math.floor(this.lastVisibleLocalX / groupCount) * groupCount;
@@ -66,7 +65,7 @@ module.exports = {
       var gdx = gx * defs.imageSize;
       for (var gy = firstVisibleGroupY; gy <= lastVisibleGroupY; gy += groupCount) {
         var gdy = gy * defs.imageSize;
-        var groupId = iid.fromLocal(gx, gy, zoomPower);
+        var groupId = iid.fromLocal(gx, gy, this.roundZoomPower);
         var canvas = this.getRenderedGroup(groupId);
         if (canvas) {
           c.drawImage(canvas, gdx, gdy, groupSize, groupSize);
@@ -83,11 +82,8 @@ module.exports = {
       canvas.width  = width;
       canvas.height = height;
     }
-    var easedZoomPower = this.getEasedZoomPower();
-    var easedZoomLevel = Math.pow(2, easedZoomPower);
-    var easedImageSize = defs.imageSize / easedZoomLevel;
-    var scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2);
-    var scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2);
+    var scrollLeft = Math.floor(this.easedAttentionLeft * defs.tileXCount * this.easedImageSize - this.state.clientWidth / 2);
+    var scrollTop  = Math.floor(this.easedAttentionTop * defs.tileYCount * this.easedImageSize - this.state.clientHeight / 2);
     var c = canvas.getContext("2d", {
         alpha: false
       });
@@ -97,17 +93,17 @@ module.exports = {
     c.fillRect(0, 0, this.state.clientWidth, this.state.clientHeight);
     c.translate(-scrollLeft, -scrollTop);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
-    c.scale(1 / easedZoomLevel, 1 / easedZoomLevel);
-    if (easedZoomPower < 3) {
-      c.globalAlpha = 1 - (easedZoomPower - 2);
-      this.paintTileLabels(c, easedZoomLevel);
+    c.scale(1 / this.easedZoomLevel, 1 / this.easedZoomLevel);
+    if (this.easedZoomPower < 3) {
+      c.globalAlpha = 1 - (this.easedZoomPower - 2);
+      this.paintTileLabels(c, this.easedZoomLevel);
       c.globalAlpha = 1;
     }
-    this.paintTileBorders(c, easedZoomLevel);
+    this.paintTileBorders(c);
     c.restore();
     c.translate(-scrollLeft, -scrollTop);
-    c.scale(1 / easedZoomLevel, 1 / easedZoomLevel);
-    this.paintTileContents(c, easedZoomPower);
+    c.scale(1 / this.easedZoomLevel, 1 / this.easedZoomLevel);
+    this.paintTileContents(c);
     if (this.state.invertColor) {
       c.restore();
       c.globalCompositeOperation = "difference";

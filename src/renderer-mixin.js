@@ -106,20 +106,17 @@ module.exports = {
   },
 
   queueVisibleImagesToRender: function () {
-    var easedZoomPower = this.getEasedZoomPower();
-    var floorZoomPower = Math.floor(easedZoomPower);
-    var ceilZoomPower  = Math.ceil(easedZoomPower);
     var imageIds = [];
     this.spirally(function (lx, ly) {
         if (this.isTileVisible(lx, ly)) {
           var tileId = tid.fromLocal(lx, ly);
           if (this.getLoadedTile(tileId)) {
-            var floorImageId = iid.fromTileId(tileId, floorZoomPower);
+            var floorImageId = iid.fromTileId(tileId, this.floorZoomPower);
             if (!this.getRenderedImage(floorImageId)) {
               imageIds.push(floorImageId);
             }
-            if (floorZoomPower !== ceilZoomPower) {
-              var ceilImageId = iid.fromTileId(tileId, ceilZoomPower);
+            if (this.floorZoomPower !== this.ceilZoomPower) {
+              var ceilImageId = iid.fromTileId(tileId, this.ceilZoomPower);
               if (!this.getRenderedImage(ceilImageId)) {
                 imageIds.push(ceilImageId);
               }
