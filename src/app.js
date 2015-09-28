@@ -78,10 +78,11 @@ module.exports = {
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
     this.importClientSize();
-    this.exportBackgroundColor();
+    this.computeDerivedState();
     this.exportScrollPosition();
-    this.computeVisibleTiles();
+    this.exportBackgroundColor();
     this.requestQueueingVisibleTilesToLoad();
+    this.requestQueueingVisibleImagesToRender();
     this.requestPainting();
   },
 
@@ -92,9 +93,9 @@ module.exports = {
   },
 
   componentDidUpdate: function (prevProps, prevState) {
-    this.exportBackgroundColor(prevState);
+    this.computeDerivedState();
     this.exportScrollPosition();
-    this.computeVisibleTiles();
+    this.exportBackgroundColor(prevState);
     this.requestQueueingVisibleTilesToLoad();
     this.requestQueueingVisibleImagesToRender();
     this.requestPainting();
@@ -110,19 +111,12 @@ module.exports = {
     this.importClientSize();
   },
 
-  exportBackgroundColor: function (prevState) {
-    if (!prevState || prevState.invertColor !== this.state.invertColor) {
-      document.body.style.backgroundColor = (
-        !this.state.invertColor ?
-          defs.backgroundColor :
-          defs.inverseBackgroundColor);
-    }
-  },
 
-  exportScrollPosition: function () {
-    var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
-    this.node.scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize);
-    this.node.scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize);
+  importClientSize: function () {
+    this.setState({
+        clientWidth:  this.node.clientWidth,
+        clientHeight: this.node.clientHeight
+      });
   },
 
   importScrollPosition: function () {
@@ -133,14 +127,7 @@ module.exports = {
       });
   },
 
-  importClientSize: function () {
-    this.setState({
-        clientWidth:  this.node.clientWidth,
-        clientHeight: this.node.clientHeight
-      });
-  },
-
-  computeVisibleTiles: function () {
+  computeDerivedState: function () {
     var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
     var scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize - this.state.clientWidth / 2);
     var scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize - this.state.clientHeight / 2);
@@ -148,6 +135,21 @@ module.exports = {
     this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / easedImageSize));
     this.firstVisibleLocalY = defs.clampLocalY(Math.floor(scrollTop / easedImageSize));
     this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((scrollTop + this.state.clientHeight - 1) / easedImageSize));
+  },
+
+  exportScrollPosition: function () {
+    var easedImageSize = defs.imageSize / this.getEasedZoomLevel();
+    this.node.scrollLeft = Math.floor(this.getEasedAttentionLeft() * defs.tileXCount * easedImageSize);
+    this.node.scrollTop  = Math.floor(this.getEasedAttentionTop() * defs.tileYCount * easedImageSize);
+  },
+
+  exportBackgroundColor: function (prevState) {
+    if (!prevState || prevState.invertColor !== this.state.invertColor) {
+      document.body.style.backgroundColor = (
+        !this.state.invertColor ?
+          defs.backgroundColor :
+          defs.inverseBackgroundColor);
+    }
   },
 
   spirally: function (cb) {
