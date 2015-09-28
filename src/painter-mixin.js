@@ -55,20 +55,14 @@ module.exports = {
   },
 
   paintTileContents: function (c) {
-    var groupCount = Math.pow(2, this.roundZoomPower);
-    var groupSize  = defs.imageSize * groupCount;
-    var firstVisibleGroupX = Math.floor(this.firstVisibleLocalX / groupCount) * groupCount;
-    var lastVisibleGroupX  = Math.floor(this.lastVisibleLocalX / groupCount) * groupCount;
-    var firstVisibleGroupY = Math.floor(this.firstVisibleLocalY / groupCount) * groupCount;
-    var lastVisibleGroupY  = Math.floor(this.lastVisibleLocalY / groupCount) * groupCount;
-    for (var gx = firstVisibleGroupX; gx <= lastVisibleGroupX; gx += groupCount) {
+    for (var gx = this.firstVisibleGroupX; gx <= this.lastVisibleGroupX; gx += this.groupCount) {
       var gdx = gx * defs.imageSize;
-      for (var gy = firstVisibleGroupY; gy <= lastVisibleGroupY; gy += groupCount) {
+      for (var gy = this.firstVisibleGroupY; gy <= this.lastVisibleGroupY; gy += this.groupCount) {
         var gdy = gy * defs.imageSize;
         var groupId = iid.fromLocal(gx, gy, this.roundZoomPower);
         var canvas = this.getRenderedGroup(groupId);
         if (canvas) {
-          c.drawImage(canvas, gdx, gdy, groupSize, groupSize);
+          c.drawImage(canvas, gdx, gdy, this.groupSize, this.groupSize);
         }
       }
     }
@@ -82,8 +76,6 @@ module.exports = {
       canvas.width  = width;
       canvas.height = height;
     }
-    var scrollLeft = Math.floor(this.easedAttentionLeft * defs.tileXCount * this.easedImageSize - this.state.clientWidth / 2);
-    var scrollTop  = Math.floor(this.easedAttentionTop * defs.tileYCount * this.easedImageSize - this.state.clientHeight / 2);
     var c = canvas.getContext("2d", {
         alpha: false
       });
@@ -91,7 +83,7 @@ module.exports = {
     c.save();
     c.fillStyle = defs.backgroundColor;
     c.fillRect(0, 0, this.state.clientWidth, this.state.clientHeight);
-    c.translate(-scrollLeft, -scrollTop);
+    c.translate(-this.scrollLeft, -this.scrollTop);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     c.scale(1 / this.easedZoomLevel, 1 / this.easedZoomLevel);
     if (this.easedZoomPower < 3) {
@@ -101,7 +93,7 @@ module.exports = {
     }
     this.paintTileBorders(c);
     c.restore();
-    c.translate(-scrollLeft, -scrollTop);
+    c.translate(-this.scrollLeft, -this.scrollTop);
     c.scale(1 / this.easedZoomLevel, 1 / this.easedZoomLevel);
     this.paintTileContents(c);
     if (this.state.invertColor) {

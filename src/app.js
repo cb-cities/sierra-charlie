@@ -105,8 +105,8 @@ module.exports = {
 
   importScrollPosition: function () {
     this.setState({
-        attentionLeft: this.node.scrollLeft / (defs.tileXCount * this.easedImageSize),
-        attentionTop:  this.node.scrollTop / (defs.tileYCount * this.easedImageSize)
+        attentionLeft: this.node.scrollLeft / this.easedWidth,
+        attentionTop:  this.node.scrollTop / this.easedHeight
       });
   },
 
@@ -119,17 +119,25 @@ module.exports = {
     this.ceilZoomPower  = Math.ceil(this.easedZoomPower);
     this.easedZoomLevel = Math.pow(2, this.easedZoomPower);
     this.easedImageSize = defs.imageSize / this.easedZoomLevel;
-    var scrollLeft = Math.floor(this.easedAttentionLeft * defs.tileXCount * this.easedImageSize - this.state.clientWidth / 2);
-    var scrollTop  = Math.floor(this.easedAttentionTop * defs.tileYCount * this.easedImageSize - this.state.clientHeight / 2);
-    this.firstVisibleLocalX = defs.clampLocalX(Math.floor(scrollLeft / this.easedImageSize));
-    this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((scrollLeft + this.state.clientWidth - 1) / this.easedImageSize));
-    this.firstVisibleLocalY = defs.clampLocalY(Math.floor(scrollTop / this.easedImageSize));
-    this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((scrollTop + this.state.clientHeight - 1) / this.easedImageSize));
+    this.easedWidth  = defs.tileXCount * this.easedImageSize;
+    this.easedHeight = defs.tileYCount * this.easedImageSize;
+    this.scrollLeft = Math.floor(this.easedAttentionLeft * this.easedWidth - this.state.clientWidth / 2);
+    this.scrollTop  = Math.floor(this.easedAttentionTop * this.easedHeight - this.state.clientHeight / 2);
+    this.firstVisibleLocalX = defs.clampLocalX(Math.floor(this.scrollLeft / this.easedImageSize));
+    this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((this.scrollLeft + this.state.clientWidth - 1) / this.easedImageSize));
+    this.firstVisibleLocalY = defs.clampLocalY(Math.floor(this.scrollTop / this.easedImageSize));
+    this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((this.scrollTop + this.state.clientHeight - 1) / this.easedImageSize));
+    this.groupCount = Math.pow(2, this.roundZoomPower);
+    this.groupSize  = defs.imageSize * this.groupCount;
+    this.firstVisibleGroupX = Math.floor(this.firstVisibleLocalX / this.groupCount) * this.groupCount;
+    this.lastVisibleGroupX  = Math.floor(this.lastVisibleLocalX / this.groupCount) * this.groupCount;
+    this.firstVisibleGroupY = Math.floor(this.firstVisibleLocalY / this.groupCount) * this.groupCount;
+    this.lastVisibleGroupY  = Math.floor(this.lastVisibleLocalY / this.groupCount) * this.groupCount;
   },
 
   exportScrollPosition: function () {
-    this.node.scrollLeft = Math.floor(this.easedAttentionLeft * defs.tileXCount * this.easedImageSize);
-    this.node.scrollTop  = Math.floor(this.easedAttentionTop * defs.tileYCount * this.easedImageSize);
+    this.node.scrollLeft = Math.floor(this.easedAttentionLeft * this.easedWidth);
+    this.node.scrollTop  = Math.floor(this.easedAttentionTop * this.easedHeight);
   },
 
   exportBackgroundColor: function (prevState) {
@@ -168,8 +176,8 @@ module.exports = {
 
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
-    var pageWidth  = 1 / (defs.tileXCount * this.easedImageSize / this.state.clientWidth);
-    var pageHeight = 1 / (defs.tileYCount * this.easedImageSize / this.state.clientHeight);
+    var pageWidth  = 1 / (this.easedWidth / this.state.clientWidth);
+    var pageHeight = 1 / (this.easedHeight / this.state.clientHeight);
     var delay = event.shiftKey ? 2500 : 500;
     switch (event.keyCode) {
       case 37: // left
@@ -214,11 +222,9 @@ module.exports = {
 
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var scrollLeft = Math.floor(this.easedAttentionLeft * defs.tileXCount * this.easedImageSize - this.state.clientWidth / 2);
-    var scrollTop  = Math.floor(this.easedAttentionTop * defs.tileYCount * this.easedImageSize - this.state.clientHeight / 2);
     var delay = !event.shiftKey ? 500 : 2500;
-    var left = (scrollLeft + event.clientX) / (defs.tileXCount * this.easedImageSize);
-    var top  = (scrollTop + event.clientY) / (defs.tileYCount * this.easedImageSize);
+    var left = (this.scrollLeft + event.clientX) / this.easedWidth;
+    var top  = (this.scrollTop + event.clientY) / this.easedHeight;
     this.easeAttentionLeft(Math.max(0, Math.min(left, 1)), delay);
     this.easeAttentionTop(Math.max(0, Math.min(top, 1)), delay);
     if (!event.altKey) {
@@ -235,8 +241,8 @@ module.exports = {
         r.div({
             className: "map-space",
             style: {
-              width:  defs.tileXCount * this.easedImageSize,
-              height: defs.tileYCount * this.easedImageSize
+              width:  this.easedWidth,
+              height: this.easedHeight
             },
             onDoubleClick: this.onDoubleClick
           })));
