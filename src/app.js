@@ -131,7 +131,9 @@ module.exports = {
     this.easedTimeValue     = this.computeTimeValue(this.getEasedState("rawTimeValue"));
     this.easedZoomPower     = this.getEasedState("zoomPower");
     this.floorTimeValue = Math.floor(this.easedTimeValue);
-    this.ceilTimeValue  = Math.ceil(this.easedTimeValue);
+    this.ceilTimeValue  = (
+      this.floorTimeValue === this.easedTimeValue ? this.easedTimeValue :
+        (this.floorTimeValue + 1) % 24);
     this.floorZoomPower = Math.floor(this.easedZoomPower);
     this.roundZoomPower = Math.round(this.easedZoomPower);
     this.ceilZoomPower  = Math.ceil(this.easedZoomPower);
