@@ -71,8 +71,8 @@ var _ = module.exports = {
   backgroundColor:        "#000",
   inverseBackgroundColor: "#fff",
 
-  roadLinkColor: "#f63",
-  roadNodeColor: "#f93",
+  roadLinkColor: "#39f",
+  roadNodeColor: "#36f",
 
   borderColor: "#333",
 
