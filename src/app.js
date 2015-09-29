@@ -179,6 +179,7 @@ module.exports = {
     var pageWidth  = 1 / (this.easedWidth / this.state.clientWidth);
     var pageHeight = 1 / (this.easedHeight / this.state.clientHeight);
     var delay = event.shiftKey ? 2500 : 500;
+    var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10;
     switch (event.keyCode) {
       case 37: // left
       case 36: // home
@@ -200,13 +201,13 @@ module.exports = {
         var top = this.state.attentionTop + pageHeight / (event.keyCode === 34 ? 1 : 10);
         this.easeAttentionTop(Math.min(top, 1), delay);
         break;
-      case 187: // minus
-        var zoomPower = (Math.round(this.state.zoomPower * 10) - 2) / 10;
-        this.easeZoomPower(Math.max(0, zoomPower), delay);
+      case 187: // plus
+        var zoomPower = Math.max(0, (Math.round((this.state.zoomPower * 10) - zoomDelta) / 10));
+        this.easeZoomPower(zoomPower, delay);
         break;
-      case 189: // plus
-        var zoomPower = (Math.round(this.state.zoomPower * 10) + 2) / 10;
-        this.easeZoomPower(Math.min(zoomPower, defs.maxZoomPower), delay);
+      case 189: // minus
+        var zoomPower = Math.min(Math.round((this.state.zoomPower * 10) + zoomDelta) / 10, defs.maxZoomPower);
+        this.easeZoomPower(zoomPower, delay);
         break;
       case 67: // c
         this.setState({
