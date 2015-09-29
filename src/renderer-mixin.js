@@ -41,14 +41,14 @@ module.exports = {
     }
     c.lineWidth = 2 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
     // c.strokeStyle = defs.roadLinkColor;
-    c.strokeStyle = "hsl(" + (timeValue / 24 * 360) + ", 100%, 50%";
+    c.strokeStyle = "hsl(" + (timeValue / 24 * 360) + ", 100%, 50%)";
     c.stroke(tileData.roadLinksPath);
   },
 
   renderRoadNodes: function (c, timeValue, zoomLevel, tileData) {
     var nodeSize = 8 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
     // c.fillStyle = defs.roadNodeColor;
-    c.fillStyle = "hsl(" + (timeValue / 24 * 360) + ", 100%, 75%";
+    c.fillStyle = "hsl(" + (timeValue / 24 * 360) + ", 100%, 75%)";
     for (var i = 0; i < tileData.roadNodes.length; i++) {
       var p = tileData.roadNodes[i].p;
       c.fillRect(p.x - nodeSize / 2, p.y - nodeSize / 2, nodeSize, nodeSize);
