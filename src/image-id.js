@@ -1,5 +1,6 @@
 "use strict";
 
+var defs = require("./defs");
 var tid = require("./tile-id");
 
 
@@ -20,6 +21,14 @@ var _ = module.exports = {
     return (imageId >> 16) & 0xFF;
   },
 
+  getTileX: function (imageId) {
+    return defs.localToTileX(_.getLocalX(imageId));
+  },
+
+  getTileY: function (imageId) {
+    return defs.localToTileY(_.getLocalY(imageId));
+  },
+
   getTimeValue: function (imageId) {
     return (imageId >> 8) & 0xFF;
   },
@@ -30,5 +39,13 @@ var _ = module.exports = {
 
   toTileId: function (imageId) {
     return tid.fromLocal(_.getLocalX(imageId), _.getLocalY(imageId));
+  },
+
+  toKey: function (imageId) {
+    var tx = _.getTileX(imageId);
+    var ty = _.getTileY(imageId);
+    var timeValue = _.getTimeValue(imageId);
+    var zoomPower = _.getZoomPower(imageId);
+    return "image-" + tx + "-" + ty + "-" + timeValue + "-" + zoomPower;
   }
 };
