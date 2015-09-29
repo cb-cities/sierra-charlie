@@ -4,19 +4,23 @@ var tid = require("./tile-id");
 
 
 var _ = module.exports = {
-  fromLocal: function (lx, ly, zoomPower) {
-    return (lx << 16) | (ly << 8) | zoomPower;
+  fromLocal: function (lx, ly, timeValue, zoomPower) {
+    return (lx << 24) | (ly << 16) | (timeValue << 8) | zoomPower;
   },
 
-  fromTileId: function (tileId, zoomPower) {
-    return (tileId << 8) | zoomPower;
+  fromTileId: function (tileId, timeValue, zoomPower) {
+    return (tileId << 16) | (timeValue << 8) | zoomPower;
   },
 
   getLocalX: function (imageId) {
-    return imageId >> 16;
+    return imageId >> 24;
   },
 
   getLocalY: function (imageId) {
+    return (imageId >> 16) & 0xFF;
+  },
+
+  getTimeValue: function (imageId) {
     return (imageId >> 8) & 0xFF;
   },
 

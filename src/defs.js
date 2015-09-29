@@ -27,7 +27,10 @@ var _ = module.exports = {
   width:  tileXCount * imageSize,
   height: tileYCount * imageSize,
 
+  maxTimeValue: 23,
   maxZoomPower: 7,
+
+  clockSize: 72,
 
   tileToLocalX: function (tx) {
     return tx - firstTileX;

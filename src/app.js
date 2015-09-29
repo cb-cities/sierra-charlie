@@ -20,6 +20,7 @@ module.exports = {
     return {
       attentionLeft: 0.4897637424698795,
       attentionTop: 0.4768826844262295,
+      rawTimeValue: 10 + 9 / 60,
       zoomPower: 4
     };
   },
@@ -44,6 +45,13 @@ module.exports = {
     this.pendingScrollY = true;
     this.easeState("attentionTop", attentionTop, duration, function () {
         this.pendingScrollY = false;
+      }.bind(this));
+  },
+
+  easeTimeValue: function (rawTimeValue, duration) {
+    this.pendingTimeChange = true;
+    this.easeState("rawTimeValue", rawTimeValue, duration, function () {
+        this.pendingTimeChange = false;
       }.bind(this));
   },
 
@@ -110,10 +118,20 @@ module.exports = {
       });
   },
 
+  computeTimeValue: function (rawTimeValue) {
+    return (
+      rawTimeValue >= 0 ?
+        Math.round((rawTimeValue * 3600) % (24 * 3600)) / 3600 :
+        24 - Math.round((-rawTimeValue * 3600) % (24 * 3600)) / 3600);
+  },
+
   computeDerivedState: function () {
     this.easedAttentionLeft = this.getEasedState("attentionLeft");
     this.easedAttentionTop  = this.getEasedState("attentionTop");
+    this.easedTimeValue     = this.computeTimeValue(this.getEasedState("rawTimeValue"));
     this.easedZoomPower     = this.getEasedState("zoomPower");
+    this.floorTimeValue = Math.floor(this.easedTimeValue);
+    this.ceilTimeValue  = Math.ceil(this.easedTimeValue);
     this.floorZoomPower = Math.floor(this.easedZoomPower);
     this.roundZoomPower = Math.round(this.easedZoomPower);
     this.ceilZoomPower  = Math.ceil(this.easedZoomPower);
@@ -179,6 +197,7 @@ module.exports = {
     var pageWidth  = 1 / (this.easedWidth / this.state.clientWidth);
     var pageHeight = 1 / (this.easedHeight / this.state.clientHeight);
     var delay = event.shiftKey ? 2500 : 500;
+    var timeDelta = (event.ctrlKey || event.altKey) ? 60 : 3600;
     var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10;
     switch (event.keyCode) {
       case 37: // left
@@ -200,6 +219,14 @@ module.exports = {
       case 34: // page down
         var top = this.state.attentionTop + pageHeight / (event.keyCode === 34 ? 1 : 10);
         this.easeAttentionTop(Math.min(top, 1), delay);
+        break;
+      case 219: // left bracket
+        var rawTimeValue = (Math.round((this.state.rawTimeValue * 3600) - timeDelta) / 3600);
+        this.easeTimeValue(rawTimeValue, delay);
+        break;
+      case 221: // right bracket
+        var rawTimeValue = (Math.round((this.state.rawTimeValue * 3600) + timeDelta) / 3600);
+        this.easeTimeValue(rawTimeValue, delay);
         break;
       case 187: // plus
         var zoomPower = Math.max(0, (Math.round((this.state.zoomPower * 10) - zoomDelta) / 10));

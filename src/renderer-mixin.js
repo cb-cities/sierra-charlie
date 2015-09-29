@@ -35,18 +35,20 @@ module.exports = {
     return this.renderedGroups[groupId];
   },
 
-  renderRoadLinks: function (c, zoomLevel, tileData) {
+  renderRoadLinks: function (c, timeValue, zoomLevel, tileData) {
     if (!tileData.roadLinksPath) {
       tileData.roadLinksPath = new Path2D(tileData.roadLinksSvgData);
     }
     c.lineWidth = 2 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
-    c.strokeStyle = defs.roadLinkColor;
+    // c.strokeStyle = defs.roadLinkColor;
+    c.strokeStyle = "hsl(" + (timeValue / 24 * 360) + ", 100%, 50%";
     c.stroke(tileData.roadLinksPath);
   },
 
-  renderRoadNodes: function (c, zoomLevel, tileData) {
+  renderRoadNodes: function (c, timeValue, zoomLevel, tileData) {
     var nodeSize = 8 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
-    c.fillStyle = defs.roadNodeColor;
+    // c.fillStyle = defs.roadNodeColor;
+    c.fillStyle = "hsl(" + (timeValue / 24 * 360) + ", 100%, 75%";
     for (var i = 0; i < tileData.roadNodes.length; i++) {
       var p = tileData.roadNodes[i].p;
       c.fillRect(p.x - nodeSize / 2, p.y - nodeSize / 2, nodeSize, nodeSize);
@@ -56,6 +58,7 @@ module.exports = {
   renderImage: function (imageId) {
     var tileId = iid.toTileId(imageId);
     var tileData = this.getLoadedTile(tileId);
+    var timeValue  = iid.getTimeValue(imageId);
     var zoomPower  = iid.getZoomPower(imageId);
     var zoomLevel  = Math.pow(2, zoomPower);
     var groupCount = zoomLevel;
@@ -63,7 +66,7 @@ module.exports = {
     var groupSize  = imageSize * groupCount;
     var gx = Math.floor(iid.getLocalX(imageId) / groupCount) * groupCount;
     var gy = Math.floor(iid.getLocalY(imageId) / groupCount) * groupCount;
-    var groupId = iid.fromLocal(gx, gy, zoomPower);
+    var groupId = iid.fromLocal(gx, gy, timeValue, zoomPower);
     var canvas = this.getRenderedGroup(groupId);
     var c;
     if (!canvas) {
@@ -78,8 +81,8 @@ module.exports = {
       c = canvas.getContext("2d");
     }
     c.globalCompositeOperation = "screen";
-    this.renderRoadLinks(c, zoomLevel, tileData);
-    this.renderRoadNodes(c, zoomLevel, tileData);
+    this.renderRoadLinks(c, timeValue, zoomLevel, tileData);
+    this.renderRoadNodes(c, timeValue, zoomLevel, tileData);
     c.globalCompositeOperation = "source-over";
     this.setRenderedImage(imageId, true);
   },
@@ -112,7 +115,7 @@ module.exports = {
           if (this.isTileVisible(lx, ly)) {
             var tileId = tid.fromLocal(lx, ly);
             if (this.getLoadedTile(tileId)) {
-              var imageId = iid.fromTileId(tileId, this.roundZoomPower);
+              var imageId = iid.fromTileId(tileId, this.floorTimeValue, this.roundZoomPower);
               if (!this.getRenderedImage(imageId)) {
                 imageIds.push(imageId);
               }
@@ -125,11 +128,11 @@ module.exports = {
           if (this.isTileVisible(lx, ly)) {
             var tileId = tid.fromLocal(lx, ly);
             if (this.getLoadedTile(tileId)) {
-              var floorImageId = iid.fromTileId(tileId, this.floorZoomPower);
+              var floorImageId = iid.fromTileId(tileId, this.floorTimeValue, this.floorZoomPower);
               if (!this.getRenderedImage(floorImageId)) {
                 imageIds.push(floorImageId);
               }
-              var ceilImageId = iid.fromTileId(tileId, this.ceilZoomPower);
+              var ceilImageId = iid.fromTileId(tileId, this.floorTimeValue, this.ceilZoomPower);
               if (!this.getRenderedImage(ceilImageId)) {
                 imageIds.push(ceilImageId);
               }
