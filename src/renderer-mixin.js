@@ -110,36 +110,35 @@ module.exports = {
 
   queueVisibleImagesToRender: function () {
     var imageIds = [];
-    if (this.floorZoomPower === this.ceilZoomPower) {
-      this.spirally(function (lx, ly) {
-          if (this.isTileVisible(lx, ly)) {
-            var tileId = tid.fromLocal(lx, ly);
-            if (this.getLoadedTile(tileId)) {
-              var imageId = iid.fromTileId(tileId, this.floorTimeValue, this.roundZoomPower);
-              if (!this.getRenderedImage(imageId)) {
-                imageIds.push(imageId);
+    this.spirally(function (lx, ly) {
+        if (this.isTileVisible(lx, ly)) {
+          var tileId = tid.fromLocal(lx, ly);
+          if (this.getLoadedTile(tileId)) {
+            var beforeBigImageId = iid.fromTileId(tileId, this.floorTimeValue, this.floorZoomPower);
+            if (!this.getRenderedImage(beforeBigImageId)) {
+              imageIds.push(beforeBigImageId);
+            }
+            if (this.floorZoomPower !== this.ceilZoomPower) {
+              var beforeSmallImageId = iid.fromTileId(tileId, this.floorTimeValue, this.ceilZoomPower);
+              if (!this.getRenderedImage(beforeSmallImageId)) {
+                imageIds.push(beforeSmallImageId);
+              }
+            }
+            if (this.floorTimeValue !== this.ceilTimeValue) {
+              var afterBigImageId = iid.fromTileId(tileId, this.ceilTimeValue, this.floorZoomPower);
+              if (!this.getRenderedImage(afterBigImageId)) {
+                imageIds.push(afterBigImageId);
+              }
+              if (this.floorZoomPower !== this.ceilZoomPower) {
+                var afterSmallImageId = iid.fromTileId(tileId, this.ceilTimeValue, this.ceilZoomPower);
+                if (!this.getRenderedImage(afterSmallImageId)) {
+                  imageIds.push(afterSmallImageId);
+                }
               }
             }
           }
-        }.bind(this));
-
-    } else {
-      this.spirally(function (lx, ly) {
-          if (this.isTileVisible(lx, ly)) {
-            var tileId = tid.fromLocal(lx, ly);
-            if (this.getLoadedTile(tileId)) {
-              var floorImageId = iid.fromTileId(tileId, this.floorTimeValue, this.floorZoomPower);
-              if (!this.getRenderedImage(floorImageId)) {
-                imageIds.push(floorImageId);
-              }
-              var ceilImageId = iid.fromTileId(tileId, this.floorTimeValue, this.ceilZoomPower);
-              if (!this.getRenderedImage(ceilImageId)) {
-                imageIds.push(ceilImageId);
-              }
-            }
-          }
-        }.bind(this));
-    }
+        }
+      }.bind(this));
     this.queuedImageIds = this.queuedImageIds.concat(imageIds.reverse());
     this.requestRenderingImages();
   },
