@@ -140,7 +140,7 @@ module.exports = {
           }
         }.bind(this));
     }
-    this.queuedImageIds = imageIds.reverse();
+    this.queuedImageIds = this.queuedImageIds.concat(imageIds.reverse());
     this.requestRenderingImages();
   },
 

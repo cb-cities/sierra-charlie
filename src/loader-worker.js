@@ -16,7 +16,6 @@ var loadedTileGroupIds = {};
 
 
 function queueTilesToLoad(tileIds) {
-  queuedTileGroupIds = [];
   for (var i = 0; i < tileIds.length; i++) {
     var tileGroupId = tgid.fromTileId(tileIds[i]);
     if (tileGroupId !== pendingTileGroupId && !(tileGroupId in loadedTileGroupIds)) {
