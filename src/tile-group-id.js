@@ -43,10 +43,6 @@ var _ = module.exports = {
   toUrl: function (origin, tileGroupId) {
     var tgx = _.getTileGroupX(tileGroupId);
     var tgy = _.getTileGroupY(tileGroupId);
-    return (
-      origin + "/json/tile-group-" + tgx + "-" + tgy + (
-        process.env.NODE_ENV === "production" ?
-          ".json.gz" :
-          ".json"));
+    return origin + "/json/tile-group-" + tgx + "-" + tgy + ".json.gz";
   }
 };
