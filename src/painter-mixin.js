@@ -141,17 +141,30 @@ module.exports = {
   },
 
   paintTileContents: function (c) {
+    c.globalCompositeOperation = "screen";
     for (var gx = this.firstVisibleGroupX; gx <= this.lastVisibleGroupX; gx += this.groupCount) {
       var gdx = gx * defs.imageSize;
       for (var gy = this.firstVisibleGroupY; gy <= this.lastVisibleGroupY; gy += this.groupCount) {
         var gdy = gy * defs.imageSize;
-        var groupId = iid.fromLocal(gx, gy, this.floorTimeValue, this.roundZoomPower);
-        var canvas = this.getRenderedGroup(groupId);
-        if (canvas) {
-          c.drawImage(canvas, gdx, gdy, this.groupSize, this.groupSize);
+        var beforeGroupId = iid.fromLocal(gx, gy, this.floorTimeValue, this.roundZoomPower);
+        var beforeGroup = this.getRenderedGroup(beforeGroupId);
+        if (beforeGroup) {
+          c.globalAlpha = 0.5 + (1 - (this.easedTimeValue - this.floorTimeValue)) / 2;
+          c.drawImage(beforeGroup, gdx, gdy, this.groupSize, this.groupSize);
+          c.globalAlpha = 1;
+        }
+        if (this.floorTimeValue !== this.ceilTimeValue) {
+          var afterGroupId = iid.fromLocal(gx, gy, this.ceilTimeValue, this.roundZoomPower);
+          var afterGroup = this.getRenderedGroup(afterGroupId);
+          if (afterGroup) {
+            c.globalAlpha = 0.5 + (1 - (this.ceilTimeValue - this.easedTimeValue)) / 2;
+            c.drawImage(afterGroup, gdx, gdy, this.groupSize, this.groupSize);
+            c.globalAlpha = 1;
+          }
         }
       }
     }
+    c.globalCompositeOperation = "source-over";
   },
 
   paint: function () {
