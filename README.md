@@ -52,7 +52,7 @@ s3cmd sync json \
     --delete-removed \
     --exclude='*' \
     --include='*.json.gz' \
-    --add-header="Cache-Control:max-age=3600" \
+    --add-header='Cache-Control:max-age=3600' \
     --add-header='Content-Type:application/json' \
     --add-header='Content-Encoding:gzip'
 ```
