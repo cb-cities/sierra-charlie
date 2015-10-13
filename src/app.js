@@ -2,6 +2,7 @@
 
 var r = require("react-wrapper");
 var defs = require("./defs");
+var clockPainterMixin = require("./clock-painter-mixin");
 var easeStateMixin = require("./ease-state-mixin");
 var loaderMixin = require("./loader-mixin");
 var painterMixin = require("./painter-mixin");
@@ -13,6 +14,7 @@ module.exports = {
     easeStateMixin,
     loaderMixin,
     painterMixin,
+    clockPainterMixin,
     rendererMixin
   ],
 
