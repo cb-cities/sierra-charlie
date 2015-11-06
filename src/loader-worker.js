@@ -29,9 +29,10 @@ function processTileData(tileData) {
   return assign(tileData, {
       roadLinks: result.processedRoadLinks,
       roadNodes: tileData.roadNodes || [],
-      meanTravelTime: result.meanTravelTime,
       globalMeanTravelTimes: result.globalMeanTravelTimes,
-      localMeanTravelTimes: result.localMeanTravelTimes
+      localMeanTravelTimes: result.localMeanTravelTimes,
+      maxGlobalMeanTravelTime: result.maxGlobalMeanTravelTime,
+      maxLocalMeanTravelTime: result.maxLocalMeanTravelTime
     });
 }
 

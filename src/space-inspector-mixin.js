@@ -1,6 +1,7 @@
 "use strict";
 
 var defs = require("./defs");
+var tid = require("./tile-id");
 
 
 var backgroundAlpha = 0.75;
@@ -33,6 +34,25 @@ module.exports = {
     c.fill();
     c.globalAlpha = 1;
     c.stroke();
+  },
+
+  // TODO: Refactor
+  paintSILocalMeans: function (c) {
+    c.save();
+    c.fillStyle = defs.roadLinkColor;
+    for (var x = 0; x < columnCount; x++) {
+      for (var y = 0; y < rowCount; y++) {
+        var tileId = tid.fromLocal(x, y);
+        var tileData = this.getLoadedTile(tileId);
+        if (tileData) {
+          var z = tileData.localMeanTravelTimes[this.floorTimeValue] / this.maxLocalMeanTravelTime;
+          c.globalAlpha = z;
+          c.fillRect(x * columnWidth, y * rowHeight, columnWidth, rowHeight);
+        }
+      }
+    }
+    c.globalAlpha = 1;
+    c.restore();
   },
 
   paintSIGrid: function (c) {
@@ -83,9 +103,7 @@ module.exports = {
 
   paintSICurrentSpace: function (c) {
     c.lineWidth = 1 / window.devicePixelRatio;
-    c.beginPath();
-    c.rect(this.firstVisibleLocalX * columnWidth, this.firstVisibleLocalY * rowHeight, (this.lastVisibleLocalX - this.firstVisibleLocalX + 1) * columnWidth, (this.lastVisibleLocalY - this.firstVisibleLocalY + 1) * rowHeight);
-    c.stroke();
+    c.strokeRect(this.firstVisibleLocalX * columnWidth, this.firstVisibleLocalY * rowHeight, (this.lastVisibleLocalX - this.firstVisibleLocalX + 1) * columnWidth, (this.lastVisibleLocalY - this.firstVisibleLocalY + 1) * rowHeight);
     c.beginPath();
     var w = Math.floor(this.easedAttentionLeft * boxWidth * 2) / 2;
     c.moveTo(w, 0);
@@ -137,6 +155,7 @@ module.exports = {
     c.fillStyle = defs.inverseBackgroundColor;
     c.strokeStyle = defs.inverseBackgroundColor;
     c.translate(paddingSize, paddingSize);
+    this.paintSILocalMeans(c);
     this.paintSIGrid(c);
     this.paintSICurrentSpace(c);
     c.fillStyle = defs.inverseBackgroundColor;

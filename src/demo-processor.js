@@ -34,8 +34,6 @@ var maxDistanceToLondonEye = 52458.01684912481;
 var meanTrafficSpeed = 28.6463;
 
 // TODO: Refactor
-var meanTravelTime = 0;
-var roadLinkCount = 0;
 var globalMeanTravelTimes = [];
 var globalRoadLinkCounts = [];
 var localMeanTravelTimes = [];
@@ -44,6 +42,8 @@ for (var t = 0; t < 24; t++) {
   globalMeanTravelTimes[t] = 0;
   globalRoadLinkCounts[t] = 0;
 }
+var maxGlobalMeanTravelTime = 0;
+var maxLocalMeanTravelTime = 0;
 
 function processRoadLink(ps, length, tileData) {
   var distanceToLondonEye = computeDistance(computeCentroid(ps), LondonEye);
@@ -55,8 +55,6 @@ function processRoadLink(ps, length, tileData) {
     var volume = 20 * (Math.random() + 5 * demoBimodal.figure1(t)) * centrocity;
     var travelTime = freeTravelTime * (1 + volume / capacity) / length;
     travelTimes.push(travelTime);
-    meanTravelTime = (travelTime + roadLinkCount * meanTravelTime) / (roadLinkCount + 1);
-    roadLinkCount++;
     globalMeanTravelTimes[t] = (travelTime + globalRoadLinkCounts[t] * globalMeanTravelTimes[t]) / (globalRoadLinkCounts[t] + 1);
     globalRoadLinkCounts[t]++;
     localMeanTravelTimes[t] = (travelTime + localRoadLinkCounts[t] * localMeanTravelTimes[t]) / (localRoadLinkCounts[t] + 1);
@@ -87,11 +85,14 @@ module.exports = {
           result));
       }
     }
+    maxGlobalMeanTravelTime = Math.max.apply(null, globalMeanTravelTimes);
+    maxLocalMeanTravelTime = Math.max(maxLocalMeanTravelTime, Math.max.apply(null, localMeanTravelTimes));
     return {
       processedRoadLinks: processedRoadLinks,
-      meanTravelTime: meanTravelTime,
       globalMeanTravelTimes: globalMeanTravelTimes,
-      localMeanTravelTimes: localMeanTravelTimes
+      localMeanTravelTimes: localMeanTravelTimes,
+      maxGlobalMeanTravelTime: maxGlobalMeanTravelTime,
+      maxLocalMeanTravelTime: maxLocalMeanTravelTime
     };
   }
 };

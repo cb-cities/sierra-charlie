@@ -11,8 +11,8 @@ var columnsPerLabel = 3;
 var columnsPerGroup = 3;
 var rowCount = 10;
 var rowHeight = 30;
-var rowsPerLabel = 1;
-var rowsPerGroup = 5;
+var rowsPerLabel = 2;
+var rowsPerGroup = 2;
 var marginSize = 20;
 var paddingSize = 2;
 
@@ -52,19 +52,11 @@ module.exports = {
     c.save();
     c.fillStyle = defs.roadLinkColor;
     c.beginPath();
-    var max = Math.max.apply(null, this.globalMeanTravelTimes);
     for (var x = 0; x < columnCount; x++) {
-      if (x !== this.floorTimeValue) {
-        var h = Math.floor(this.globalMeanTravelTimes[x] / max * boxHeight);
-        c.rect(x * columnWidth, boxHeight - h, columnWidth, h);
-      }
+      var h = Math.floor(this.globalMeanTravelTimes[x] / this.maxGlobalMeanTravelTime * boxHeight);
+      c.rect(x * columnWidth, boxHeight - h, columnWidth, h);
     }
     c.globalAlpha = 0.5;
-    c.fill();
-    c.beginPath();
-    var h = Math.floor(this.globalMeanTravelTimes[this.floorTimeValue] / max * boxHeight);
-    c.rect(this.floorTimeValue * columnWidth, boxHeight - h, columnWidth, h);
-    c.globalAlpha = 1;
     c.fill();
     c.restore();
   },
@@ -117,16 +109,13 @@ module.exports = {
 
   paintTICurrentTime: function (c) {
     c.lineWidth = 1 / window.devicePixelRatio;
-    c.beginPath();
-    c.rect(this.floorTimeValue * columnWidth, 0, columnWidth, boxHeight);
-    c.stroke();
+    c.strokeRect(this.floorTimeValue * columnWidth, 0, columnWidth, boxHeight);
     var w = Math.floor(this.easedTimeValue * columnWidth * 2) / 2;
     c.beginPath();
     c.moveTo(w, 0);
     c.lineTo(w, boxHeight);
     c.lineTo(w, 0);
-    var max = Math.max.apply(null, this.globalMeanTravelTimes);
-    var h = Math.floor(this.globalMeanTravelTimes[this.floorTimeValue] / max * boxHeight);
+    var h = Math.floor(this.globalMeanTravelTimes[this.floorTimeValue] / this.maxGlobalMeanTravelTime * boxHeight);
     c.moveTo(0, boxHeight - h);
     c.lineTo(boxWidth, boxHeight - h);
     c.lineTo(0, boxHeight - h);
@@ -166,8 +155,7 @@ module.exports = {
     this.paintLabel(c, makeDefaultColumnLabel(this.floorTimeValue) + "—" + makeDefaultColumnLabel(this.floorTimeValue + 1), (this.floorTimeValue + 0.5) * columnWidth, -4);
     c.textAlign = "left";
     c.textBaseline = "middle";
-    var max = Math.max.apply(null, this.globalMeanTravelTimes);
-    var h = Math.floor(this.globalMeanTravelTimes[this.floorTimeValue] / max * boxHeight);
+    var h = Math.floor(this.globalMeanTravelTimes[this.floorTimeValue] / this.maxGlobalMeanTravelTime * boxHeight);
     this.paintLabel(c, Math.round(h * 100 / 10 / rowHeight) + "%", boxWidth + 4, boxHeight - h);
   },
 
