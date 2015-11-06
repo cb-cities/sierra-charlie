@@ -3,28 +3,32 @@
 var defs = require("./defs");
 
 
+var backgroundAlpha = 0.75;
+
+
 module.exports = {
   paintClockFace: function (c) {
+    c.lineWidth = 1 / window.devicePixelRatio;
     c.beginPath();
     c.arc(0, 0, defs.clockSize, 0, 2 * Math.PI);
-    c.globalAlpha = 0.75;
+    c.globalAlpha = backgroundAlpha;
     c.fill();
     c.globalAlpha = 1;
-    c.lineWidth = 1 / window.devicePixelRatio;
     c.stroke();
   },
 
   paintClockBrand: function (c) {
-    c.font = 3 + "px " + defs.labelFont;
+    c.font = 6 + "px " + defs.labelFont;
     c.textAlign = "center";
     c.textBaseline = "middle";
-    c.fillText("SIERRA CHARLIE", 0, -(defs.clockSize / 2));
+    c.fillText("sierra charlie", 0, -(defs.clockSize / 2));
   },
 
   paintClockAmPmLabel: function (c) {
     c.font = 9 + "px " + defs.labelFont;
     c.textAlign = "right";
-    c.fillText(this.easedTimeValue < 12 ? "AM" : "PM", defs.clockSize - 20, 0);
+    c.textBaseline = "middle";
+    c.fillText(this.easedTimeValue < 12 ? "am" : "pm", defs.clockSize - 20, 0);
   },
 
   paintClockMinuteMarks: function (c) {
