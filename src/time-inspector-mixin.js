@@ -120,9 +120,13 @@ module.exports = {
     c.beginPath();
     c.rect(this.floorTimeValue * columnWidth, 0, columnWidth, boxHeight);
     c.stroke();
+    var w = Math.floor(this.easedTimeValue * columnWidth * 2) / 2;
+    c.beginPath();
+    c.moveTo(w, 0);
+    c.lineTo(w, boxHeight);
+    c.lineTo(w, 0);
     var max = Math.max.apply(null, this.globalMeanTravelTimes);
     var h = Math.floor(this.globalMeanTravelTimes[this.floorTimeValue] / max * boxHeight);
-    c.beginPath();
     c.moveTo(0, boxHeight - h);
     c.lineTo(boxWidth, boxHeight - h);
     c.lineTo(0, boxHeight - h);
@@ -159,7 +163,7 @@ module.exports = {
     c.font = 9 + "px " + defs.labelFont;
     c.textAlign = "center";
     c.textBaseline = "bottom";
-    this.paintLabel(c, makeDefaultColumnLabel(this.floorTimeValue) + "—" + makeDefaultColumnLabel(this.floorTimeValue + 1), (this.floorTimeValue + 0.5) * columnWidth, - 4);
+    this.paintLabel(c, makeDefaultColumnLabel(this.floorTimeValue) + "—" + makeDefaultColumnLabel(this.floorTimeValue + 1), (this.floorTimeValue + 0.5) * columnWidth, -4);
     c.textAlign = "left";
     c.textBaseline = "middle";
     var max = Math.max.apply(null, this.globalMeanTravelTimes);
