@@ -25,10 +25,13 @@ function queueTilesToLoad(tileIds) {
 }
 
 function processTileData(tileData) {
-  var roadLinks = demoProcessor.processRoadLinks(tileData.roadLinks || [], tileData);
+  var result = demoProcessor.processRoadLinks(tileData.roadLinks || [], tileData);
   return assign(tileData, {
-      roadLinks: roadLinks,
-      roadNodes: tileData.roadNodes || []
+      roadLinks: result.processedRoadLinks,
+      roadNodes: tileData.roadNodes || [],
+      meanTravelTime: result.meanTravelTime,
+      globalMeanTravelTimes: result.globalMeanTravelTimes,
+      localMeanTravelTimes: result.localMeanTravelTimes
     });
 }
 

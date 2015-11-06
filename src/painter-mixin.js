@@ -99,6 +99,7 @@ module.exports = {
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     this.paintClock(c);
+    this.paintTimeInspector(c);
     if (this.state.invertColor) {
       c.restore();
       c.globalCompositeOperation = "difference";

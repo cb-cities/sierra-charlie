@@ -7,6 +7,7 @@ var easeStateMixin = require("./ease-state-mixin");
 var loaderMixin = require("./loader-mixin");
 var painterMixin = require("./painter-mixin");
 var rendererMixin = require("./renderer-mixin");
+var timeInspectorMixin = require("./time-inspector-mixin");
 
 
 module.exports = {
@@ -15,6 +16,7 @@ module.exports = {
     loaderMixin,
     painterMixin,
     clockPainterMixin,
+    timeInspectorMixin,
     rendererMixin
   ],
 

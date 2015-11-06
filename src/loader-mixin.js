@@ -6,6 +6,9 @@ var tid = require("./tile-id");
 
 module.exports = {
   componentDidMount: function () {
+    // TODO: Refactor
+    this.meanTravelTime = 0;
+    this.globalMeanTravelTimes = [];
     this.collectedTileIds = [];
     this.loadedTiles = {};
     this.startLoaderWorker();
@@ -41,6 +44,9 @@ module.exports = {
   onMessage: function (event) {
     switch (event.data.message) {
       case "tileLoaded":
+        // TODO: Refactor
+        this.meanTravelTime = event.data.tileData.meanTravelTime;
+        this.globalMeanTravelTimes = event.data.tileData.globalMeanTravelTimes;
         this.setLoadedTile(event.data.tileId, event.data.tileData);
         this.requestQueueingVisibleImagesToRender();
         break;

@@ -33,8 +33,17 @@ var LondonEye = {
 var maxDistanceToLondonEye = 52458.01684912481;
 var meanTrafficSpeed = 28.6463;
 
+// TODO: Refactor
 var meanTravelTime = 0;
-var count = 0;
+var roadLinkCount = 0;
+var globalMeanTravelTimes = [];
+var globalRoadLinkCounts = [];
+var localMeanTravelTimes = [];
+var localRoadLinkCounts = [];
+for (var t = 0; t < 24; t++) {
+  globalMeanTravelTimes[t] = 0;
+  globalRoadLinkCounts[t] = 0;
+}
 
 function processRoadLink(ps, length, tileData) {
   var distanceToLondonEye = computeDistance(computeCentroid(ps), LondonEye);
@@ -42,12 +51,16 @@ function processRoadLink(ps, length, tileData) {
   var freeTravelTime = length / meanTrafficSpeed;
   var capacity = 0.5 + (length / tileData.globalMeanLength) / 2;
   var travelTimes = [];
-  for (var timeValue = 0; timeValue < 24; timeValue++) {
-    var volume = 20 * (Math.random() + 5 * demoBimodal.figure1(timeValue)) * centrocity;
+  for (var t = 0; t < 24; t++) {
+    var volume = 20 * (Math.random() + 5 * demoBimodal.figure1(t)) * centrocity;
     var travelTime = freeTravelTime * (1 + volume / capacity) / length;
-    meanTravelTime = (travelTime + count * meanTravelTime) / (count + 1);
     travelTimes.push(travelTime);
-    count++;
+    meanTravelTime = (travelTime + roadLinkCount * meanTravelTime) / (roadLinkCount + 1);
+    roadLinkCount++;
+    globalMeanTravelTimes[t] = (travelTime + globalRoadLinkCounts[t] * globalMeanTravelTimes[t]) / (globalRoadLinkCounts[t] + 1);
+    globalRoadLinkCounts[t]++;
+    localMeanTravelTimes[t] = (travelTime + localRoadLinkCounts[t] * localMeanTravelTimes[t]) / (localRoadLinkCounts[t] + 1);
+    localRoadLinkCounts[t]++;
   }
   return {
     capacity: capacity,
@@ -57,6 +70,11 @@ function processRoadLink(ps, length, tileData) {
 
 module.exports = {
   processRoadLinks: function (roadLinks, tileData) {
+    // TODO: Refactor
+    for (var t = 0; t < 24; t++) {
+      localMeanTravelTimes[t] = 0;
+      localRoadLinkCounts[t] = 0;
+    }
     var processedRoadLinks = [];
     for (var i = 0; i < roadLinks.length; i++) {
       var roadLink = roadLinks[i];
@@ -69,6 +87,11 @@ module.exports = {
           result));
       }
     }
-    return processedRoadLinks;
+    return {
+      processedRoadLinks: processedRoadLinks,
+      meanTravelTime: meanTravelTime,
+      globalMeanTravelTimes: globalMeanTravelTimes,
+      localMeanTravelTimes: localMeanTravelTimes
+    };
   }
 };
