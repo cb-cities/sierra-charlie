@@ -6,7 +6,7 @@ var imageSize = 1024;
 var firstTileX = 490;
 var lastTileX  = 572;
 var firstTileY = 148;
-var lastTileY  = 208;
+var lastTileY  = 207;
 
 var tileXCount = lastTileX - firstTileX + 1;
 var tileYCount = lastTileY - firstTileY + 1;

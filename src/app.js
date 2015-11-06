@@ -8,6 +8,7 @@ var loaderMixin = require("./loader-mixin");
 var painterMixin = require("./painter-mixin");
 var rendererMixin = require("./renderer-mixin");
 var timeInspectorMixin = require("./time-inspector-mixin");
+var spaceInspectorMixin = require("./space-inspector-mixin");
 
 
 module.exports = {
@@ -17,6 +18,7 @@ module.exports = {
     painterMixin,
     clockPainterMixin,
     timeInspectorMixin,
+    spaceInspectorMixin,
     rendererMixin
   ],
 
