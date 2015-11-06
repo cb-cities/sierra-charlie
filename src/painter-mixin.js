@@ -40,14 +40,16 @@ module.exports = {
     c.textBaseline = "top";
     for (var lx = this.firstVisibleLocalX; lx <= this.lastVisibleLocalX; lx++) {
       var ldx = lx * defs.imageSize;
+      var tx = defs.localToTileX(lx);
       var ngx = defs.localToNationalGridX(lx);
       for (var ly = this.firstVisibleLocalY; ly <= this.lastVisibleLocalY; ly++) {
         var ldy = ly * defs.imageSize;
+        var ty = defs.localToTileY(ly);
         var ngy = defs.localToNationalGridY(ly);
         var latLon = nnng.from(ngx, ngy);
         var lat = latLon[0].toFixed(6);
         var lon = latLon[1].toFixed(6);
-        c.fillText(ngx + "N," + ngy + "E (" + lat + "°N," + lon + "°E)", ldx + easedTextMargin, ldy);
+        c.fillText(tx + "n," + ty + "e (" + lat + "°N," + lon + "°E)", ldx + easedTextMargin, ldy);
       }
     }
   },
