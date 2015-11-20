@@ -9,11 +9,9 @@ var backgroundAlpha = 1;
 var columnCount = defs.tileXCount;
 var columnWidth = 5;
 var columnsPerGroup = 10;
-var columnsPerLabel = 10;
 var rowCount = defs.tileYCount;
 var rowHeight = 5;
 var rowsPerGroup = 10;
-var rowsPerLabel = 10;
 var marginSize = 20;
 var paddingSize = 2;
 
@@ -58,7 +56,7 @@ module.exports = {
 
   paintSIGrid: function (c) {
     c.globalAlpha = 0.5;
-    c.lineWidth = 1 / window.devicePixelRatio;
+    c.lineWidth = 0.5 / window.devicePixelRatio;
     c.beginPath();
     c.moveTo(0, 0);
     c.lineTo(boxWidth, 0);
@@ -80,25 +78,6 @@ module.exports = {
       }
     }
     c.stroke();
-    c.lineWidth = 0.5 / window.devicePixelRatio;
-    c.beginPath();
-    for (var x = 1; x < columnCount; x++) {
-      if (defs.localToTileX(x) % columnsPerGroup !== 0) {
-        var w = x * columnWidth;
-        c.moveTo(w, 0);
-        c.lineTo(w, boxHeight);
-      }
-    }
-    c.stroke();
-    c.beginPath();
-    for (var y = 1; y < rowCount; y++) {
-      if (defs.localToTileY(y) % rowsPerGroup !== 0) {
-        var h = y * rowHeight;
-        c.moveTo(0, h);
-        c.lineTo(boxWidth, h);
-      }
-    }
-    c.stroke();
     c.globalAlpha = 1;
   },
 
@@ -114,9 +93,11 @@ module.exports = {
     c.moveTo(0, h);
     c.lineTo(boxWidth, h);
     c.lineTo(0, h);
+    c.globalAlpha = 0.5;
     c.setLineDash([2, 4]);
     c.stroke();
     c.setLineDash([]);
+    c.globalAlpha = 1;
   },
 
   paintSILabels: function (c) {
@@ -126,7 +107,7 @@ module.exports = {
     c.textBaseline = "top";
     for (var x = 0; x <= columnCount; x++) {
       var tx = defs.localToTileX(x);
-      if (tx % columnsPerLabel === 0) {
+      if (tx % columnsPerGroup === 0) {
         this.paintLabel(c, tx + "n", x * columnWidth, boxHeight + 4);
       }
     }
@@ -134,7 +115,7 @@ module.exports = {
     c.textBaseline = "middle";
     for (var y = 0; y <= rowCount; y++) {
       var ty = defs.localToTileY(y);
-      if (ty % rowsPerLabel === 0) {
+      if (ty % rowsPerGroup === 0) {
         this.paintLabel(c, ty + "e", boxWidth + 4, y * rowHeight);
       }
     }
