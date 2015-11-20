@@ -7,12 +7,10 @@ var backgroundAlpha = 1;
 
 var columnCount = 24;
 var columnWidth = 15;
-var columnsPerLabel = 3;
-var columnsPerGroup = 3;
+var columnsPerGroup = 2;
 var rowCount = 10;
 var rowHeight = 30;
-var rowsPerLabel = 2;
-var rowsPerGroup = 2;
+var rowsPerGroup = 1;
 var marginSize = 20;
 var paddingSize = 2;
 
@@ -63,7 +61,7 @@ module.exports = {
 
   paintTIGrid: function (c) {
     c.globalAlpha = 0.5;
-    c.lineWidth = 1 / window.devicePixelRatio;
+    c.lineWidth = 0.5 / window.devicePixelRatio;
     c.beginPath();
     c.moveTo(0, 0);
     c.lineTo(boxWidth, 0);
@@ -85,25 +83,6 @@ module.exports = {
       }
     }
     c.stroke();
-    c.lineWidth = 0.5 / window.devicePixelRatio;
-    c.beginPath();
-    for (var x = 1; x < columnCount; x++) {
-      if (x % columnsPerGroup !== 0) {
-        var w = x * columnWidth;
-        c.moveTo(w, 0);
-        c.lineTo(w, boxHeight);
-      }
-    }
-    c.stroke();
-    c.beginPath();
-    for (var y = 1; y < rowCount; y++) {
-      if (y % rowsPerGroup !== 0) {
-        var h = y * rowHeight;
-        c.moveTo(0, h);
-        c.lineTo(boxWidth, h);
-      }
-    }
-    c.stroke();
     c.globalAlpha = 1;
   },
 
@@ -119,9 +98,11 @@ module.exports = {
     c.moveTo(0, boxHeight - h);
     c.lineTo(boxWidth, boxHeight - h);
     c.lineTo(0, boxHeight - h);
+    c.globalAlpha = 0.5;
     c.setLineDash([2, 4]);
     c.stroke();
     c.setLineDash([]);
+    c.globalAlpha = 1;
   },
 
   // TODO: Refactor
@@ -138,14 +119,14 @@ module.exports = {
     c.textAlign = "center";
     c.textBaseline = "top";
     for (var x = 0; x <= columnCount; x++) {
-      if (x % columnsPerLabel === 0) {
+      if (x % columnsPerGroup === 0) {
         this.paintLabel(c, makeDefaultColumnLabel(x), x * columnWidth, boxHeight + 4);
       }
     }
     c.textAlign = "right";
     c.textBaseline = "middle";
     for (var y = 0; y <= rowCount; y++) {
-      if (y % rowsPerLabel === 0) {
+      if (y % rowsPerGroup === 0) {
         this.paintLabel(c, makeDefaultRowLabel(y), -4, (rowCount - y) * rowHeight);
       }
     }
