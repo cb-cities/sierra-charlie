@@ -244,11 +244,11 @@ module.exports = {
         var zoomPower = Math.min(Math.round((this.state.zoomPower * 10) + zoomDelta) / 10, defs.maxZoomPower);
         this.easeZoomPower(zoomPower, delay);
         break;
-      case 67: // c
-        this.setState({
-            invertColor: !this.state.invertColor
-          });
-        break;
+      // case 67: // c
+      //   this.setState({
+      //       invertColor: !this.state.invertColor
+      //     });
+      //   break;
       default:
         if (event.keyCode >= 49 && event.keyCode <= 56) {
           this.easeZoomPower(event.keyCode - 49, delay);
