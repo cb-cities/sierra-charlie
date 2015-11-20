@@ -39,6 +39,7 @@ module.exports = {
   // TODO: Refactor
   paintSILocalMeans: function (c) {
     c.save();
+    c.translate(0.25, 0.25);
     c.fillStyle = defs.roadLinkColor;
     for (var x = 0; x < columnCount; x++) {
       for (var y = 0; y < rowCount; y++) {
