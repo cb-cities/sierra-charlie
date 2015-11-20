@@ -3,7 +3,7 @@
 var defs = require("./defs");
 
 
-var backgroundAlpha = 0.75;
+var backgroundAlpha = 1;
 
 var columnCount = 24;
 var columnWidth = 15;

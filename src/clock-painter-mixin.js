@@ -3,7 +3,7 @@
 var defs = require("./defs");
 
 
-var backgroundAlpha = 0.75;
+var backgroundAlpha = 1;
 
 
 module.exports = {

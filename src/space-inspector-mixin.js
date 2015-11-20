@@ -4,7 +4,7 @@ var defs = require("./defs");
 var tid = require("./tile-id");
 
 
-var backgroundAlpha = 0.75;
+var backgroundAlpha = 1;
 
 var columnCount = defs.tileXCount;
 var columnWidth = 5;
