@@ -10,7 +10,6 @@ module.exports = {
     this.globalMeanTravelTimes = [];
     this.maxGlobalMeanTravelTime = 0;
     this.maxLocalMeanTravelTime = 0;
-    this.collectedTileIds = [];
     this.loadedTiles = {};
     this.startLoaderWorker();
   },
