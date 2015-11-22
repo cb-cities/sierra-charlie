@@ -4,6 +4,7 @@
 
 var assign = require("object-assign");
 var http = require("http-request-wrapper");
+var defs = require("./defs");
 var demoProcessor = require("./demo-processor");
 var tid = require("./tile-id");
 var tgid = require("./tile-group-id");
@@ -42,7 +43,13 @@ function postLoadedTileGroup(tileGroupId, tileGroupData) {
   var firstTileY = tgid.toFirstTileY(tileGroupId);
   var lastTileY  = tgid.toLastTileY(tileGroupId);
   for (var ty = lastTileY; ty >= firstTileY; ty--) {
+    if (ty < defs.firstTileY || ty > defs.lastTileY) {
+      continue;
+    }
     for (var tx = firstTileX; tx <= lastTileX; tx++) {
+      if (tx < defs.firstTileX || tx > defs.lastTileX) {
+        continue;
+      }
       var tileId   = tid.fromTile(tx, ty);
       var tileData = tileGroupData[tid.toKey(tileId)];
       postMessage({
