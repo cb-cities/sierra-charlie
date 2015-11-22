@@ -130,18 +130,6 @@ module.exports = {
                 imageIds.push(beforeSmallImageId);
               }
             }
-            if (this.floorTimeValue !== this.ceilTimeValue) {
-              var afterBigImageId = iid.fromTileId(tileId, this.ceilTimeValue, this.floorZoomPower);
-              if (!this.getRenderedImage(afterBigImageId)) {
-                imageIds.push(afterBigImageId);
-              }
-              if (this.floorZoomPower !== this.ceilZoomPower) {
-                var afterSmallImageId = iid.fromTileId(tileId, this.ceilTimeValue, this.ceilZoomPower);
-                if (!this.getRenderedImage(afterSmallImageId)) {
-                  imageIds.push(afterSmallImageId);
-                }
-              }
-            }
           }
         }
       }.bind(this));
