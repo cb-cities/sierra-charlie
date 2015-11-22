@@ -50,7 +50,7 @@ module.exports = {
         this.maxGlobalMeanTravelTime = event.data.tileData.maxGlobalMeanTravelTime;
         this.maxLocalMeanTravelTime = event.data.tileData.maxLocalMeanTravelTime;
         this.setLoadedTile(event.data.tileId, event.data.tileData);
-        this.requestQueueingVisibleImagesToRender();
+        this.requestRenderingImages();
         this.requestPainting();
         break;
     }

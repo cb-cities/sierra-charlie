@@ -31,15 +31,6 @@ module.exports = {
     };
   },
 
-  isTileVisible: function (lx, ly) {
-    var isVisible = (
-      lx >= this.firstVisibleLocalX &&
-      lx <= this.lastVisibleLocalX &&
-      ly >= this.firstVisibleLocalY &&
-      ly <= this.lastVisibleLocalY);
-    return isVisible;
-  },
-
   easeAttentionLeft: function (attentionLeft, duration) {
     this.pendingScrollX = true;
     this.easeState("attentionLeft", attentionLeft, duration, function () {
@@ -80,7 +71,7 @@ module.exports = {
     this.exportScrollPosition();
     this.exportBackgroundColor();
     this.requestLoadingTiles();
-    this.requestQueueingVisibleImagesToRender();
+    this.requestRenderingImages();
     this.requestPainting();
   },
 
@@ -95,7 +86,7 @@ module.exports = {
     this.exportScrollPosition();
     this.exportBackgroundColor(prevState);
     this.requestLoadingTiles();
-    this.requestQueueingVisibleImagesToRender();
+    this.requestRenderingImages();
     this.requestPainting();
   },
 
@@ -174,30 +165,6 @@ module.exports = {
         !this.state.invertColor ?
           defs.backgroundColor :
           defs.inverseBackgroundColor);
-    }
-  },
-
-  spirally: function (cb) {
-    var ax = this.attentionLocalX;
-    var ay = this.attentionLocalY;
-    var layerCount = (
-      Math.max(
-        Math.max(ax - this.firstVisibleLocalX, this.lastVisibleLocalX - ax),
-        Math.max(ay - this.firstVisibleLocalY, this.lastVisibleLocalY - ay)));
-    cb(ax, ay);
-    for (var l = 0; l <= layerCount; l++) {
-      for (var i = 1; i <= l * 2; i++) {
-        cb(ax + l, ay - l + i);
-      }
-      for (var i = 1; i <= l * 2; i++) {
-        cb(ax + l - i, ay + l);
-      }
-      for (var i = 1; i <= l * 2; i++) {
-        cb(ax - l, ay + l - i);
-      }
-      for (var i = 1; i <= l * 2; i++) {
-        cb(ax - l + i, ay - l);
-      }
     }
   },
 

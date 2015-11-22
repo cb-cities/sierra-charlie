@@ -1,5 +1,6 @@
 "use strict";
 
+var BoundedSpiral = require("./lib/bounded-spiral");
 var defs = require("./defs");
 var iid = require("./image-id");
 var tid = require("./tile-id");
@@ -7,14 +8,13 @@ var tid = require("./tile-id");
 
 module.exports = {
   componentDidMount: function () {
-    this.queuedImageIds = [];
+    this.rendererLocalSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount - 1);
     this.renderedImages = {};
     this.renderedGroups = {};
   },
 
   componentWillUnmount: function () {
     clearTimeout(this.pendingRender);
-    clearTimeout(this.pendingQueueToRender);
   },
 
   setRenderedImage: function (imageId, flag) {
@@ -93,52 +93,43 @@ module.exports = {
     this.setRenderedImage(imageId, true);
   },
 
-  renderNextImage: function () {
-    var pendingImageId;
-    while (this.queuedImageIds.length) {
-      var imageId = this.queuedImageIds.pop();
-      if (!this.getRenderedImage(imageId)) {
-        pendingImageId = imageId;
-        break;
+  getNextImageIdToRender: function () {
+    while (true) {
+      var local = this.rendererLocalSource.next();
+      if (!local) {
+        return null;
+      }
+      var tileId = tid.fromLocal(local.x, local.y);
+      if (this.getLoadedTile(tileId)) {
+        var imageId = iid.fromTileId(tileId, this.floorTimeValue, this.floorZoomPower);
+        if (!(this.getRenderedImage(imageId))) {
+          return imageId;
+        }
       }
     }
+  },
+
+  renderNextImage: function () {
+    var pendingImageId = this.getNextImageIdToRender();
     if (pendingImageId) {
       this.renderImage(pendingImageId);
       this.requestPainting();
-      this.requestRenderingImages();
+      this.pendingRender = setTimeout(this.renderNextImage, 0);
+    } else {
+      this.pendingRender = null;
     }
   },
 
   requestRenderingImages: function () {
-    clearTimeout(this.pendingRender);
-    this.pendingRender = setTimeout(this.renderNextImage, 0);
-  },
-
-  queueVisibleImagesToRender: function () {
-    var imageIds = [];
-    this.spirally(function (lx, ly) {
-        if (this.isTileVisible(lx, ly)) {
-          var tileId = tid.fromLocal(lx, ly);
-          if (this.getLoadedTile(tileId)) {
-            var beforeBigImageId = iid.fromTileId(tileId, this.floorTimeValue, this.floorZoomPower);
-            if (!this.getRenderedImage(beforeBigImageId)) {
-              imageIds.push(beforeBigImageId);
-            }
-            if (this.floorZoomPower !== this.ceilZoomPower) {
-              var beforeSmallImageId = iid.fromTileId(tileId, this.floorTimeValue, this.ceilZoomPower);
-              if (!this.getRenderedImage(beforeSmallImageId)) {
-                imageIds.push(beforeSmallImageId);
-              }
-            }
-          }
-        }
-      }.bind(this));
-    this.queuedImageIds = this.queuedImageIds.concat(imageIds.reverse());
-    this.requestRenderingImages();
-  },
-
-  requestQueueingVisibleImagesToRender: function () {
-    clearTimeout(this.pendingQueueToRender);
-    this.pendingQueueToRender = setTimeout(this.queueVisibleImagesToRender, 0);
+    this.rendererLocalSource.resetBounds(
+      this.firstVisibleLocalX,
+      this.lastVisibleLocalX,
+      this.firstVisibleLocalY,
+      this.lastVisibleLocalY,
+      this.attentionLocalX,
+      this.attentionLocalY);
+    if (!this.pendingRender) {
+      this.pendingRender = setTimeout(this.renderNextImage, 0);
+    }
   }
 };
