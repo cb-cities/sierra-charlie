@@ -11,9 +11,9 @@ var tid = require("./tile-id");
 var tgid = require("./tile-group-id");
 
 
-var localSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount - 1);
 var origin;
-var pendingTileGroupId;
+var localSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount - 1);
+var pendingTileGroupId = null;
 var loadedTileGroupIds = {};
 
 
@@ -53,7 +53,7 @@ function postLoadedTileGroup(tileGroupId, tileGroupData) {
   }
 }
 
-function getNextUnloadedTileGroupId() {
+function getNextTileGroupIdToLoad() {
   while (true) {
     var local = localSource.next();
     if (!local) {
@@ -70,7 +70,7 @@ function getNextUnloadedTileGroupId() {
 
 function loadNextTileGroup() {
   if (!pendingTileGroupId) {
-    pendingTileGroupId = getNextUnloadedTileGroupId();
+    pendingTileGroupId = getNextTileGroupIdToLoad();
     if (pendingTileGroupId) {
       var tileGroupUrl = tgid.toUrl(origin, pendingTileGroupId);
       http.getJsonResource(tileGroupUrl, function (tileGroupData, err) {
