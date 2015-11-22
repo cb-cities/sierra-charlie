@@ -24,6 +24,8 @@ var _ = module.exports = {
   tileXCount: tileXCount,
   tileYCount: tileYCount,
 
+  maxTileCount: tileXCount * tileYCount,
+
   width:  tileXCount * imageSize,
   height: tileYCount * imageSize,
 

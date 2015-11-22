@@ -1,7 +1,7 @@
 "use strict";
 
 var LoaderWorker = require("worker?inline!./loader-worker");
-var tid = require("./tile-id");
+var defs = require("./defs");
 
 
 module.exports = {
@@ -11,16 +11,17 @@ module.exports = {
     this.maxGlobalMeanTravelTime = 0;
     this.maxLocalMeanTravelTime = 0;
     this.loadedTiles = {};
+    this.loadedTileCount = 0;
     this.startLoaderWorker();
   },
 
   componentWillUnmount: function () {
     this.stopLoaderWorker();
-    clearTimeout(this.pendingQueueToLoad);
   },
 
   setLoadedTile: function (tileId, tileData) {
     this.loadedTiles[tileId] = tileData;
+    this.loadedTileCount++;
   },
 
   getLoadedTile: function (tileId) {
@@ -50,30 +51,18 @@ module.exports = {
         this.maxLocalMeanTravelTime = event.data.tileData.maxLocalMeanTravelTime;
         this.setLoadedTile(event.data.tileId, event.data.tileData);
         this.requestQueueingVisibleImagesToRender();
+        this.requestPainting();
         break;
     }
   },
 
-  queueVisibleTilesToLoad: function () {
-    var tileIds = [];
-    this.spirally(function (lx, ly) {
-        if (this.isTileVisible(lx, ly)) {
-          var tileId = tid.fromLocal(lx, ly);
-          if (!this.getLoadedTile(tileId)) {
-            tileIds.push(tileId);
-          }
-        }
-      }.bind(this));
-    if (tileIds.length) {
+  requestLoadingTiles: function () {
+    if (this.loadedTileCount < defs.maxTileCount) {
       this.loaderWorker.postMessage({
-          message: "loadTiles",
-          tileIds: tileIds.reverse()
+          message:         "loadTiles",
+          attentionLocalX: this.attentionLocalX,
+          attentionLocalY: this.attentionLocalY
         });
     }
-  },
-
-  requestQueueingVisibleTilesToLoad: function () {
-    clearTimeout(this.pendingQueueToLoad);
-    this.pendingQueueToLoad = setTimeout(this.queueVisibleTilesToLoad, 0);
   }
 };

@@ -1,12 +1,8 @@
 "use strict";
 
-var tid = require("./tile-id");
-
 
 var _ = module.exports = {
-  fromTileId: function (tileId) {
-    var tx = tid.getTileX(tileId);
-    var ty = tid.getTileY(tileId);
+  fromTile: function (tx, ty) {
     var tgx = Math.floor(tx / 10);
     var tgy = Math.floor(ty / 10);
     return (tgx << 8) | tgy;

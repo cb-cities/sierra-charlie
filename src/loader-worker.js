@@ -2,6 +2,7 @@
 
 /* global postMessage, onmessage:true */
 
+var BoundedSpiral = require("./lib/bounded-spiral");
 var assign = require("object-assign");
 var http = require("http-request-wrapper");
 var defs = require("./defs");
@@ -10,20 +11,11 @@ var tid = require("./tile-id");
 var tgid = require("./tile-group-id");
 
 
+var localSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount - 1);
 var origin;
-var queuedTileGroupIds = [];
 var pendingTileGroupId;
 var loadedTileGroupIds = {};
 
-
-function queueTilesToLoad(tileIds) {
-  for (var i = 0; i < tileIds.length; i++) {
-    var tileGroupId = tgid.fromTileId(tileIds[i]);
-    if (tileGroupId !== pendingTileGroupId && !(tileGroupId in loadedTileGroupIds)) {
-      queuedTileGroupIds.push(tileGroupId);
-    }
-  }
-}
 
 function processTileData(tileData) {
   var result = demoProcessor.processRoadLinks(tileData.roadLinks || [], tileData);
@@ -61,15 +53,24 @@ function postLoadedTileGroup(tileGroupId, tileGroupData) {
   }
 }
 
+function getNextUnloadedTileGroupId() {
+  while (true) {
+    var local = localSource.next();
+    if (!local) {
+      return null;
+    }
+    var tx = defs.localToTileX(local.x);
+    var ty = defs.localToTileY(local.y);
+    var tileGroupId = tgid.fromTile(tx, ty);
+    if (!(tileGroupId in loadedTileGroupIds)) {
+      return tileGroupId;
+    }
+  }
+}
+
 function loadNextTileGroup() {
   if (!pendingTileGroupId) {
-    while (queuedTileGroupIds.length) {
-      var tileGroupId = queuedTileGroupIds.pop();
-      if (!(tileGroupId in loadedTileGroupIds)) {
-        pendingTileGroupId = tileGroupId;
-        break;
-      }
-    }
+    pendingTileGroupId = getNextUnloadedTileGroupId();
     if (pendingTileGroupId) {
       var tileGroupUrl = tgid.toUrl(origin, pendingTileGroupId);
       http.getJsonResource(tileGroupUrl, function (tileGroupData, err) {
@@ -90,7 +91,9 @@ onmessage = function (event) {
       origin = event.data.origin;
       break;
     case "loadTiles":
-      queueTilesToLoad(event.data.tileIds);
+      var lx = event.data.attentionLocalX;
+      var ly = event.data.attentionLocalY;
+      localSource.reset(lx, ly);
       loadNextTileGroup();
       break;
   }

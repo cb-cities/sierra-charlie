@@ -79,7 +79,7 @@ module.exports = {
     this.computeDerivedState();
     this.exportScrollPosition();
     this.exportBackgroundColor();
-    this.requestQueueingVisibleTilesToLoad();
+    this.requestLoadingTiles();
     this.requestQueueingVisibleImagesToRender();
     this.requestPainting();
   },
@@ -94,7 +94,7 @@ module.exports = {
     this.computeDerivedState();
     this.exportScrollPosition();
     this.exportBackgroundColor(prevState);
-    this.requestQueueingVisibleTilesToLoad();
+    this.requestLoadingTiles();
     this.requestQueueingVisibleImagesToRender();
     this.requestPainting();
   },
@@ -151,6 +151,8 @@ module.exports = {
     this.easedHeight    = defs.tileYCount * this.easedImageSize;
     this.scrollLeft     = Math.floor(this.easedAttentionLeft * this.easedWidth - this.state.clientWidth / 2);
     this.scrollTop      = Math.floor(this.easedAttentionTop * this.easedHeight - this.state.clientHeight / 2);
+    this.attentionLocalX    = Math.floor(this.easedAttentionLeft * defs.tileXCount);
+    this.attentionLocalY    = Math.floor(this.easedAttentionTop * defs.tileYCount);
     this.firstVisibleLocalX = defs.clampLocalX(Math.floor(this.scrollLeft / this.easedImageSize));
     this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((this.scrollLeft + this.state.clientWidth - 1) / this.easedImageSize));
     this.firstVisibleLocalY = defs.clampLocalY(Math.floor(this.scrollTop / this.easedImageSize));
@@ -176,8 +178,8 @@ module.exports = {
   },
 
   spirally: function (cb) {
-    var ax = Math.floor(this.easedAttentionLeft * defs.tileXCount);
-    var ay = Math.floor(this.easedAttentionTop * defs.tileYCount);
+    var ax = this.attentionLocalX;
+    var ay = this.attentionLocalY;
     var layerCount = (
       Math.max(
         Math.max(ax - this.firstVisibleLocalX, this.lastVisibleLocalX - ax),
