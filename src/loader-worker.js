@@ -3,10 +3,8 @@
 /* global postMessage, onmessage:true */
 
 var BoundedSpiral = require("./lib/bounded-spiral");
-var assign = require("object-assign");
 var http = require("http-request-wrapper");
 var defs = require("./defs");
-var demoProcessor = require("./demo-processor");
 var tid = require("./tile-id");
 var tgid = require("./tile-group-id");
 
@@ -16,18 +14,6 @@ var localSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount -
 var pendingTileGroupId = null;
 var loadedTileGroupIds = {};
 
-
-function processTileData(tileData) {
-  var result = demoProcessor.processRoadLinks(tileData.roadLinks || [], tileData);
-  return assign(tileData, {
-      roadLinks: result.processedRoadLinks,
-      roadNodes: tileData.roadNodes || [],
-      globalMeanTravelTimes: result.globalMeanTravelTimes,
-      localMeanTravelTimes: result.localMeanTravelTimes,
-      maxGlobalMeanTravelTime: result.maxGlobalMeanTravelTime,
-      maxLocalMeanTravelTime: result.maxLocalMeanTravelTime
-    });
-}
 
 function postLoadedTileGroup(tileGroupId, tileGroupData) {
   var firstTileX = tgid.toFirstTileX(tileGroupId);
@@ -43,11 +29,18 @@ function postLoadedTileGroup(tileGroupId, tileGroupData) {
         continue;
       }
       var tileId   = tid.fromTile(tx, ty);
-      var tileData = tileGroupData[tid.toKey(tileId)];
+      var tileData = tileGroupData[tid.toKey(tileId)] || {};
       postMessage({
           message:  "tileLoaded",
           tileId:   tileId,
-          tileData: processTileData(tileData || {})
+          tileData: {
+            roadLinks: tileData.roadLinks || [],
+            roadNodes: tileData.roadNodes || [],
+            localMeanTravelTimes: tileData.localMeanTravelTimes || [],
+            globalMeanTravelTimes: tileGroupData.globalMeanTravelTimes || [],
+            maxLocalMeanTravelTime: tileGroupData.maxLocalMeanTravelTime || 0,
+            maxGlobalMeanTravelTime: tileGroupData.maxGlobalMeanTravelTime || 0
+          }
         });
     }
   }

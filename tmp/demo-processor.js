@@ -1,7 +1,7 @@
 "use strict";
 
 var assign = require("object-assign");
-var defs = require("./defs");
+var defs = require("../src/defs");
 var demoBimodal = require("./demo-bimodal");
 var simplify = require("simplify-js");
 
@@ -69,6 +69,7 @@ function processRoadLink(ps, length, tileData) {
 module.exports = {
   processRoadLinks: function (roadLinks, tileData) {
     // TODO: Refactor
+    localMeanTravelTimes = [];
     for (var t = 0; t < 24; t++) {
       localMeanTravelTimes[t] = 0;
       localRoadLinkCounts[t] = 0;
@@ -91,6 +92,14 @@ module.exports = {
       processedRoadLinks: processedRoadLinks,
       globalMeanTravelTimes: globalMeanTravelTimes,
       localMeanTravelTimes: localMeanTravelTimes,
+      maxGlobalMeanTravelTime: maxGlobalMeanTravelTime,
+      maxLocalMeanTravelTime: maxLocalMeanTravelTime
+    };
+  },
+
+  getMetaData: function () {
+    return {
+      globalMeanTravelTimes: globalMeanTravelTimes,
       maxGlobalMeanTravelTime: maxGlobalMeanTravelTime,
       maxLocalMeanTravelTime: maxLocalMeanTravelTime
     };
