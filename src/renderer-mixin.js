@@ -10,6 +10,7 @@ module.exports = {
   componentDidMount: function () {
     this.rendererLocalSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount - 1);
     this.renderedImages = {};
+    this.renderedImageCount = [];
     this.renderedGroups = {};
   },
 
@@ -19,6 +20,9 @@ module.exports = {
 
   setRenderedImage: function (imageId, flag) {
     this.renderedImages[imageId] = flag;
+    var timeValue = iid.getTimeValue(imageId);
+    var zoomPower = iid.getZoomPower(imageId);
+    this.incrementRenderedImageCount(timeValue, zoomPower);
   },
 
   getRenderedImage: function (imageId) {
@@ -31,6 +35,33 @@ module.exports = {
 
   getRenderedGroup: function (groupId) {
     return this.renderedGroups[groupId];
+  },
+
+  incrementRenderedImageCount: function (timeValue, zoomPower) {
+    var perTimeValue = this.renderedImageCount[timeValue];
+    if (!perTimeValue) {
+      perTimeValue = this.renderedImageCount[timeValue] = [];
+    }
+    var perZoomPower = perTimeValue[zoomPower];
+    if (!perZoomPower) {
+      perTimeValue[zoomPower] = 1;
+    } else {
+      perTimeValue[zoomPower]++;
+    }
+  },
+
+  getRenderedImageCount: function (timeValue, zoomPower) {
+    var perTimeValue = this.renderedImageCount[timeValue];
+    if (!perTimeValue) {
+      return 0;
+    } else {
+      var perZoomPower = perTimeValue[zoomPower];
+      if (!perZoomPower) {
+        return 0;
+      } else {
+        return perZoomPower;
+      }
+    }
   },
 
   renderRoadLinks: function (c, timeValue, zoomLevel, tileData) {
@@ -121,15 +152,17 @@ module.exports = {
   },
 
   requestRenderingImages: function () {
-    this.rendererLocalSource.resetBounds(
-      this.firstVisibleLocalX,
-      this.lastVisibleLocalX,
-      this.firstVisibleLocalY,
-      this.lastVisibleLocalY,
-      this.attentionLocalX,
-      this.attentionLocalY);
-    if (!this.pendingRender) {
-      this.pendingRender = setTimeout(this.renderNextImage, 0);
+    if (this.getRenderedImageCount(this.floorTimeValue, this.floorZoomPower) < defs.maxTileCount) {
+      this.rendererLocalSource.resetBounds(
+        this.firstVisibleLocalX,
+        this.lastVisibleLocalX,
+        this.firstVisibleLocalY,
+        this.lastVisibleLocalY,
+        this.attentionLocalX,
+        this.attentionLocalY);
+      if (!this.pendingRender) {
+        this.pendingRender = setTimeout(this.renderNextImage, 0);
+      }
     }
   }
 };
