@@ -174,5 +174,15 @@ module.exports = {
         this.pendingRender = setTimeout(this.renderNextImage, 0);
       }
     }
+  },
+
+  forceRenderingImagesFromScratch: function () {
+    clearTimeout(this.pendingRender);
+    this.pendingRender = null;
+    this.renderedImages = {};
+    this.renderedImageCount = [];
+    this.renderedGroups = {};
+    this.requestRenderingImages();
+    this.requestPainting();
   }
 };

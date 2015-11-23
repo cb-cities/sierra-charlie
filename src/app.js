@@ -222,6 +222,9 @@ module.exports = {
       //       invertColor: !this.state.invertColor
       //     });
       //   break;
+      case 70: // f
+        this.forceRenderingImagesFromScratch();
+        break;
       case 75: // k
         this.setState({
             showClock: !this.state.showClock
