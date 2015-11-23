@@ -100,9 +100,18 @@ module.exports = {
     c.restore();
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
-    this.paintClock(c);
-    this.paintTimeInspector(c);
-    this.paintSpaceInspector(c);
+    if (this.state.showClock) {
+      this.paintClock(c);
+    }
+    if (this.state.showTimeInspector) {
+      this.paintTimeInspector(c);
+    }
+    if (this.state.showSpaceInspector) {
+      this.paintSpaceInspector(c);
+    }
+    if (this.state.showDebugLabels) {
+      this.paintDebugLabels(c);
+    }
     if (this.state.invertColor) {
       c.restore();
       c.globalCompositeOperation = "difference";

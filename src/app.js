@@ -27,7 +27,10 @@ module.exports = {
       attentionLeft: 0.4897637424698795,
       attentionTop: 0.4768826844262295,
       rawTimeValue: 10 + 9 / 60,
-      zoomPower: 4
+      zoomPower: 4,
+      showClock: true,
+      showSpaceInspector: true,
+      showTimeInspector: true
     };
   },
 
@@ -218,6 +221,21 @@ module.exports = {
       //       invertColor: !this.state.invertColor
       //     });
       //   break;
+      case 75: // k
+        this.setState({
+            showClock: !this.state.showClock
+          });
+        break;
+      case 83: // s
+        this.setState({
+            showSpaceInspector: !this.state.showSpaceInspector
+          });
+        break;
+      case 84: // t
+        this.setState({
+            showTimeInspector: !this.state.showTimeInspector
+          });
+        break;
       default:
         if (event.keyCode >= 49 && event.keyCode <= 56) {
           this.easeZoomPower(event.keyCode - 49, delay);
