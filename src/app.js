@@ -30,7 +30,8 @@ module.exports = {
       zoomPower: 4,
       showClock: true,
       showSpaceInspector: true,
-      showTimeInspector: true
+      showTimeInspector: true,
+      renderNotVisibleImages: process.env.NODE_ENV === "production"
     };
   },
 
@@ -224,6 +225,11 @@ module.exports = {
       case 75: // k
         this.setState({
             showClock: !this.state.showClock
+          });
+        break;
+      case 82: // r
+        this.setState({
+            renderNotVisibleImages: !this.state.renderNotVisibleImages
           });
         break;
       case 83: // s

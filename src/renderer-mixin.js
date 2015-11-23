@@ -153,13 +153,23 @@ module.exports = {
 
   requestRenderingImages: function () {
     if (this.getRenderedImageCount(this.floorTimeValue, this.floorZoomPower) < defs.maxTileCount) {
-      this.rendererLocalSource.resetBounds(
-        this.firstVisibleLocalX,
-        this.lastVisibleLocalX,
-        this.firstVisibleLocalY,
-        this.lastVisibleLocalY,
-        this.attentionLocalX,
-        this.attentionLocalY);
+      if (this.state.renderNotVisibleImages) {
+        this.rendererLocalSource.resetBounds(
+          0,
+          defs.tileXCount - 1,
+          0,
+          defs.tileYCount - 1,
+          this.attentionLocalX,
+          this.attentionLocalY);
+      } else {
+        this.rendererLocalSource.resetBounds(
+          this.firstVisibleLocalX,
+          this.lastVisibleLocalX,
+          this.firstVisibleLocalY,
+          this.lastVisibleLocalY,
+          this.attentionLocalX,
+          this.attentionLocalY);
+      }
       if (!this.pendingRender) {
         this.pendingRender = setTimeout(this.renderNextImage, 0);
       }
