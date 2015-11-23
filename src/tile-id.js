@@ -14,6 +14,13 @@ var _ = module.exports = {
     return _.fromLocal(lx, ly);
   },
 
+  fromKey: function (key) {
+    var parts = key.split("-");
+    var tx = parseInt(parts[1]);
+    var ty = parseInt(parts[2]);
+    return _.fromTile(tx, ty);
+  },
+
   getLocalX: function (tileId) {
     return tileId >> 8;
   },

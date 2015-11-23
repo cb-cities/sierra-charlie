@@ -2,10 +2,25 @@
 
 
 var _ = module.exports = {
+  fromTileGroup: function (tgx, tgy) {
+    return (tgx << 8) | tgy;
+  },
+
   fromTile: function (tx, ty) {
     var tgx = Math.floor(tx / 10);
     var tgy = Math.floor(ty / 10);
-    return (tgx << 8) | tgy;
+    return _.fromTileGroup(tgx, tgy);
+  },
+
+  fromKey: function (key) {
+    var parts = key.split("-");
+    var tgx = parseInt(parts[2]);
+    var tgy = parseInt(parts[3]);
+    return _.fromTileGroup(tgx, tgy);
+  },
+
+  fromFileName: function (fileName) {
+    return _.fromKey(fileName);
   },
 
   getTileGroupX: function (tileGroupId) {
@@ -36,9 +51,17 @@ var _ = module.exports = {
     return _.toFirstTileY(tileGroupId) + 9;
   },
 
-  toUrl: function (origin, tileGroupId) {
+  toKey: function (tileGroupId) {
     var tgx = _.getTileGroupX(tileGroupId);
     var tgy = _.getTileGroupY(tileGroupId);
-    return origin + "/json/tile-group-" + tgx + "-" + tgy + ".json.gz";
+    return "tile-group-" + tgx + "-" + tgy;
+  },
+
+  toFileName: function (tileGroupId) {
+    return _.toKey(tileGroupId) + ".json.gz";
+  },
+
+  toUrl: function (origin, tileGroupId) {
+    return origin + "/json/" + _.toFileName(tileGroupId);
   }
 };
