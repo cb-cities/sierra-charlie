@@ -1,6 +1,7 @@
 "use strict";
 
 var defs = require("./defs");
+var iid = require("./image-id");
 var tid = require("./tile-id");
 
 
@@ -38,12 +39,17 @@ module.exports = {
   paintSILocalMeans: function (c) {
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
-    c.fillStyle = defs.roadLinkColor;
     for (var x = 0; x < columnCount; x++) {
       for (var y = 0; y < rowCount; y++) {
         var tileId = tid.fromLocal(x, y);
         var tileData = this.getLoadedTile(tileId);
         if (tileData) {
+          var imageId = iid.fromTileId(tileId, this.floorTimeValue, this.floorZoomPower);
+          if (this.getRenderedImage(imageId)) {
+            c.fillStyle = defs.roadLinkColor;
+          } else {
+            c.fillStyle = "#999";
+          }
           var z = tileData.localMeanTravelTimes[this.floorTimeValue] / this.maxLocalMeanTravelTime;
           c.globalAlpha = z;
           c.fillRect(x * columnWidth, y * rowHeight, columnWidth, rowHeight);
