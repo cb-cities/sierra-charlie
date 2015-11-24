@@ -3,11 +3,10 @@
 var defs = require("./defs");
 
 
-var backgroundAlpha = 1;
-
 var columnCount = 24;
 var columnWidth = 15;
-var columnsPerGroup = 2;
+var columnsPerGroup = 1;
+var columnsPerLabel = 2;
 var rowCount = 10;
 var rowHeight = 30;
 var rowsPerGroup = 1;
@@ -39,28 +38,32 @@ module.exports = {
     c.lineTo(boxWidth + 2 * paddingSize, boxHeight + 2 * paddingSize);
     c.lineTo(0, boxHeight + 2 * paddingSize);
     c.lineTo(0, 0);
-    c.globalAlpha = backgroundAlpha;
+    c.globalAlpha = 0.75;
     c.fill();
     c.globalAlpha = 1;
     c.stroke();
   },
 
   // TODO: Refactor
+  getMeanColor: function (z) {
+    var l = 10 + z * 80;
+    return "hsl(0, 0%, " + l + "%)";
+  },
+
+  // TODO: Refactor
   paintTIGlobalMeans: function (c) {
     c.save();
-    c.fillStyle = defs.roadLinkColor;
-    c.beginPath();
+    c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     for (var x = 0; x < columnCount; x++) {
-      var h = Math.floor(this.globalMeanTravelTimes[x] / this.maxGlobalMeanTravelTime * boxHeight);
-      c.rect(x * columnWidth, boxHeight - h, columnWidth, h);
+      var z = this.globalMeanTravelTimes[x] / this.maxGlobalMeanTravelTime;
+      var h = Math.floor(z * boxHeight);
+      c.fillStyle = this.getMeanColor(z);
+      c.fillRect(x * columnWidth, boxHeight - h, columnWidth, h);
     }
-    c.globalAlpha = 0.5;
-    c.fill();
     c.restore();
   },
 
   paintTIGrid: function (c) {
-    c.globalAlpha = 0.5;
     c.lineWidth = 0.5 / window.devicePixelRatio;
     c.beginPath();
     c.moveTo(0, 0);
@@ -82,6 +85,7 @@ module.exports = {
         c.lineTo(boxWidth, h);
       }
     }
+    c.globalAlpha = 0.5;
     c.stroke();
     c.globalAlpha = 1;
   },
@@ -98,7 +102,7 @@ module.exports = {
     c.moveTo(0, boxHeight - h);
     c.lineTo(boxWidth, boxHeight - h);
     c.lineTo(0, boxHeight - h);
-    c.globalAlpha = 0.5;
+    c.globalAlpha = 0.75;
     c.setLineDash([2, 4]);
     c.stroke();
     c.setLineDash([]);
@@ -107,9 +111,7 @@ module.exports = {
 
   // TODO: Refactor
   paintLabel: function (c, label, x, y) {
-    c.globalAlpha = backgroundAlpha;
     c.strokeText(label, x, y);
-    c.globalAlpha = 1;
     c.fillText(label, x, y);
   },
 
@@ -119,7 +121,7 @@ module.exports = {
     c.textAlign = "center";
     c.textBaseline = "top";
     for (var x = 0; x <= columnCount; x++) {
-      if (x % columnsPerGroup === 0) {
+      if (x % columnsPerLabel === 0) {
         this.paintLabel(c, makeDefaultColumnLabel(x), x * columnWidth, boxHeight + 4);
       }
     }
@@ -146,10 +148,10 @@ module.exports = {
     c.strokeStyle = defs.borderColor;
     c.translate(marginSize, this.state.clientHeight - boxHeight - 2 * paddingSize - marginSize);
     this.paintTIFace(c);
-    c.fillStyle = defs.inverseBackgroundColor;
-    c.strokeStyle = defs.inverseBackgroundColor;
     c.translate(paddingSize, paddingSize);
     this.paintTIGlobalMeans(c);
+    c.fillStyle = defs.inverseBackgroundColor;
+    c.strokeStyle = defs.inverseBackgroundColor;
     this.paintTIGrid(c);
     this.paintTICurrentTime(c);
     c.fillStyle = defs.inverseBackgroundColor;

@@ -5,8 +5,6 @@ var iid = require("./image-id");
 var tid = require("./tile-id");
 
 
-var backgroundAlpha = 1;
-
 var columnCount = defs.tileXCount;
 var columnWidth = 5;
 var columnsPerGroup = 10;
@@ -29,7 +27,7 @@ module.exports = {
     c.lineTo(boxWidth + 2 * paddingSize, boxHeight + 2 * paddingSize);
     c.lineTo(0, boxHeight + 2 * paddingSize);
     c.lineTo(0, 0);
-    c.globalAlpha = backgroundAlpha;
+    c.globalAlpha = 0.75;
     c.fill();
     c.globalAlpha = 1;
     c.stroke();
@@ -45,13 +43,9 @@ module.exports = {
         var tileData = this.getLoadedTile(tileId);
         if (tileData) {
           var imageId = iid.fromTileId(tileId, this.floorTimeValue, this.floorZoomPower);
-          if (this.getRenderedImage(imageId)) {
-            c.fillStyle = defs.roadLinkColor;
-          } else {
-            c.fillStyle = "#999";
-          }
           var z = tileData.localMeanTravelTimes[this.floorTimeValue] / this.maxLocalMeanTravelTime;
-          c.globalAlpha = z;
+          c.fillStyle = this.getMeanColor(z);
+          c.globalAlpha = this.getRenderedImage(imageId) ? 1 : 0.5;
           c.fillRect(x * columnWidth, y * rowHeight, columnWidth, rowHeight);
         }
       }
@@ -61,7 +55,6 @@ module.exports = {
   },
 
   paintSIGrid: function (c) {
-    c.globalAlpha = 0.5;
     c.lineWidth = 0.5 / window.devicePixelRatio;
     c.beginPath();
     c.moveTo(0, 0);
@@ -83,6 +76,7 @@ module.exports = {
         c.lineTo(boxWidth, h);
       }
     }
+    c.globalAlpha = 0.5;
     c.stroke();
     c.globalAlpha = 1;
   },
@@ -99,7 +93,7 @@ module.exports = {
     c.moveTo(0, h);
     c.lineTo(boxWidth, h);
     c.lineTo(0, h);
-    c.globalAlpha = 0.5;
+    c.globalAlpha = 0.75;
     c.setLineDash([2, 4]);
     c.stroke();
     c.setLineDash([]);

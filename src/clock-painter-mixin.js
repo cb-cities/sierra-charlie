@@ -3,15 +3,12 @@
 var defs = require("./defs");
 
 
-var backgroundAlpha = 1;
-
-
 module.exports = {
   paintClockFace: function (c) {
     c.lineWidth = 1 / window.devicePixelRatio;
     c.beginPath();
     c.arc(0, 0, defs.clockSize, 0, 2 * Math.PI);
-    c.globalAlpha = backgroundAlpha;
+    c.globalAlpha = 0.75;
     c.fill();
     c.globalAlpha = 1;
     c.stroke();

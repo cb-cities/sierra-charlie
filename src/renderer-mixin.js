@@ -64,9 +64,15 @@ module.exports = {
     }
   },
 
+  // TODO: Refactor
+  getRoadLinkColor: function (z) {
+    var hue = 180 + (120 * z);
+    // var hue = 120 - (120 * z);
+    return "hsl(" + hue + ", 100%, 50%)";
+  },
+
   renderRoadLinks: function (c, timeValue, zoomLevel, tileData) {
-    c.strokeStyle = defs.roadLinkColor;
-    // c.strokeStyle = "hsl(" + (timeValue / 24 * 360) + ", 100%, 50%)";
+    c.lineWidth = 4 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
     for (var i = 0; i < tileData.roadLinks.length; i++) {
       var roadLink = tileData.roadLinks[i];
       var ps = roadLink.ps;
@@ -75,11 +81,10 @@ module.exports = {
       for (var j = 0; j < ps.length; j++) {
         c.lineTo(ps[j].x, ps[j].y);
       }
-      c.lineWidth = 4 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize) * roadLink.travelTimes[timeValue];
-      c.globalAlpha = 1;
+      var z = roadLink.travelTimes[this.floorTimeValue] / this.maxGlobalMeanTravelTime;
+      c.strokeStyle = this.getRoadLinkColor(z);
       c.stroke();
     }
-    c.globalAlpha = 1;
   },
 
   renderRoadNodes: function (c, timeValue, zoomLevel, tileData) {
@@ -117,10 +122,8 @@ module.exports = {
     } else {
       c = canvas.getContext("2d");
     }
-    c.globalCompositeOperation = "screen";
     this.renderRoadLinks(c, timeValue, zoomLevel, tileData);
     // this.renderRoadNodes(c, timeValue, zoomLevel, tileData);
-    c.globalCompositeOperation = "source-over";
     this.setRenderedImage(imageId, true);
   },
 
