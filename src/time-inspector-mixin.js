@@ -5,7 +5,7 @@ var defs = require("./defs");
 
 var columnCount = 24;
 var columnWidth = 15;
-var columnsPerGroup = 1;
+var columnsPerGroup = 2;
 var columnsPerLabel = 2;
 var rowCount = 10;
 var rowHeight = 30;
@@ -52,7 +52,8 @@ module.exports = {
 
   // TODO: Refactor
   paintTIGlobalMeans: function (c) {
-    c.lineWidth = 1 / window.devicePixelRatio;
+    c.save();
+    c.translate(-0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     var l = this.loadedTileCount / defs.maxTileCount;
     for (var x = 0; x < columnCount; x++) {
       var k = this.getRenderedImageCount(x, this.floorZoomPower) / defs.maxTileCount;
@@ -63,14 +64,14 @@ module.exports = {
       var h1 = Math.floor(h * l);
       var h2 = Math.floor(h * k);
       c.globalAlpha = 0.5;
-      c.fillRect(x * columnWidth, boxHeight - h1, columnWidth, h1);
+      c.fillRect(x * columnWidth, boxHeight - h1 - h2, columnWidth, h1);
       c.globalAlpha = 1;
       c.fillRect(x * columnWidth, boxHeight - h2, columnWidth, h2);
     }
+    c.restore();
   },
 
   paintTIGrid: function (c) {
-    c.lineWidth = 0.5 / window.devicePixelRatio;
     c.beginPath();
     c.moveTo(0, 0);
     c.lineTo(boxWidth, 0);
@@ -91,7 +92,7 @@ module.exports = {
         c.lineTo(boxWidth, h);
       }
     }
-    c.globalAlpha = 0.5;
+    c.globalAlpha = 0.2;
     c.stroke();
     c.globalAlpha = 1;
   },
@@ -157,9 +158,9 @@ module.exports = {
     c.translate(marginSize, this.state.clientHeight - boxHeight - 2 * paddingSize - marginSize);
     this.paintTIFace(c);
     c.translate(paddingSize, paddingSize);
-    this.paintTIGlobalMeans(c);
     c.fillStyle = defs.inverseBackgroundColor;
     c.strokeStyle = defs.inverseBackgroundColor;
+    this.paintTIGlobalMeans(c);
     this.paintTIGrid(c);
     this.paintTICurrentTime(c);
     c.fillStyle = defs.inverseBackgroundColor;

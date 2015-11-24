@@ -55,7 +55,6 @@ module.exports = {
   },
 
   paintSIGrid: function (c) {
-    c.lineWidth = 0.5 / window.devicePixelRatio;
     c.beginPath();
     c.moveTo(0, 0);
     c.lineTo(boxWidth, 0);
@@ -76,7 +75,7 @@ module.exports = {
         c.lineTo(boxWidth, h);
       }
     }
-    c.globalAlpha = 0.5;
+    c.globalAlpha = 0.2;
     c.stroke();
     c.globalAlpha = 1;
   },
@@ -134,9 +133,9 @@ module.exports = {
     c.strokeStyle = defs.borderColor;
     c.translate(this.state.clientWidth - boxWidth - 2 * paddingSize - marginSize, this.state.clientHeight - boxHeight - 2 * paddingSize - marginSize);
     this.paintSIFace(c);
+    c.translate(paddingSize, paddingSize);
     c.fillStyle = defs.inverseBackgroundColor;
     c.strokeStyle = defs.inverseBackgroundColor;
-    c.translate(paddingSize, paddingSize);
     this.paintSILocalMeans(c);
     this.paintSIGrid(c);
     this.paintSICurrentSpace(c);
