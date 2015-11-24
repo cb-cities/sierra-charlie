@@ -63,9 +63,9 @@ module.exports = {
       var h1 = Math.floor(h * l);
       var h2 = Math.floor(h * k);
       c.globalAlpha = 0.5;
-      c.fillRect(x * columnWidth, boxHeight - h, columnWidth, h1);
+      c.fillRect(x * columnWidth, boxHeight - h1, columnWidth, h1);
       c.globalAlpha = 1;
-      c.fillRect(x * columnWidth, boxHeight - h, columnWidth, h2);
+      c.fillRect(x * columnWidth, boxHeight - h2, columnWidth, h2);
     }
   },
 
