@@ -52,15 +52,21 @@ module.exports = {
 
   // TODO: Refactor
   paintTIGlobalMeans: function (c) {
-    c.save();
-    c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
+    c.lineWidth = 1 / window.devicePixelRatio;
+    var l = this.loadedTileCount / defs.maxTileCount;
     for (var x = 0; x < columnCount; x++) {
+      var k = this.getRenderedImageCount(x, this.floorZoomPower) / defs.maxTileCount;
       var z = this.globalMeanTravelTimes[x] / this.maxGlobalMeanTravelTime;
       var h = Math.floor(z * boxHeight);
-      c.fillStyle = this.getMeanColor(z);
-      c.fillRect(x * columnWidth, boxHeight - h, columnWidth, h);
+      var style = this.getMeanColor(z);
+      c.fillStyle = style;
+      var h1 = Math.floor(h * l);
+      var h2 = Math.floor(h * k);
+      c.globalAlpha = 0.5;
+      c.fillRect(x * columnWidth, boxHeight - h, columnWidth, h1);
+      c.globalAlpha = 1;
+      c.fillRect(x * columnWidth, boxHeight - h, columnWidth, h2);
     }
-    c.restore();
   },
 
   paintTIGrid: function (c) {
@@ -98,7 +104,8 @@ module.exports = {
     c.moveTo(w, 0);
     c.lineTo(w, boxHeight);
     c.lineTo(w, 0);
-    var h = Math.floor(this.globalMeanTravelTimes[this.floorTimeValue] / this.maxGlobalMeanTravelTime * boxHeight);
+    var z = this.globalMeanTravelTimes[this.floorTimeValue] / this.maxGlobalMeanTravelTime;
+    var h = Math.floor(z * boxHeight);
     c.moveTo(0, boxHeight - h);
     c.lineTo(boxWidth, boxHeight - h);
     c.lineTo(0, boxHeight - h);
@@ -138,7 +145,8 @@ module.exports = {
     this.paintLabel(c, makeDefaultColumnLabel(this.floorTimeValue) + "—" + makeDefaultColumnLabel(this.floorTimeValue + 1), (this.floorTimeValue + 0.5) * columnWidth, -4);
     c.textAlign = "left";
     c.textBaseline = "middle";
-    var h = Math.floor(this.globalMeanTravelTimes[this.floorTimeValue] / this.maxGlobalMeanTravelTime * boxHeight);
+    var z = this.globalMeanTravelTimes[this.floorTimeValue] / this.maxGlobalMeanTravelTime;
+    var h = Math.floor(z * boxHeight);
     this.paintLabel(c, Math.round(h * 100 / 10 / rowHeight) + "%", boxWidth + 4, boxHeight - h);
   },
 
