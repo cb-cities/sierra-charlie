@@ -49,24 +49,24 @@ addEventListener("keydown", function (event) {
         this.easeSignalTop(Math.min(top, 1), delay);
         break;
       case 219: // left bracket
-        var rawTimeValue = (Math.round((this.state.rawTimeValue * 3600) - timeDelta) / 3600);
-        this.easeTimeValue(rawTimeValue, delay);
+        var rawTimeSignal = (Math.round((this.state.rawTimeSignal * 3600) - timeDelta) / 3600);
+        this.easeTimeSignal(rawTimeSignal, delay);
         break;
       case 221: // right bracket
-        var rawTimeValue = (Math.round((this.state.rawTimeValue * 3600) + timeDelta) / 3600);
-        this.easeTimeValue(rawTimeValue, delay);
+        var rawTimeSignal = (Math.round((this.state.rawTimeSignal * 3600) + timeDelta) / 3600);
+        this.easeTimeSignal(rawTimeSignal, delay);
         break;
       case 187: // plus
-        var zoomPower = Math.max(0, (Math.round((this.state.zoomPower * 10) - zoomDelta) / 10));
-        this.easeZoomPower(zoomPower, delay);
+        var zoomSignal = Math.max(0, (Math.round((this.state.zoomSignal * 10) - zoomDelta) / 10));
+        this.easeZoomSignal(zoomSignal, delay);
         break;
       case 189: // minus
-        var zoomPower = Math.min(Math.round((this.state.zoomPower * 10) + zoomDelta) / 10, defs.maxZoomPower);
-        this.easeZoomPower(zoomPower, delay);
+        var zoomSignal = Math.min(Math.round((this.state.zoomSignal * 10) + zoomDelta) / 10, defs.maxZoomSignal);
+        this.easeZoomSignal(zoomSignal, delay);
         break;
       default:
         if (event.keyCode >= 49 && event.keyCode <= 56) {
-          this.easeZoomPower(event.keyCode - 49, delay);
+          this.easeZoomSignal(event.keyCode - 49, delay);
         }
     }
   }.bind(that));

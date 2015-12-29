@@ -61,12 +61,12 @@ Painter.prototype = {
     c.stroke(this._tileBordersPath);
   },
 
-  _paintTileContents: function (c, floorTimeSignal, roundZoomPower, groupCount, groupSize, firstVisibleGroupX, lastVisibleGroupX, firstVisibleGroupY, lastVisibleGroupY) {
+  _paintTileContents: function (c, floorTimeSignal, roundZoomSignal, groupCount, groupSize, firstVisibleGroupX, lastVisibleGroupX, firstVisibleGroupY, lastVisibleGroupY) {
     for (var gx = firstVisibleGroupX; gx <= lastVisibleGroupX; gx += groupCount) {
       var gdx = gx * defs.imageSize;
       for (var gy = firstVisibleGroupY; gy <= lastVisibleGroupY; gy += groupCount) {
         var gdy = gy * defs.imageSize;
-        var groupId = iid.fromLocal(gx, gy, floorTimeSignal, roundZoomPower);
+        var groupId = iid.fromLocal(gx, gy, floorTimeSignal, roundZoomSignal);
         var canvas = this._callbacks.getRenderedGroup(groupId);
         if (canvas) {
           c.drawImage(canvas, gdx, gdy, groupSize, groupSize);
@@ -93,8 +93,8 @@ Painter.prototype = {
     c.translate(-state.scrollLeft, -state.scrollTop);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     c.scale(1 / state.easedZoomLevel, 1 / state.easedZoomLevel);
-    if (state.easedZoomPower < 3) {
-      c.globalAlpha = 1 - (state.easedZoomPower - 2);
+    if (state.easedZoomSignal < 3) {
+      c.globalAlpha = 1 - (state.easedZoomSignal - 2);
       _paintTileLabels(c, state.easedZoomLevel, state.firstVisibleLocalX, state.lastVisibleLocalX, state.firstVisibleLocalY, state.lastVisibleLocalY);
       c.globalAlpha = 1;
     }
@@ -103,7 +103,7 @@ Painter.prototype = {
     c.save();
     c.translate(-state.scrollLeft, -state.scrollTop);
     c.scale(1 / state.easedZoomLevel, 1 / state.easedZoomLevel);
-    this._paintTileContents(c, state.floorTimeSignal, state.roundZoomPower, state.groupCount, state.groupSize, state.firstVisibleGroupX, state.lastVisibleGroupX, state.firstVisibleGroupY, state.lastVisibleGroupY);
+    this._paintTileContents(c, state.floorTimeSignal, state.roundZoomSignal, state.groupCount, state.groupSize, state.firstVisibleGroupX, state.lastVisibleGroupX, state.firstVisibleGroupY, state.lastVisibleGroupY);
     c.restore();
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);

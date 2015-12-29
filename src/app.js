@@ -9,20 +9,20 @@ var defs = require("./defs");
 var easeStateMixin = require("./ease-state-mixin");
 
 
-function computeTimeValue(rawTimeValue) {
+function computeTimeSignal(rawTimeSignal) {
   return (
-    rawTimeValue >= 0 ?
-      Math.round((rawTimeValue * 3600) % (24 * 3600)) / 3600 :
-      24 - Math.round((-rawTimeValue * 3600) % (24 * 3600)) / 3600);
+    rawTimeSignal >= 0 ?
+      Math.round((rawTimeSignal * 3600) % (24 * 3600)) / 3600 :
+      24 - Math.round((-rawTimeSignal * 3600) % (24 * 3600)) / 3600);
 }
 
-function computeTimeSlice(timeValue) {
+function computeTimeSlice(timeSignal) {
   return (
-    (timeValue >=  8 && timeValue < 10) ? 1 :
-    (timeValue >= 10 && timeValue < 13) ? 2 :
-    (timeValue >= 13 && timeValue < 16) ? 3 :
-    (timeValue >= 16 && timeValue < 19) ? 4 :
-    (timeValue >= 19 && timeValue < 21) ? 5 :
+    (timeSignal >=  8 && timeSignal < 10) ? 1 :
+    (timeSignal >= 10 && timeSignal < 13) ? 2 :
+    (timeSignal >= 13 && timeSignal < 16) ? 3 :
+    (timeSignal >= 16 && timeSignal < 19) ? 4 :
+    (timeSignal >= 19 && timeSignal < 21) ? 5 :
     0);
 }
 
@@ -36,8 +36,8 @@ module.exports = {
     return {
       leftSignal: 0.4897637424698795,
       topSignal: 0.4768826844262295,
-      rawTimeValue: 10 + 9 / 60,
-      zoomPower: 4
+      rawTimeSignal: 10 + 9 / 60,
+      zoomSignal: 4
     };
   },
 
@@ -55,17 +55,17 @@ module.exports = {
       }.bind(this));
   },
 
-  easeTimeValue: function (rawTimeValue, duration) {
-    this.easingRawTimeValue = true;
-    this.easeState("rawTimeValue", rawTimeValue, duration, function () {
-        this.easingRawTimeValue = false;
+  easeTimeSignal: function (rawTimeSignal, duration) {
+    this.easingRawTimeSignal = true;
+    this.easeState("rawTimeSignal", rawTimeSignal, duration, function () {
+        this.easingRawTimeSignal = false;
       }.bind(this));
   },
 
-  easeZoomPower: function (zoomPower, duration) {
-    this.easingZoomPower = true;
-    this.easeState("zoomPower", zoomPower, duration, function () {
-        this.easingZoomPower = false;
+  easeZoomSignal: function (zoomSignal, duration) {
+    this.easingZoomSignal = true;
+    this.easeState("zoomSignal", zoomSignal, duration, function () {
+        this.easingZoomSignal = false;
       }.bind(this));
   },
 
@@ -96,8 +96,8 @@ module.exports = {
         scrollTop:          this.scrollTop,
       
         canvas:             this.canvas,
-        roundZoomPower:     this.roundZoomPower,
-        easedZoomPower:     this.easedZoomPower,
+        roundZoomSignal:     this.roundZoomSignal,
+        easedZoomSignal:     this.easedZoomSignal,
         easedZoomLevel:     this.easedZoomLevel,
         groupCount:         this.groupCount,
         groupSize:          this.groupSize,
@@ -157,7 +157,7 @@ module.exports = {
   },
 
   onScroll: function (event) {
-    if (!this.easingSignalLeft && !this.easingSignalTop && !this.easingZoomPower) {
+    if (!this.easingSignalLeft && !this.easingSignalTop && !this.easingZoomSignal) {
       this.importScrollPosition();
     }
   },
@@ -172,16 +172,16 @@ module.exports = {
   computeDerivedState: function () {
     this.easedSignalLeft = this.getEasedState("leftSignal");
     this.easedSignalTop  = this.getEasedState("topSignal");
-    this.easedTimeValue     = computeTimeValue(this.getEasedState("rawTimeValue"));
-    this.easedZoomPower     = this.getEasedState("zoomPower");
-    this.floorTimeSignal    = Math.floor(this.easedTimeValue);
+    this.easedTimeSignal     = computeTimeSignal(this.getEasedState("rawTimeSignal"));
+    this.easedZoomSignal     = this.getEasedState("zoomSignal");
+    this.floorTimeSignal    = Math.floor(this.easedTimeSignal);
     this.timeSlice          = computeTimeSlice(this.floorTimeSignal);
-    this.floorZoomSignal    = Math.floor(this.easedZoomPower);
-    this.roundZoomPower     = Math.round(this.easedZoomPower);
-    this.ceilZoomPower      = Math.ceil(this.easedZoomPower);
-    this.easedZoomLevel     = Math.pow(2, this.easedZoomPower);
+    this.floorZoomSignal    = Math.floor(this.easedZoomSignal);
+    this.roundZoomSignal     = Math.round(this.easedZoomSignal);
+    this.ceilZoomSignal      = Math.ceil(this.easedZoomSignal);
+    this.easedZoomLevel     = Math.pow(2, this.easedZoomSignal);
     this.easedImageSize     = defs.imageSize / this.easedZoomLevel;
-    this.groupCount         = Math.pow(2, this.roundZoomPower);
+    this.groupCount         = Math.pow(2, this.roundZoomSignal);
     this.groupSize          = defs.imageSize * this.groupCount;
     this.easedWidth         = defs.tileXCount * this.easedImageSize;
     this.easedHeight        = defs.tileYCount * this.easedImageSize;
@@ -214,9 +214,9 @@ module.exports = {
     this.easeSignalLeft(Math.max(0, Math.min(left, 1)), delay);
     this.easeSignalTop(Math.max(0, Math.min(top, 1)), delay);
     if (!event.altKey) {
-      this.easeZoomPower(Math.max(0, this.state.zoomPower - 1), delay);
+      this.easeZoomSignal(Math.max(0, this.state.zoomSignal - 1), delay);
     } else {
-      this.easeZoomPower(Math.min(this.state.zoomPower + 1, defs.maxZoomPower), delay);
+      this.easeZoomSignal(Math.min(this.state.zoomSignal + 1, defs.maxZoomSignal), delay);
     }
   },
 
