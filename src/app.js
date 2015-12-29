@@ -82,13 +82,15 @@ module.exports = {
     
     var frame  = r.domNode(this);
     var canvas = frame.firstChild;
-    frame.addEventListener("scroll", this.onScroll);
+    this.setSize(canvas.clientWidth, canvas.clientHeight);
+
     frame.scrollLeft = compute.scrollLeft(this.state.left, this.state.zoom);
     frame.scrollTop  = compute.scrollTop(this.state.top, this.state.zoom);
     this._geometryLoader.update(this.state.left, this.state.top);
     this._renderer.update(canvas, this.state.left, this.state.top, compute.time(this.state.rawTime), this.state.zoom);
     this._painter.update(canvas, this.state.left, this.state.top, compute.time(this.state.rawTime), this.state.zoom);
 
+    frame.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     matchMedia("screen and (min-resolution: 2dppx)").addListener(this.onRescale);
     addEventListener("keydown", this.onKeyDown);
@@ -166,8 +168,8 @@ module.exports = {
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
     var canvas = r.domNode(this).firstChild;
-    var left = compute.fromMouseX(event.clientX, canvas.clientWidth, this.state.left, this.state.zoom);
-    var top  = compute.fromMouseY(event.clientY, canvas.clientHeight, this.state.top, this.state.zoom);
+    var left = compute.fromMouseX(event.clientX, this.state.width, this.state.left, this.state.zoom);
+    var top  = compute.fromMouseY(event.clientY, this.state.height, this.state.top, this.state.zoom);
     var duration = !event.shiftKey ? 500 : 2500;
     this.setLeft(left, duration);
     this.setTop(top, duration);
@@ -181,8 +183,8 @@ module.exports = {
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
     var canvas = r.domNode(this).firstChild;
-    var pageWidth  = compute.pageWidth(canvas.clientWidth, this.state.zoom);
-    var pageHeight = compute.pageHeight(canvas.clientHeight, this.state.zoom);
+    var pageWidth  = compute.pageWidth(this.state.width, this.state.zoom);
+    var pageHeight = compute.pageHeight(this.state.height, this.state.zoom);
     var duration = event.shiftKey ? 2500 : 500;
     var timeDelta = (event.ctrlKey || event.altKey) ? 60 : 3600;
     var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10;
