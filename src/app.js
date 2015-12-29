@@ -55,17 +55,20 @@ module.exports = {
   },
 
   componentDidMount: function () {
-    var frame  = r.domNode(this);
-    frame.addEventListener("scroll", this.onScroll);
-    
     this._geometryLoader = new GeometryLoader({
         onTileLoad: this.onTileLoad
       });
+      
     this._renderer = new Renderer({
         getLoadedTile: this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
         onImageRender: this.onImageRender
       });
-    this._painter = new Painter({
+
+    var frame = r.domNode(this);
+    frame.addEventListener("scroll", this.onScroll);
+    
+    var canvas = frame.firstChild;
+    this._painter = new Painter(canvas, {
         getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
       });
 
@@ -103,18 +106,7 @@ module.exports = {
     frame.scrollTop  = compute.scrollTop(top, zoom);
     this._geometryLoader.update(left, top);
     this._renderer.update(width, height, left, top, time, zoom);
-    this._painter.update(canvas, left, top, time, zoom);
-  },
-  
-  onScroll: function (event) {
-    if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
-      var frame = r.domNode(this);
-      var zoom  = this.getEasedState("zoom");
-      this.setState({
-          left: frame.scrollLeft / compute.spaceWidth(zoom),
-          top:  frame.scrollTop / compute.spaceHeight(zoom)
-        });
-    }
+    this._painter.update(left, top, time, zoom);
   },
   
   onTileLoad: function () {
@@ -126,7 +118,7 @@ module.exports = {
     var time   = compute.time(this.getEasedState("rawTime"));
     var zoom   = this.getEasedState("zoom");
     this._renderer.update(width, height, left, top, time, zoom);
-    this._painter.update(canvas, left, top, time, zoom);
+    this._painter.update(left, top, time, zoom);
   },
   
   onImageRender: function () {
@@ -135,7 +127,18 @@ module.exports = {
     var top    = this.getEasedState("top");
     var time   = compute.time(this.getEasedState("rawTime"));
     var zoom   = this.getEasedState("zoom");
-    this._painter.update(canvas, left, top, time, zoom);
+    this._painter.update(left, top, time, zoom);
+  },
+  
+  onScroll: function (event) {
+    if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
+      var frame = r.domNode(this);
+      var zoom  = this.getEasedState("zoom");
+      this.setState({
+          left: frame.scrollLeft / compute.spaceWidth(zoom),
+          top:  frame.scrollTop / compute.spaceHeight(zoom)
+        });
+    }
   },
   
   onResize: function (event) {

@@ -29,7 +29,8 @@ function _paintTileLabels(c, zoom, firstVisibleLocalX, firstVisibleLocalY, lastV
 }
 
 
-function Painter(callbacks) {
+function Painter(canvas, callbacks) {
+  this._canvas = canvas;
   this._callbacks = callbacks;
   this._tileBordersPath = null;
   this._pendingPaint = false;
@@ -80,7 +81,8 @@ Painter.prototype = {
     }
   },
 
-  _paint: function (canvas, left, top, time, zoom) {
+  _paint: function (left, top, time, zoom) {
+    var canvas = this._canvas;
     var width  = canvas.clientWidth;
     var height = canvas.clientHeight;
     var devicePixelRatio = window.devicePixelRatio;
@@ -124,11 +126,11 @@ Painter.prototype = {
     this._pendingPaint = false;
   },
 
-  update: function (canvas, left, top, time, zoom) {
+  update: function (left, top, time, zoom) {
     if (!this._pendingPaint) {
       this._pendingPaint = true;
       requestAnimationFrame(function () {
-          this._paint(canvas, left, top, time, zoom);
+          this._paint(left, top, time, zoom);
         }.bind(this));
     }
   }
