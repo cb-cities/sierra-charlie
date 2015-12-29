@@ -54,17 +54,25 @@ module.exports = {
 
   componentDidMount: function () {
     this._geometryLoader = new GeometryLoader({
-        onTileLoad: function (tileId, tileData) {
+        onTileLoad: function () {
           var canvas = r.domNode(this).firstChild;
-          this._renderer.update(canvas, this.left, this.top, this.time, this.zoom);
-          this._painter.update(canvas, this.left, this.top, this.time, this.zoom);
+          var left   = this.getEasedState("left");
+          var top    = this.getEasedState("top");
+          var time   = compute.time(this.getEasedState("rawTime"));
+          var zoom   = this.getEasedState("zoom");
+          this._renderer.update(canvas, left, top, time, zoom);
+          this._painter.update(canvas, left, top, time, zoom);
         }.bind(this),
       });
     this._renderer = new Renderer({
         getLoadedTile: this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
-        onImageRender: function (imageId) {
+        onImageRender: function () {
           var canvas = r.domNode(this).firstChild;
-          this._painter.update(canvas, this.left, this.top, this.time, this.zoom);
+          var left   = this.getEasedState("left");
+          var top    = this.getEasedState("top");
+          var time   = compute.time(this.getEasedState("rawTime"));
+          var zoom   = this.getEasedState("zoom");
+          this._painter.update(canvas, left, top, time, zoom);
         }.bind(this)
       });
     this._painter = new Painter({
@@ -74,15 +82,11 @@ module.exports = {
     var frame  = r.domNode(this);
     var canvas = frame.firstChild;
     frame.addEventListener("scroll", this.onScroll);
-    this.left = this.getEasedState("left");
-    this.top  = this.getEasedState("top");
-    this.time = compute.time(this.getEasedState("rawTime"));
-    this.zoom = this.getEasedState("zoom");
-    frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
-    frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
-    this._geometryLoader.update(this.left, this.top);
-    this._renderer.update(canvas, this.left, this.top, this.time, this.zoom);
-    this._painter.update(canvas, this.left, this.top, this.time, this.zoom);
+    frame.scrollLeft = compute.scrollLeft(this.state.left, this.state.zoom);
+    frame.scrollTop  = compute.scrollTop(this.state.top, this.state.zoom);
+    this._geometryLoader.update(this.state.left, this.state.top);
+    this._renderer.update(canvas, this.state.left, this.state.top, compute.time(this.state.rawTime), this.state.zoom);
+    this._painter.update(canvas, this.state.left, this.state.top, compute.time(this.state.rawTime), this.state.zoom);
   },
 
   componentDidUpdate: function () {
@@ -92,23 +96,24 @@ module.exports = {
   update: function () {
     var frame  = r.domNode(this);
     var canvas = frame.firstChild;
-    this.left = this.getEasedState("left");
-    this.top  = this.getEasedState("top");
-    this.time = compute.time(this.getEasedState("rawTime"));
-    this.zoom = this.getEasedState("zoom");
-    frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
-    frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
-    this._geometryLoader.update(this.left, this.top);
-    this._renderer.update(canvas, this.left, this.top, this.time, this.zoom);
-    this._painter.update(canvas, this.left, this.top, this.time, this.zoom);
+    var left   = this.getEasedState("left");
+    var top    = this.getEasedState("top");
+    var time   = compute.time(this.getEasedState("rawTime"));
+    var zoom   = this.getEasedState("zoom");
+    frame.scrollLeft = compute.scrollLeft(left, zoom);
+    frame.scrollTop  = compute.scrollTop(top, zoom);
+    this._geometryLoader.update(left, top);
+    this._renderer.update(canvas, left, top, time, zoom);
+    this._painter.update(canvas, left, top, time, zoom);
   },
 
   onScroll: function (event) {
     if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
       var frame = r.domNode(this);
+      var zoom  = this.getEasedState("zoom");
       this.setState({
-          left: frame.scrollLeft / compute.spaceWidth(this.zoom),
-          top:  frame.scrollTop / compute.spaceHeight(this.zoom)
+          left: frame.scrollLeft / compute.spaceWidth(zoom),
+          top:  frame.scrollTop / compute.spaceHeight(zoom)
         });
     }
   },
@@ -116,8 +121,8 @@ module.exports = {
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
     var canvas = r.domNode(this).firstChild;
-    var left = compute.fromClientX(event.clientX, canvas.clientWidth, this.left, this.zoom);
-    var top  = compute.fromClientY(event.clientY, canvas.clientHeight, this.top, this.zoom);
+    var left = compute.fromClientX(event.clientX, canvas.clientWidth, this.state.left, this.state.zoom);
+    var top  = compute.fromClientY(event.clientY, canvas.clientHeight, this.state.top, this.state.zoom);
     var delay = !event.shiftKey ? 500 : 2500;
     this.setLeft(left, delay);
     this.setTop(top, delay);
@@ -129,7 +134,7 @@ module.exports = {
   },
 
   render: function () {
-    var zoom = this.zoom !== undefined ? this.zoom : this.state.zoom;
+    var zoom = this.getEasedState("zoom");
     return (
       r.div("map-frame",
         r.canvas("map-canvas"),

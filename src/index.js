@@ -24,8 +24,8 @@ addEventListener("resize", function (event) {
 addEventListener("keydown", function (event) {
     // console.log("keyDown", event.keyCode);
     var canvas = r.domNode(this).firstChild;
-    var pageWidth  = compute.pageWidth(canvas.clientWidth, this.zoom);
-    var pageHeight = compute.pageHeight(canvas.clientHeight, this.zoom);
+    var pageWidth  = compute.pageWidth(canvas.clientWidth, this.state.zoom);
+    var pageHeight = compute.pageHeight(canvas.clientHeight, this.state.zoom);
     var delay = event.shiftKey ? 2500 : 500;
     var timeDelta = (event.ctrlKey || event.altKey) ? 60 : 3600;
     var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10;
