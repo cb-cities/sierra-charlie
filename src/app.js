@@ -140,8 +140,8 @@ module.exports = {
 
   importScrollPosition: function () {
     this.setState({
-        leftSignal: this.node.scrollLeft / this.easedWidth,
-        topSignal:  this.node.scrollTop / this.easedHeight
+        leftSignal: this.node.scrollLeft / compute.spaceWidth(this.easedZoomSignal),
+        topSignal:  this.node.scrollTop / compute.spaceHeight(this.easedZoomSignal)
       });
   },
 
@@ -150,17 +150,17 @@ module.exports = {
     this.easedTopSignal           = this.getEasedState("topSignal");
     this.easedTimeSignal          = compute.time(this.getEasedState("rawTimeSignal"));
     this.easedZoomSignal          = this.getEasedState("zoomSignal");
-    this.easedImageSize           = compute.imageSize(this.easedZoomSignal);
-    this.easedWidth               = defs.tileXCount * this.easedImageSize;
-    this.easedHeight              = defs.tileYCount * this.easedImageSize;
-    this.scrollLeftSignal         = Math.floor(this.easedLeftSignal * this.easedWidth - this.canvas.clientWidth / 2);
-    this.scrollTopSignal          = Math.floor(this.easedTopSignal * this.easedHeight - this.canvas.clientHeight / 2);
+    this.scrollLeftSignal         = Math.floor(this.easedLeftSignal * compute.spaceWidth(this.easedZoomSignal) - this.canvas.clientWidth / 2);
+    this.scrollTopSignal          = Math.floor(this.easedTopSignal * compute.spaceHeight(this.easedZoomSignal) - this.canvas.clientHeight / 2);
     this.localXSignal             = Math.floor(this.easedLeftSignal * defs.tileXCount);
     this.localYSignal             = Math.floor(this.easedTopSignal * defs.tileYCount);
-    this.firstVisibleLocalXSignal = defs.clampLocalX(Math.floor(this.scrollLeftSignal / this.easedImageSize));
-    this.firstVisibleLocalYSignal = defs.clampLocalY(Math.floor(this.scrollTopSignal / this.easedImageSize));
-    this.lastVisibleLocalXSignal  = defs.clampLocalX(Math.floor((this.scrollLeftSignal + this.canvas.clientWidth - 1) / this.easedImageSize));
-    this.lastVisibleLocalYSignal  = defs.clampLocalY(Math.floor((this.scrollTopSignal + this.canvas.clientHeight - 1) / this.easedImageSize));
+    
+    var imageSize                 = compute.imageSize(this.easedZoomSignal);
+    this.firstVisibleLocalXSignal = defs.clampLocalX(Math.floor(this.scrollLeftSignal / imageSize));
+    this.firstVisibleLocalYSignal = defs.clampLocalY(Math.floor(this.scrollTopSignal / imageSize));
+    this.lastVisibleLocalXSignal  = defs.clampLocalX(Math.floor((this.scrollLeftSignal + this.canvas.clientWidth - 1) / imageSize));
+    this.lastVisibleLocalYSignal  = defs.clampLocalY(Math.floor((this.scrollTopSignal + this.canvas.clientHeight - 1) / imageSize));
+    
     var groupCount                = compute.groupCount(this.easedZoomSignal);
     this.firstVisibleGroupX       = Math.floor(this.firstVisibleLocalXSignal / groupCount) * groupCount;
     this.firstVisibleGroupY       = Math.floor(this.firstVisibleLocalYSignal / groupCount) * groupCount;
@@ -169,15 +169,15 @@ module.exports = {
   },
 
   exportScrollPosition: function () {
-    this.node.scrollLeft = Math.floor(this.easedLeftSignal * this.easedWidth);
-    this.node.scrollTop  = Math.floor(this.easedTopSignal * this.easedHeight);
+    this.node.scrollLeft = Math.floor(this.easedLeftSignal * compute.spaceWidth(this.easedZoomSignal));
+    this.node.scrollTop  = Math.floor(this.easedTopSignal * compute.spaceHeight(this.easedZoomSignal));
   },
 
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
     var delay = !event.shiftKey ? 500 : 2500;
-    var left = (this.scrollLeftSignal + event.clientX) / this.easedWidth;
-    var top  = (this.scrollTopSignal + event.clientY) / this.easedHeight;
+    var left = (this.scrollLeftSignal + event.clientX) / compute.spaceWidth(this.easedZoomSignal);
+    var top  = (this.scrollTopSignal + event.clientY) / compute.spaceHeight(this.easedZoomSignal);
     this.easeLeft(Math.max(0, Math.min(left, 1)), delay);
     this.easeTop(Math.max(0, Math.min(top, 1)), delay);
     if (!event.altKey) {
@@ -194,8 +194,8 @@ module.exports = {
         r.div({
             className: "map-space",
             style: {
-              width:  this.easedWidth,
-              height: this.easedHeight
+              width:  compute.spaceWidth(this.easedZoomSignal),
+              height: compute.spaceHeight(this.easedZoomSignal)
             },
             onDoubleClick: this.onDoubleClick
           })));
