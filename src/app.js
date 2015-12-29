@@ -17,11 +17,27 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      left:    0.4897637424698795,
-      top:     0.4768826844262295,
-      rawTime: 10 + 9 / 60,
-      zoom:    4
+      width:      100,
+      height:     100,
+      pixelRatio: window.devicePixelRatio,
+      left:       0.4897637424698795,
+      top:        0.4768826844262295,
+      rawTime:    10 + 9 / 60,
+      zoom:       4
     };
+  },
+  
+  setSize: function (width, height) {
+    this.setState({
+        width:  width,
+        height: height
+      });
+  },
+  
+  setPixelRatio: function (pixelRatio) {
+    this.setState({
+        pixelRatio: pixelRatio
+      });
   },
 
   setLeft: function (left, duration) {
@@ -54,26 +70,11 @@ module.exports = {
 
   componentDidMount: function () {
     this._geometryLoader = new GeometryLoader({
-        onTileLoad: function () {
-          var canvas = r.domNode(this).firstChild;
-          var left   = this.getEasedState("left");
-          var top    = this.getEasedState("top");
-          var time   = compute.time(this.getEasedState("rawTime"));
-          var zoom   = this.getEasedState("zoom");
-          this._renderer.update(canvas, left, top, time, zoom);
-          this._painter.update(canvas, left, top, time, zoom);
-        }.bind(this),
+        onTileLoad: this.onTileLoad
       });
     this._renderer = new Renderer({
         getLoadedTile: this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
-        onImageRender: function () {
-          var canvas = r.domNode(this).firstChild;
-          var left   = this.getEasedState("left");
-          var top    = this.getEasedState("top");
-          var time   = compute.time(this.getEasedState("rawTime"));
-          var zoom   = this.getEasedState("zoom");
-          this._painter.update(canvas, left, top, time, zoom);
-        }.bind(this)
+        onImageRender: this.onImageRender
       });
     this._painter = new Painter({
         getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
@@ -92,12 +93,27 @@ module.exports = {
     matchMedia("screen and (min-resolution: 2dppx)").addListener(this.onRescale);
     addEventListener("keydown", this.onKeyDown);
   },
-
-  componentDidUpdate: function () {
-    this.update();
+  
+  onTileLoad: function () {
+    var canvas = r.domNode(this).firstChild;
+    var left   = this.getEasedState("left");
+    var top    = this.getEasedState("top");
+    var time   = compute.time(this.getEasedState("rawTime"));
+    var zoom   = this.getEasedState("zoom");
+    this._renderer.update(canvas, left, top, time, zoom);
+    this._painter.update(canvas, left, top, time, zoom);
+  },
+  
+  onImageRender: function () {
+    var canvas = r.domNode(this).firstChild;
+    var left   = this.getEasedState("left");
+    var top    = this.getEasedState("top");
+    var time   = compute.time(this.getEasedState("rawTime"));
+    var zoom   = this.getEasedState("zoom");
+    this._painter.update(canvas, left, top, time, zoom);
   },
 
-  update: function () {
+  componentDidUpdate: function () {
     var frame  = r.domNode(this);
     var canvas = frame.firstChild;
     var left   = this.getEasedState("left");
@@ -138,12 +154,13 @@ module.exports = {
   },
   
   onResize: function (event) {
-    this.update();
+    var canvas = r.domNode(this).firstChild;
+    this.setSize(canvas.clientWidth, canvas.clientHeight);
   },
   
   onRescale: function (event) {
     console.log("window.devicePixelRatio:", window.devicePixelRatio);
-    this.update();
+    this.setPixelRatio(window.devicePixelRatio);
   },
 
   onDoubleClick: function (event) {
