@@ -148,8 +148,8 @@ module.exports = {
 
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var left = compute.fromClientX(event.clientX, this.easedLeftSignal, this.easedZoomSignal, this.canvas.clientWidth);
-    var top  = compute.fromClientY(event.clientY, this.easedTopSignal, this.easedZoomSignal, this.canvas.clientHeight);
+    var left = compute.fromClientX(event.clientX, this.canvas.clientWidth, this.easedLeftSignal, this.easedZoomSignal);
+    var top  = compute.fromClientY(event.clientY, this.canvas.clientHeight, this.easedTopSignal, this.easedZoomSignal);
     var delay = !event.shiftKey ? 500 : 2500;
     this.easeLeft(left, delay);
     this.easeTop(top, delay);

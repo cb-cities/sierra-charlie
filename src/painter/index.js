@@ -97,16 +97,16 @@ Painter.prototype = {
     c.save();
     c.fillStyle = defs.backgroundColor;
     c.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-    var moveLeft = compute.moveLeft(state.left, state.easedZoom, canvas.clientWidth);
-    var moveTop  = compute.moveTop(state.top, state.easedZoom, canvas.clientHeight);
-    c.translate(-moveLeft, -moveTop);
+    var scrollLeftAndHalf = compute.scrollLeftAndHalf(canvas.clientWidth, state.left, state.easedZoom);
+    var scrollTopAndHalf  = compute.scrollTopAndHalf(canvas.clientHeight, state.top, state.easedZoom);
+    c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     var scaleRatio = compute.scaleRatio(state.easedZoom);
     c.scale(scaleRatio, scaleRatio);
-    var firstVisibleLocalX = compute.firstVisibleLocalX(state.left, state.easedZoom, canvas.clientWidth);
-    var firstVisibleLocalY = compute.firstVisibleLocalY(state.top, state.easedZoom, canvas.clientHeight);
-    var lastVisibleLocalX  = compute.lastVisibleLocalX(state.left, state.easedZoom, canvas.clientWidth);
-    var lastVisibleLocalY  = compute.lastVisibleLocalY(state.top, state.easedZoom, canvas.clientHeight);
+    var firstVisibleLocalX = compute.firstVisibleLocalX(canvas.clientWidth, state.left, state.easedZoom);
+    var firstVisibleLocalY = compute.firstVisibleLocalY(canvas.clientHeight, state.top, state.easedZoom);
+    var lastVisibleLocalX  = compute.lastVisibleLocalX(canvas.clientWidth, state.left, state.easedZoom);
+    var lastVisibleLocalY  = compute.lastVisibleLocalY(canvas.clientHeight, state.top, state.easedZoom);
     if (state.easedZoom < 3) {
       c.globalAlpha = 1 - (state.easedZoom - 2);
       _paintTileLabels(c, state.easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
@@ -115,7 +115,7 @@ Painter.prototype = {
     this._paintTileBorders(c, state.easedZoom);
     c.restore();
     c.save();
-    c.translate(-moveLeft, -moveTop);
+    c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
     c.scale(scaleRatio, scaleRatio);
     this._paintTileContents(c, state.easedTime, state.easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
     c.restore();

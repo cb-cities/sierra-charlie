@@ -51,6 +51,14 @@ var _ = module.exports = {
     return defs.tileYCount * _.imageSize(zoom);
   },
   
+  pageWidth: function (clientWidth, zoom) {
+    return clientWidth / _.spaceWidth(zoom);
+  },
+  
+  pageHeight: function (clientHeight, zoom) {
+    return clientHeight / _.spaceHeight(zoom);
+  },
+  
   scrollLeft: function (left, zoom) {
     return Math.floor(left * _.spaceWidth(zoom));
   },
@@ -59,36 +67,36 @@ var _ = module.exports = {
     return Math.floor(top * _.spaceHeight(zoom));
   },
   
-  moveLeft: function (left, zoom, clientWidth) {
+  scrollLeftAndHalf: function (clientWidth, left, zoom) {
     return Math.floor(left * _.spaceWidth(zoom) - clientWidth / 2);
   },
   
-  moveTop: function (top, zoom, clientHeight) {
+  scrollTopAndHalf: function (clientHeight, top, zoom) {
     return Math.floor(top * _.spaceHeight(zoom) - clientHeight / 2);
   },
   
-  firstVisibleLocalX: function (left, zoom, clientWidth) {
-    return clampLocalX(Math.floor(_.moveLeft(left, zoom, clientWidth) / _.imageSize(zoom)));
+  firstVisibleLocalX: function (clientWidth, left, zoom) {
+    return clampLocalX(Math.floor(_.scrollLeftAndHalf(clientWidth, left, zoom) / _.imageSize(zoom)));
   },
   
-  firstVisibleLocalY: function (top, zoom, clientHeight) {
-    return clampLocalY(Math.floor(_.moveTop(top, zoom, clientHeight) / _.imageSize(zoom)));
+  firstVisibleLocalY: function (clientHeight, top, zoom) {
+    return clampLocalY(Math.floor(_.scrollTopAndHalf(clientHeight, top, zoom) / _.imageSize(zoom)));
   },
   
-  lastVisibleLocalX: function (left, zoom, clientWidth) {
-    return clampLocalX(Math.floor((_.moveLeft(left, zoom, clientWidth) + clientWidth - 1) / _.imageSize(zoom)));
+  lastVisibleLocalX: function (clientWidth, left, zoom) {
+    return clampLocalX(Math.floor((_.scrollLeftAndHalf(clientWidth, left, zoom) + clientWidth - 1) / _.imageSize(zoom)));
   },
   
-  lastVisibleLocalY: function (top, zoom, clientHeight) {
-    return clampLocalY(Math.floor((_.moveTop(top, zoom, clientHeight) + clientHeight - 1) / _.imageSize(zoom)));
+  lastVisibleLocalY: function (clientHeight, top, zoom) {
+    return clampLocalY(Math.floor((_.scrollTopAndHalf(clientHeight, top, zoom) + clientHeight - 1) / _.imageSize(zoom)));
   },
   
-  fromClientX: function (clientX, left, zoom, clientWidth) {
-    return clampF((_.moveLeft(left, zoom, clientWidth) + clientX) / _.spaceWidth(zoom));
+  fromClientX: function (clientX, clientWidth, left, zoom) {
+    return clampF((_.scrollLeftAndHalf(clientWidth, left, zoom) + clientX) / _.spaceWidth(zoom));
   },
   
-  fromClientY: function (clientY, top, zoom, clientHeight) {
-    return clampF((_.moveTop(top, zoom, clientHeight) + clientY) / _.spaceHeight(zoom));
+  fromClientY: function (clientY, clientHeight, top, zoom) {
+    return clampF((_.scrollTopAndHalf(clientHeight, top, zoom) + clientY) / _.spaceHeight(zoom));
   },
   
   textMargin: function (zoom) {
