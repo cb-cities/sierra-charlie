@@ -17,8 +17,6 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      width:   0,
-      height:  0,
       left:    0.4897637424698795,
       top:     0.4768826844262295,
       rawTime: 10 + 9 / 60,
@@ -27,34 +25,39 @@ module.exports = {
   },
   
   setLeft: function (left, duration) {
-    this.easingLeft = true;
+    this.ignoreScroll++;
     this.easeState("left", left, duration, function () {
-        this.easingLeft = false;
+        this.ignoreScroll--;
       }.bind(this));
   },
  
   setTop: function (top, duration) {
-    this.easingTop = true;
+    this.ignoreScroll++;
     this.easeState("top", top, duration, function () {
-        this.easingTop = false;
+        this.ignoreScroll--;
       }.bind(this));
   },
 
   setRawTime: function (rawTime, duration) {
-    this.easingRawTime = true;
-    this.easeState("rawTime", rawTime, duration, function () {
-        this.easingRawTime = false;
-      }.bind(this));
+    this.easeState("rawTime", rawTime, duration);
   },
 
   setZoom: function (zoom, duration) {
-    this.easingZoom = true;
+    this.ignoreScroll++;
     this.easeState("zoom", zoom, duration, function () {
-        this.easingZoom = false;
+        this.ignoreScroll--;
       }.bind(this));
+  },
+  
+  updateFrame: function (left, top, zoom) {
+    var frame = r.domNode(this);
+    frame.scrollLeft = compute.scrollLeft(left, zoom);
+    frame.scrollTop  = compute.scrollTop(top, zoom);
   },
 
   componentDidMount: function () {
+    this.ignoreScroll = 0;
+    
     this._geometryLoader = new GeometryLoader({
         onTileLoad: this.onTileLoad
       });
@@ -64,18 +67,17 @@ module.exports = {
         onImageRender: this.onImageRender
       });
 
-    var frame = r.domNode(this);
-    frame.addEventListener("scroll", this.onScroll);
-    
+    var frame  = r.domNode(this);
     var canvas = frame.firstChild;
     this._painter = new Painter(canvas, {
         getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
       });
 
+    frame.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
 
-    this.forceUpdate(); // In lieu of this.setSize
+    this.updateFrame(this.state.left, this.state.top, this.state.zoom);
   },
   
   render: function () {
@@ -102,8 +104,9 @@ module.exports = {
     var top    = this.getEasedState("top");
     var time   = compute.time(this.getEasedState("rawTime"));
     var zoom   = this.getEasedState("zoom");
-    frame.scrollLeft = compute.scrollLeft(left, zoom);
-    frame.scrollTop  = compute.scrollTop(top, zoom);
+    
+    this.updateFrame(left, top, zoom);
+    
     this._geometryLoader.update(left, top);
     this._renderer.update(width, height, left, top, time, zoom);
     this._painter.update(left, top, time, zoom);
@@ -117,6 +120,7 @@ module.exports = {
     var top    = this.getEasedState("top");
     var time   = compute.time(this.getEasedState("rawTime"));
     var zoom   = this.getEasedState("zoom");
+    
     this._renderer.update(width, height, left, top, time, zoom);
     this._painter.update(left, top, time, zoom);
   },
@@ -127,11 +131,12 @@ module.exports = {
     var top    = this.getEasedState("top");
     var time   = compute.time(this.getEasedState("rawTime"));
     var zoom   = this.getEasedState("zoom");
+    
     this._painter.update(left, top, time, zoom);
   },
   
   onScroll: function (event) {
-    if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
+    if (!this.ignoreScroll) {
       var frame = r.domNode(this);
       var zoom  = this.getEasedState("zoom");
       this.setState({
@@ -142,7 +147,7 @@ module.exports = {
   },
   
   onResize: function (event) {
-    this.forceUpdate(); // In lieu of this.setSize()
+    // this.forceUpdate(); // In lieu of this.setSize()
   },
 
   onKeyDown: function (event) {
