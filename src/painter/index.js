@@ -29,9 +29,9 @@ function _paintTileLabels(c, zoom, firstVisibleLocalX, firstVisibleLocalY, lastV
 }
 
 
-function Painter(canvas, callbacks) {
+function Painter(canvas, props) {
   this._canvas = canvas;
-  this._callbacks = callbacks;
+  this._props = props;
   this._tileBordersPath = null;
   this._pendingPaint = false;
 }
@@ -73,7 +73,7 @@ Painter.prototype = {
       for (var gy = firstVisibleGroupY; gy <= lastVisibleGroupY; gy += groupCount) {
         var gdy = gy * defs.imageSize;
         var groupId = iid.fromLocal(gx, gy, Math.floor(time), Math.round(zoom));
-        var canvas = this._callbacks.getRenderedGroup(groupId);
+        var canvas = this._props.getRenderedGroup(groupId);
         if (canvas) {
           c.drawImage(canvas, gdx, gdy, groupSize, groupSize);
         }
@@ -126,11 +126,12 @@ Painter.prototype = {
     this._pendingPaint = false;
   },
 
-  update: function (left, top, time, zoom) {
+  update: function () {
     if (!this._pendingPaint) {
+      var state = this._props.getDerivedState();
       this._pendingPaint = true;
       requestAnimationFrame(function () {
-          this._paint(left, top, time, zoom);
+          this._paint(state.left, state.top, state.time, state.zoom);
         }.bind(this));
     }
   }

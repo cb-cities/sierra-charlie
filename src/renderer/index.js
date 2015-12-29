@@ -33,8 +33,8 @@ function _renderRoadNodes(c, time, zoom, tileData) {
 }
 
 
-function Renderer(callbacks) {
-  this._callbacks = callbacks;
+function Renderer(props) {
+  this._props = props;
   this._localSource = new BoundedSpiral(0, 0, defs.tileXCount - 1, defs.tileYCount - 1);
   this._floorTime = null;
   this._floorZoom = null;
@@ -94,7 +94,7 @@ Renderer.prototype = {
 
   _renderImage: function (imageId) {
     var tileId     = iid.toTileId(imageId);
-    var tileData   = this._callbacks.getLoadedTile(tileId);
+    var tileData   = this._props.getLoadedTile(tileId);
     var time       = iid.getTime(imageId);
     var zoom       = iid.getZoom(imageId);
     var imageSize  = window.devicePixelRatio * compute.imageSize(zoom);
@@ -128,7 +128,7 @@ Renderer.prototype = {
         return null;
       }
       var tileId = tid.fromLocal(local.x, local.y);
-      if (this._callbacks.getLoadedTile(tileId)) {
+      if (this._props.getLoadedTile(tileId)) {
         var imageId = iid.fromTileId(tileId, this._floorTime, this._floorZoom);
         if (!(this.getRenderedImage(imageId))) {
           return imageId;
@@ -141,7 +141,7 @@ Renderer.prototype = {
     var pendingImageId = this._getNextImageIdToRender();
     if (pendingImageId) {
       this._renderImage(pendingImageId);
-      this._callbacks.onImageRender(pendingImageId);
+      this._props.onImageRender(pendingImageId);
       this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
     } else {
       this._pendingRender = null;
@@ -152,17 +152,18 @@ Renderer.prototype = {
     return this._getRenderedImageCount(this._floorTime, this._floorZoom) === defs.maxTileCount;
   },
 
-  update: function (width, height, left, top, time, zoom) {
-    this._floorTime = Math.floor(time);
-    this._floorZoom = Math.floor(zoom);
+  update: function () {
+    var state = this._props.getDerivedState();
+    this._floorTime = Math.floor(state.time);
+    this._floorZoom = Math.floor(state.zoom);
     if (!this._isFinished()) {
       this._localSource.resetBounds(
-        compute.firstVisibleLocalX(width, left, zoom),
-        compute.firstVisibleLocalY(height, top, zoom),
-        compute.lastVisibleLocalX(width, left, zoom),
-        compute.lastVisibleLocalY(height, top, zoom),
-        compute.localX(left),
-        compute.localY(top));
+        compute.firstVisibleLocalX(state.width, state.left, state.zoom),
+        compute.firstVisibleLocalY(state.height, state.top, state.zoom),
+        compute.lastVisibleLocalX(state.width, state.left, state.zoom),
+        compute.lastVisibleLocalY(state.height, state.top, state.zoom),
+        compute.localX(state.left),
+        compute.localY(state.top));
       if (!this._pendingRender) {
         this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
       }

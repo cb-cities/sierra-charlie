@@ -25,16 +25,16 @@ module.exports = {
   },
   
   setLeft: function (left, duration) {
-    this.ignoreScroll++;
+    this.easingLeft = true;
     this.easeState("left", left, duration, function () {
-        this.ignoreScroll--;
+        this.easingLeft = false;
       }.bind(this));
   },
  
   setTop: function (top, duration) {
-    this.ignoreScroll++;
+    this.easingTop = true;
     this.easeState("top", top, duration, function () {
-        this.ignoreScroll--;
+        this.easingTop = false;
       }.bind(this));
   },
 
@@ -43,9 +43,9 @@ module.exports = {
   },
 
   setZoom: function (zoom, duration) {
-    this.ignoreScroll++;
+    this.easingZoom = true;
     this.easeState("zoom", zoom, duration, function () {
-        this.ignoreScroll--;
+        this.easingZoom = false;
       }.bind(this));
   },
   
@@ -68,22 +68,22 @@ module.exports = {
     frame.scrollTop  = compute.scrollTop(top, zoom);
   },
 
-  componentDidMount: function () {
-    this.ignoreScroll = 0;
-    
+  componentDidMount: function () {    
     this._geometryLoader = new GeometryLoader({
         getDerivedState: this.getDerivedState,
         onTileLoad:      this.onTileLoad
       });
       
     this._renderer = new Renderer({
-        getLoadedTile: this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
-        onImageRender: this.onImageRender
+        getDerivedState: this.getDerivedState,
+        getLoadedTile:   this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
+        onImageRender:   this.onImageRender
       });
 
     var frame  = r.domNode(this);
     var canvas = frame.firstChild;
     this._painter = new Painter(canvas, {
+        getDerivedState:  this.getDerivedState,
         getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
       });
 
@@ -150,7 +150,7 @@ module.exports = {
   },
   
   onScroll: function (event) {
-    if (!this.ignoreScroll) {
+    if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
       var frame = r.domNode(this);
       var zoom  = this.getEasedState("zoom");
       this.setState({
