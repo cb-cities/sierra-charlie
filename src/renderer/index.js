@@ -4,11 +4,11 @@ var BoundedSpiral = require("../lib/bounded-spiral");
 var defs = require("../defs");
 var iid = require("../lib/image-id");
 var tid = require("../lib/tile-id");
+var tmp = require("../tmp");
 
 
 function _renderRoadLinks(c, time, zoom, tileData) {
-  var zoomLevel = Math.pow(2, zoom);
-  c.lineWidth = 4 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
+  c.lineWidth = tmp.computeRoadLinkLineWidth(zoom);
   c.strokeStyle = "#666";
   for (var i = 0; i < tileData.roadLinks.length; i++) {
     var roadLink = tileData.roadLinks[i];
@@ -23,9 +23,8 @@ function _renderRoadLinks(c, time, zoom, tileData) {
 }
 
 function _renderRoadNodes(c, time, zoom, tileData) {
-  var zoomLevel = Math.pow(2, zoom);
-  var nodeSize = 8 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
-  c.lineWidth = 2 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
+  var nodeSize = tmp.computeRoadNodeSquareSize(zoom);
+  c.lineWidth = tmp.computeRoadNodeLineWidth(zoom);
   c.strokeStyle = "#999";
   for (var i = 0; i < tileData.roadNodes.length; i++) {
     var p = tileData.roadNodes[i].p;
@@ -37,8 +36,8 @@ function _renderRoadNodes(c, time, zoom, tileData) {
 function Renderer(callbacks) {
   this._callbacks = callbacks;
   this._localSource = new BoundedSpiral(0, 0, defs.tileXCount - 1, defs.tileYCount - 1);
-  this._floorTimeSignal = null;
-  this._floorZoomSignal = null;
+  this._floorTime = null;
+  this._floorZoom = null;
   this._pendingRender = null;
   this._renderedImages = {};
   this._renderedImageCount = [];
@@ -94,18 +93,17 @@ Renderer.prototype = {
   },
 
   _renderImage: function (imageId) {
-    var tileId = iid.toTileId(imageId);
-    var tileData = this._callbacks.getLoadedTile(tileId);
-    var time  = iid.getTime(imageId);
-    var zoom  = iid.getZoom(imageId);
-    var zoomLevel  = Math.pow(2, zoom);
-    var groupCount = zoomLevel;
-    var imageSize  = window.devicePixelRatio * defs.imageSize / zoomLevel;
+    var tileId     = iid.toTileId(imageId);
+    var tileData   = this._callbacks.getLoadedTile(tileId);
+    var time       = iid.getTime(imageId);
+    var zoom       = iid.getZoom(imageId);
+    var imageSize  = window.devicePixelRatio * tmp.computeImageSize(zoom);
+    var groupCount = tmp.computeGroupCount(zoom);
     var groupSize  = imageSize * groupCount;
-    var gx = Math.floor(iid.getLocalX(imageId) / groupCount) * groupCount;
-    var gy = Math.floor(iid.getLocalY(imageId) / groupCount) * groupCount;
-    var groupId = iid.fromLocal(gx, gy, time, zoom);
-    var canvas = this.getRenderedGroup(groupId);
+    var gx         = Math.floor(iid.getLocalX(imageId) / groupCount) * groupCount;
+    var gy         = Math.floor(iid.getLocalY(imageId) / groupCount) * groupCount;
+    var groupId    = iid.fromLocal(gx, gy, time, zoom);
+    var canvas     = this.getRenderedGroup(groupId);
     var c;
     if (!canvas) {
       canvas = document.createElement("canvas");
@@ -131,7 +129,7 @@ Renderer.prototype = {
       }
       var tileId = tid.fromLocal(local.x, local.y);
       if (this._callbacks.getLoadedTile(tileId)) {
-        var imageId = iid.fromTileId(tileId, this._floorTimeSignal, this._floorZoomSignal);
+        var imageId = iid.fromTileId(tileId, this._floorTime, this._floorZoom);
         if (!(this.getRenderedImage(imageId))) {
           return imageId;
         }
@@ -151,12 +149,12 @@ Renderer.prototype = {
   },
   
   _isFinished: function () {
-    return this._getRenderedImageCount(this._floorTimeSignal, this._floorZoomSignal) === defs.maxTileCount;
+    return this._getRenderedImageCount(this._floorTime, this._floorZoom) === defs.maxTileCount;
   },
 
   update: function (state) {
-    this._floorTimeSignal = state.floorTimeSignal;
-    this._floorZoomSignal = state.floorZoomSignal;
+    this._floorTime = Math.floor(state.easedTimeSignal);
+    this._floorZoom = Math.floor(state.easedZoomSignal);
     if (!this._isFinished()) {
       this._localSource.resetBounds(
         state.firstVisibleLocalXSignal,

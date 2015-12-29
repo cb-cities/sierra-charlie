@@ -7,24 +7,7 @@ var Renderer = require("./renderer");
 var r = require("react-wrapper");
 var defs = require("./defs");
 var easeStateMixin = require("./ease-state-mixin");
-
-
-function computeTimeSignal(easedRawTimeSignal) {
-  return (
-    easedRawTimeSignal >= 0 ?
-      Math.round((easedRawTimeSignal * 3600) % (24 * 3600)) / 3600 :
-      24 - Math.round((-easedRawTimeSignal * 3600) % (24 * 3600)) / 3600);
-}
-
-function computeTimeSlice(time) {
-  return (
-    (time >=  8 && time < 10) ? 1 :
-    (time >= 10 && time < 13) ? 2 :
-    (time >= 13 && time < 16) ? 3 :
-    (time >= 16 && time < 19) ? 4 :
-    (time >= 19 && time < 21) ? 5 :
-    0);
-}
+var tmp = require("./tmp");
 
 
 module.exports = {
@@ -82,8 +65,8 @@ module.exports = {
         firstVisibleLocalYSignal: this.firstVisibleLocalYSignal,
         lastVisibleLocalXSignal:  this.lastVisibleLocalXSignal,
         lastVisibleLocalYSignal:  this.lastVisibleLocalYSignal,
-        floorTimeSignal:          this.floorTimeSignal,
-        floorZoomSignal:          this.floorZoomSignal
+        easedTimeSignal:          this.easedTimeSignal,
+        easedZoomSignal:          this.easedZoomSignal
       });
   },
   
@@ -96,10 +79,8 @@ module.exports = {
         firstVisibleLocalYSignal: this.firstVisibleLocalYSignal,
         lastVisibleLocalXSignal:  this.lastVisibleLocalXSignal,
         lastVisibleLocalYSignal:  this.lastVisibleLocalYSignal,
-        floorTimeSignal:          this.floorTimeSignal,
-        roundZoomSignal:          this.roundZoomSignal,
+        easedTimeSignal:          this.easedTimeSignal,
         easedZoomSignal:          this.easedZoomSignal,
-        easedZoomLevel:           this.easedZoomLevel,
         groupCount:               this.groupCount,
         groupSize:                this.groupSize,
         firstVisibleGroupX:       this.firstVisibleGroupX,
@@ -169,16 +150,10 @@ module.exports = {
   computeDerivedState: function () {
     this.easedLeftSignal          = this.getEasedState("leftSignal");
     this.easedTopSignal           = this.getEasedState("topSignal");
-    this.easedTimeSignal          = computeTimeSignal(this.getEasedState("rawTimeSignal"));
+    this.easedTimeSignal          = tmp.computeTime(this.getEasedState("rawTimeSignal"));
     this.easedZoomSignal          = this.getEasedState("zoomSignal");
-    this.floorTimeSignal          = Math.floor(this.easedTimeSignal);
-    this.timeSlice                = computeTimeSlice(this.floorTimeSignal);
-    this.floorZoomSignal          = Math.floor(this.easedZoomSignal);
-    this.roundZoomSignal          = Math.round(this.easedZoomSignal);
-    this.ceilZoomSignal           = Math.ceil(this.easedZoomSignal);
-    this.easedZoomLevel           = Math.pow(2, this.easedZoomSignal);
-    this.easedImageSize           = defs.imageSize / this.easedZoomLevel;
-    this.groupCount               = Math.pow(2, this.roundZoomSignal);
+    this.easedImageSize           = tmp.computeImageSize(this.easedZoomSignal);
+    this.groupCount               = tmp.computeGroupCount(this.easedZoomSignal);
     this.groupSize                = defs.imageSize * this.groupCount;
     this.easedWidth               = defs.tileXCount * this.easedImageSize;
     this.easedHeight              = defs.tileYCount * this.easedImageSize;
