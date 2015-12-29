@@ -152,16 +152,16 @@ Renderer.prototype = {
     return this._getRenderedImageCount(this._floorTime, this._floorZoom) === defs.maxTileCount;
   },
 
-  update: function (canvas, left, top, time, zoom) {
+  update: function (width, height, left, top, time, zoom) {
     this._pixelRatio = window.devicePixelRatio;
     this._floorTime = Math.floor(time);
     this._floorZoom = Math.floor(zoom);
     if (!this._isFinished()) {
       this._localSource.resetBounds(
-        compute.firstVisibleLocalX(canvas.clientWidth, left, zoom),
-        compute.firstVisibleLocalY(canvas.clientHeight, top, zoom),
-        compute.lastVisibleLocalX(canvas.clientWidth, left, zoom),
-        compute.lastVisibleLocalY(canvas.clientHeight, top, zoom),
+        compute.firstVisibleLocalX(width, left, zoom),
+        compute.firstVisibleLocalY(height, top, zoom),
+        compute.lastVisibleLocalX(width, left, zoom),
+        compute.lastVisibleLocalY(height, top, zoom),
         compute.localX(left),
         compute.localY(top));
       if (!this._pendingRender) {
