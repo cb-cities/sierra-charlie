@@ -5,9 +5,9 @@ var Painter = require("./painter");
 var Renderer = require("./renderer");
 
 var r = require("react-wrapper");
+var compute = require("./compute");
 var defs = require("./defs");
 var easeStateMixin = require("./ease-state-mixin");
-var tmp = require("./tmp");
 
 
 module.exports = {
@@ -148,9 +148,9 @@ module.exports = {
   computeDerivedState: function () {
     this.easedLeftSignal          = this.getEasedState("leftSignal");
     this.easedTopSignal           = this.getEasedState("topSignal");
-    this.easedTimeSignal          = tmp.computeTime(this.getEasedState("rawTimeSignal"));
+    this.easedTimeSignal          = compute.time(this.getEasedState("rawTimeSignal"));
     this.easedZoomSignal          = this.getEasedState("zoomSignal");
-    this.easedImageSize           = tmp.computeImageSize(this.easedZoomSignal);
+    this.easedImageSize           = compute.imageSize(this.easedZoomSignal);
     this.easedWidth               = defs.tileXCount * this.easedImageSize;
     this.easedHeight              = defs.tileYCount * this.easedImageSize;
     this.scrollLeftSignal         = Math.floor(this.easedLeftSignal * this.easedWidth - this.canvas.clientWidth / 2);
@@ -161,7 +161,7 @@ module.exports = {
     this.firstVisibleLocalYSignal = defs.clampLocalY(Math.floor(this.scrollTopSignal / this.easedImageSize));
     this.lastVisibleLocalXSignal  = defs.clampLocalX(Math.floor((this.scrollLeftSignal + this.canvas.clientWidth - 1) / this.easedImageSize));
     this.lastVisibleLocalYSignal  = defs.clampLocalY(Math.floor((this.scrollTopSignal + this.canvas.clientHeight - 1) / this.easedImageSize));
-    var groupCount                = tmp.computeGroupCount(this.easedZoomSignal);
+    var groupCount                = compute.groupCount(this.easedZoomSignal);
     this.firstVisibleGroupX       = Math.floor(this.firstVisibleLocalXSignal / groupCount) * groupCount;
     this.firstVisibleGroupY       = Math.floor(this.firstVisibleLocalYSignal / groupCount) * groupCount;
     this.lastVisibleGroupX        = Math.floor(this.lastVisibleLocalXSignal / groupCount) * groupCount;

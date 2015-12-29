@@ -3,13 +3,13 @@
 /* global Path2D */
 
 var nnng = require("nnng");
+var compute = require("../compute");
 var defs = require("../defs");
 var iid = require("../lib/image-id");
-var tmp = require("../tmp");
 
 
 function _paintTileLabels(c, easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY) {
-  var easedTextMargin = tmp.computeTextMargin(easedZoom);
+  var easedTextMargin = compute.textMargin(easedZoom);
   c.fillStyle = defs.labelColor;
   c.font = 32 + "px " + defs.labelFont;
   c.textAlign = "left";
@@ -57,13 +57,13 @@ Painter.prototype = {
       }
       this._tileBordersPath = path;
     }
-    c.lineWidth = tmp.computeTileBorderLineWidth(easedZoom);
+    c.lineWidth = compute.tileBorderLineWidth(easedZoom);
     c.strokeStyle = defs.borderColor;
     c.stroke(this._tileBordersPath);
   },
 
   _paintTileContents: function (c, easedTime, easedZoom, firstVisibleGroupX, firstVisibleGroupY, lastVisibleGroupX, lastVisibleGroupY) {
-    var groupCount = tmp.computeGroupCount(easedZoom);
+    var groupCount = compute.groupCount(easedZoom);
     var groupSize  = defs.imageSize * groupCount;
     for (var gx = firstVisibleGroupX; gx <= lastVisibleGroupX; gx += groupCount) {
       var gdx = gx * defs.imageSize;
@@ -95,7 +95,7 @@ Painter.prototype = {
     c.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
     c.translate(-state.scrollLeftSignal, -state.scrollTopSignal);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
-    var scaleRatio = tmp.computeScaleRatio(state.easedZoomSignal);
+    var scaleRatio = compute.scaleRatio(state.easedZoomSignal);
     c.scale(scaleRatio, scaleRatio);
     if (state.easedZoomSignal < 3) {
       c.globalAlpha = 1 - (state.easedZoomSignal - 2);

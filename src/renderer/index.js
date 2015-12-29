@@ -1,14 +1,14 @@
 "use strict";
 
 var BoundedSpiral = require("../lib/bounded-spiral");
+var compute = require("../compute");
 var defs = require("../defs");
 var iid = require("../lib/image-id");
 var tid = require("../lib/tile-id");
-var tmp = require("../tmp");
 
 
 function _renderRoadLinks(c, time, zoom, tileData) {
-  c.lineWidth = tmp.computeRoadLinkLineWidth(zoom);
+  c.lineWidth = compute.roadLinkLineWidth(zoom);
   c.strokeStyle = "#666";
   for (var i = 0; i < tileData.roadLinks.length; i++) {
     var roadLink = tileData.roadLinks[i];
@@ -23,8 +23,8 @@ function _renderRoadLinks(c, time, zoom, tileData) {
 }
 
 function _renderRoadNodes(c, time, zoom, tileData) {
-  var nodeSize = tmp.computeRoadNodeSquareSize(zoom);
-  c.lineWidth = tmp.computeRoadNodeLineWidth(zoom);
+  var nodeSize = compute.roadNodeSquareSize(zoom);
+  c.lineWidth = compute.roadNodeLineWidth(zoom);
   c.strokeStyle = "#999";
   for (var i = 0; i < tileData.roadNodes.length; i++) {
     var p = tileData.roadNodes[i].p;
@@ -97,8 +97,8 @@ Renderer.prototype = {
     var tileData   = this._callbacks.getLoadedTile(tileId);
     var time       = iid.getTime(imageId);
     var zoom       = iid.getZoom(imageId);
-    var imageSize  = window.devicePixelRatio * tmp.computeImageSize(zoom);
-    var groupCount = tmp.computeGroupCount(zoom);
+    var imageSize  = window.devicePixelRatio * compute.imageSize(zoom);
+    var groupCount = compute.groupCount(zoom);
     var groupSize  = imageSize * groupCount;
     var gx         = Math.floor(iid.getLocalX(imageId) / groupCount) * groupCount;
     var gy         = Math.floor(iid.getLocalY(imageId) / groupCount) * groupCount;
