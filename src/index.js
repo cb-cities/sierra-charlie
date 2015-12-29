@@ -4,6 +4,7 @@ window.React = require("react/addons");
 
 var r = require("react-wrapper");
 var app = r.wrap(require("./app"));
+var defs = require("./defs");
 
 require("./index.appcache");
 require("./index.css");
@@ -16,7 +17,7 @@ var vertexShader = require("./shaders/vertex-shader.glsl");
 var that = r.render(app(), document.getElementById("root"));
 
 addEventListener("resize", function (event) {
-    this.triggerUpdate();
+    this.forceUpdate();
   }.bind(that));
 
 addEventListener("keydown", function (event) {

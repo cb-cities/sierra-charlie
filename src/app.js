@@ -92,7 +92,6 @@ module.exports = {
   
   _updatePainter: function () {
     this._painter.update({
-        node:               this.node,
         canvas:             this.canvas,
         floorTimeValue:     this.floorTimeValue,
         roundZoomPower:     this.roundZoomPower,
@@ -137,7 +136,7 @@ module.exports = {
     this.node = r.domNode(this);
     this.canvas = this.node.firstChild;
     this.node.addEventListener("scroll", this.onScroll);
-    this.triggerUpdate();
+    this.forceUpdate();
     this.computeDerivedState();
     this.exportScrollPosition();
     this._updateLoader();
@@ -147,12 +146,6 @@ module.exports = {
 
   componentWillUnmount: function () {
     this.node.removeEventListener("scroll", this.onScroll);
-  },
-
-  triggerUpdate: function () {
-    this.setState({
-        random: Math.random()
-      });
   },
 
   componentDidUpdate: function (prevProps, prevState) {
@@ -192,14 +185,14 @@ module.exports = {
     this.groupSize      = defs.imageSize * this.groupCount;
     this.easedWidth     = defs.tileXCount * this.easedImageSize;
     this.easedHeight    = defs.tileYCount * this.easedImageSize;
-    this.scrollLeft     = Math.floor(this.easedAttentionLeft * this.easedWidth - this.node.clientWidth / 2);
-    this.scrollTop      = Math.floor(this.easedAttentionTop * this.easedHeight - this.node.clientHeight / 2);
+    this.scrollLeft     = Math.floor(this.easedAttentionLeft * this.easedWidth - this.canvas.clientWidth / 2);
+    this.scrollTop      = Math.floor(this.easedAttentionTop * this.easedHeight - this.canvas.clientHeight / 2);
     this.attentionLocalX    = Math.floor(this.easedAttentionLeft * defs.tileXCount);
     this.attentionLocalY    = Math.floor(this.easedAttentionTop * defs.tileYCount);
     this.firstVisibleLocalX = defs.clampLocalX(Math.floor(this.scrollLeft / this.easedImageSize));
-    this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((this.scrollLeft + this.node.clientWidth - 1) / this.easedImageSize));
+    this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((this.scrollLeft + this.canvas.clientWidth - 1) / this.easedImageSize));
     this.firstVisibleLocalY = defs.clampLocalY(Math.floor(this.scrollTop / this.easedImageSize));
-    this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((this.scrollTop + this.node.clientHeight - 1) / this.easedImageSize));
+    this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((this.scrollTop + this.canvas.clientHeight - 1) / this.easedImageSize));
     this.firstVisibleGroupX = Math.floor(this.firstVisibleLocalX / this.groupCount) * this.groupCount;
     this.lastVisibleGroupX  = Math.floor(this.lastVisibleLocalX / this.groupCount) * this.groupCount;
     this.firstVisibleGroupY = Math.floor(this.firstVisibleLocalY / this.groupCount) * this.groupCount;

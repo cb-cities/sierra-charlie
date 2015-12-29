@@ -35,6 +35,8 @@ function _renderRoadNodes(c, timeValue, zoomLevel, tileData) {
 function Renderer(callbacks) {
   this._callbacks = callbacks;
   this._localSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount - 1);
+  this._pendingTimeValue = null;
+  this._pendingZoomPower = null;
   this._pendingRender = null;
   this._renderedImages = {};
   this._renderedImageCount = [];
@@ -119,7 +121,7 @@ Renderer.prototype = {
     this._setRenderedImage(imageId, true);
   },
 
-  _getNextImageIdToRender: function (timeValue, zoomPower) {
+  _getNextImageIdToRender: function () {
     while (true) {
       var local = this._localSource.next();
       if (!local) {
@@ -127,7 +129,7 @@ Renderer.prototype = {
       }
       var tileId = tid.fromLocal(local.x, local.y);
       if (this._callbacks.getLoadedTile(tileId)) {
-        var imageId = iid.fromTileId(tileId, timeValue, zoomPower);
+        var imageId = iid.fromTileId(tileId, this._pendingTimeValue, this._pendingZoomPower);
         if (!(this.getRenderedImage(imageId))) {
           return imageId;
         }
@@ -135,27 +137,25 @@ Renderer.prototype = {
     }
   },
 
-  _renderNextImage: function (timeValue, zoomPower) {
-    var pendingImageId = this._getNextImageIdToRender(timeValue, zoomPower);
+  _renderNextImage: function () {
+    var pendingImageId = this._getNextImageIdToRender();
     if (pendingImageId) {
       this._renderImage(pendingImageId);
       this._callbacks.onImageRender(pendingImageId);
-      this._pendingRender = setTimeout(function () {
-          this._renderNextImage(timeValue, zoomPower);
-        }.bind(this), 0);
+      this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
     } else {
       this._pendingRender = null;
     }
   },
   
-  _isFinished: function (timeValue, zoomPower) {
-    return this._getRenderedImageCount(timeValue, zoomPower) === defs.maxTileCount;
+  _isFinished: function () {
+    return this._getRenderedImageCount(this._pendingTimeValue, this._pendingZoomPower) === defs.maxTileCount;
   },
 
   update: function (state) {
-    var timeValue = state.floorTimeValue;
-    var zoomPower = state.floorZoomPower;
-    if (!this._isFinished(timeValue, zoomPower)) {
+    this._pendingTimeValue = state.floorTimeValue;
+    this._pendingZoomPower = state.floorZoomPower;
+    if (!this._isFinished()) {
       this._localSource.resetBounds(
         state.firstVisibleLocalX,
         state.lastVisibleLocalX,
@@ -164,9 +164,7 @@ Renderer.prototype = {
         state.attentionLocalX,
         state.attentionLocalY);
       if (!this._pendingRender) {
-        this._pendingRender = setTimeout(function () {
-            this._renderNextImage(timeValue, zoomPower);
-          }.bind(this), 0);
+        this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
       }
     }
   }
