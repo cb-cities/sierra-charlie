@@ -156,23 +156,13 @@ Renderer.prototype = {
     var timeValue = state.floorTimeValue;
     var zoomPower = state.floorZoomPower;
     if (!this._isFinished(timeValue, zoomPower)) {
-      if (state.renderNotVisibleImages) {
-        this._localSource.resetBounds(
-          0,
-          defs.tileXCount - 1,
-          0,
-          defs.tileYCount - 1,
-          state.attentionLocalX,
-          state.attentionLocalY);
-      } else {
-        this._localSource.resetBounds(
-          state.firstVisibleLocalX,
-          state.lastVisibleLocalX,
-          state.firstVisibleLocalY,
-          state.lastVisibleLocalY,
-          state.attentionLocalX,
-          state.attentionLocalY);
-      }
+      this._localSource.resetBounds(
+        state.firstVisibleLocalX,
+        state.lastVisibleLocalX,
+        state.firstVisibleLocalY,
+        state.lastVisibleLocalY,
+        state.attentionLocalX,
+        state.attentionLocalY);
       if (!this._pendingRender) {
         this._pendingRender = setTimeout(function () {
             this._renderNextImage(timeValue, zoomPower);

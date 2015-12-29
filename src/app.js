@@ -19,8 +19,7 @@ module.exports = {
       attentionLeft: 0.4897637424698795,
       attentionTop: 0.4768826844262295,
       rawTimeValue: 10 + 9 / 60,
-      zoomPower: 4,
-      renderNotVisibleImages: process.env.NODE_ENV === "production"
+      zoomPower: 4
     };
   },
 
@@ -62,7 +61,6 @@ module.exports = {
 
   _updateRenderer: function () {
     this._renderer.update({
-        renderNotVisibleImages: this.state.renderNotVisibleImages,
         floorTimeValue:         this.floorTimeValue,
         floorZoomPower:         this.floorZoomPower,
         attentionLocalX:        this.attentionLocalX,
@@ -76,9 +74,8 @@ module.exports = {
   
   _updatePainter: function () {
     this._painter.update({
+        node:               this.node,
         canvas:             this.canvas,
-        clientWidth:        this.state.clientWidth,
-        clientHeight:       this.state.clientHeight,
         floorTimeValue:     this.floorTimeValue,
         roundZoomPower:     this.roundZoomPower,
         easedZoomPower:     this.easedZoomPower,
@@ -124,7 +121,7 @@ module.exports = {
     this.node.addEventListener("scroll", this.onScroll);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
-    this.importClientSize();
+    this.triggerUpdate();
     this.computeDerivedState();
     this.exportScrollPosition();
     this._updateLoader();
@@ -136,6 +133,12 @@ module.exports = {
     this.node.removeEventListener("scroll", this.onScroll);
     removeEventListener("resize", this.onResize);
     removeEventListener("keydown", this.onKeyDown);
+  },
+
+  triggerUpdate: function () {
+    this.setState({
+        random: Math.random()
+      });
   },
 
   componentDidUpdate: function (prevProps, prevState) {
@@ -153,15 +156,7 @@ module.exports = {
   },
 
   onResize: function (event) {
-    this.importClientSize();
-  },
-
-
-  importClientSize: function () {
-    this.setState({
-        clientWidth:  this.node.clientWidth,
-        clientHeight: this.node.clientHeight
-      });
+    this.triggerUpdate();
   },
 
   importScrollPosition: function () {
@@ -205,14 +200,14 @@ module.exports = {
     this.groupSize      = defs.imageSize * this.groupCount;
     this.easedWidth     = defs.tileXCount * this.easedImageSize;
     this.easedHeight    = defs.tileYCount * this.easedImageSize;
-    this.scrollLeft     = Math.floor(this.easedAttentionLeft * this.easedWidth - this.state.clientWidth / 2);
-    this.scrollTop      = Math.floor(this.easedAttentionTop * this.easedHeight - this.state.clientHeight / 2);
+    this.scrollLeft     = Math.floor(this.easedAttentionLeft * this.easedWidth - this.node.clientWidth / 2);
+    this.scrollTop      = Math.floor(this.easedAttentionTop * this.easedHeight - this.node.clientHeight / 2);
     this.attentionLocalX    = Math.floor(this.easedAttentionLeft * defs.tileXCount);
     this.attentionLocalY    = Math.floor(this.easedAttentionTop * defs.tileYCount);
     this.firstVisibleLocalX = defs.clampLocalX(Math.floor(this.scrollLeft / this.easedImageSize));
-    this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((this.scrollLeft + this.state.clientWidth - 1) / this.easedImageSize));
+    this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((this.scrollLeft + this.node.clientWidth - 1) / this.easedImageSize));
     this.firstVisibleLocalY = defs.clampLocalY(Math.floor(this.scrollTop / this.easedImageSize));
-    this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((this.scrollTop + this.state.clientHeight - 1) / this.easedImageSize));
+    this.lastVisibleLocalY  = defs.clampLocalY(Math.floor((this.scrollTop + this.node.clientHeight - 1) / this.easedImageSize));
     this.firstVisibleGroupX = Math.floor(this.firstVisibleLocalX / this.groupCount) * this.groupCount;
     this.lastVisibleGroupX  = Math.floor(this.lastVisibleLocalX / this.groupCount) * this.groupCount;
     this.firstVisibleGroupY = Math.floor(this.firstVisibleLocalY / this.groupCount) * this.groupCount;
@@ -227,8 +222,8 @@ module.exports = {
 
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
-    var pageWidth  = 1 / (this.easedWidth / this.state.clientWidth);
-    var pageHeight = 1 / (this.easedHeight / this.state.clientHeight);
+    var pageWidth  = 1 / (this.easedWidth / this.node.clientWidth);
+    var pageHeight = 1 / (this.easedHeight / this.node.clientHeight);
     var delay = event.shiftKey ? 2500 : 500;
     var timeDelta = (event.ctrlKey || event.altKey) ? 60 : 3600;
     var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10;
@@ -268,11 +263,6 @@ module.exports = {
       case 189: // minus
         var zoomPower = Math.min(Math.round((this.state.zoomPower * 10) + zoomDelta) / 10, defs.maxZoomPower);
         this.easeZoomPower(zoomPower, delay);
-        break;
-      case 82: // r
-        this.setState({
-            renderNotVisibleImages: !this.state.renderNotVisibleImages
-          });
         break;
       default:
         if (event.keyCode >= 49 && event.keyCode <= 56) {

@@ -76,9 +76,10 @@ Painter.prototype = {
   },
 
   _paint: function (state) {
+    var node = state.node;
     var canvas = state.canvas;
-    var width  = window.devicePixelRatio * state.clientWidth;
-    var height = window.devicePixelRatio * state.clientHeight;
+    var width  = window.devicePixelRatio * node.clientWidth;
+    var height = window.devicePixelRatio * node.clientHeight;
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width  = width;
       canvas.height = height;
@@ -89,7 +90,7 @@ Painter.prototype = {
     c.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
     c.save();
     c.fillStyle = defs.backgroundColor;
-    c.fillRect(0, 0, state.clientWidth, state.clientHeight);
+    c.fillRect(0, 0, node.clientWidth, node.clientHeight);
     c.translate(-state.scrollLeft, -state.scrollTop);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     c.scale(1 / state.easedZoomLevel, 1 / state.easedZoomLevel);
