@@ -42,30 +42,30 @@ module.exports = {
   },
 
   easeSignalLeft: function (signalLeft, duration) {
-    this.pendingSignalX = true;
+    this.easingSignalLeft = true;
     this.easeState("signalLeft", signalLeft, duration, function () {
-        this.pendingSignalX = false;
+        this.easingSignalLeft = false;
       }.bind(this));
   },
  
   easeSignalTop: function (signalTop, duration) {
-    this.pendingSignalY = true;
+    this.easingSignalTop = true;
     this.easeState("signalTop", signalTop, duration, function () {
-        this.pendingSignalY = false;
+        this.easingSignalTop = false;
       }.bind(this));
   },
 
   easeTimeValue: function (rawTimeValue, duration) {
-    this.pendingTimeChange = true;
+    this.easingRawTimeValue = true;
     this.easeState("rawTimeValue", rawTimeValue, duration, function () {
-        this.pendingTimeChange = false;
+        this.easingRawTimeValue = false;
       }.bind(this));
   },
 
   easeZoomPower: function (zoomPower, duration) {
-    this.pendingZoom = true;
+    this.easingZoomPower = true;
     this.easeState("zoomPower", zoomPower, duration, function () {
-        this.pendingZoom = false;
+        this.easingZoomPower = false;
       }.bind(this));
   },
 
@@ -159,7 +159,7 @@ module.exports = {
   },
 
   onScroll: function (event) {
-    if (!this.pendingSignalX && !this.pendingSignalY && !this.pendingZoom) {
+    if (!this.easingSignalLeft && !this.easingSignalTop && !this.easingZoomPower) {
       this.importScrollPosition();
     }
   },
