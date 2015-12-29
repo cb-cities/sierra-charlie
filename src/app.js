@@ -62,8 +62,25 @@ module.exports = {
     };
   },
   
+  getDerivedStateForRenderer: function () {
+    var frame  = r.domNode(this);
+    var canvas = frame.firstChild;
+    return {
+      width:  canvas.clientWidth,
+      height: canvas.clientHeight,
+      left:   this.getEasedState("left"),
+      top:    this.getEasedState("top"),
+      time:   compute.time(this.state.rawTime),
+      zoom:   this.state.zoom
+    };
+  },
+  
   updateFrame: function (left, top, zoom) {
     var frame = r.domNode(this);
+    var left  = this.getEasedState("left");
+    var top   = this.getEasedState("top");
+    var zoom  = this.getEasedState("zoom");
+    
     frame.scrollLeft = compute.frameScrollLeft(left, zoom);
     frame.scrollTop  = compute.frameScrollTop(top, zoom);
   },
@@ -75,7 +92,7 @@ module.exports = {
       });
       
     this._renderer = new Renderer({
-        getDerivedState: this.getDerivedState,
+        getDerivedState: this.getDerivedStateForRenderer,
         getLoadedTile:   this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
         onImageRender:   this.onImageRender
       });
@@ -91,7 +108,7 @@ module.exports = {
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
 
-    this.updateFrame(this.state.left, this.state.top, this.state.zoom);
+    this.updateFrame();
   },
   
   render: function () {
@@ -110,11 +127,7 @@ module.exports = {
   },
 
   componentDidUpdate: function () {
-    var frame = r.domNode(this);
-    var left  = this.getEasedState("left");
-    var top   = this.getEasedState("top");
-    var zoom  = this.getEasedState("zoom");    
-    this.updateFrame(left, top, zoom);
+    this.updateFrame();
     
     this._geometryLoader.update();
     this._renderer.update();
@@ -142,7 +155,7 @@ module.exports = {
   },
   
   onResize: function (event) {
-    this.forceUpdate(); // In lieu of this.setSize()
+    this._painter.update();
   },
 
   onKeyDown: function (event) {
