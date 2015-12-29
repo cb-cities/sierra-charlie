@@ -25,7 +25,7 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-.map-picture {
+.map-canvas {
   width: 100%;
   height: 100%;
   position: absolute;

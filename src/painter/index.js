@@ -8,8 +8,8 @@ var defs = require("../defs");
 var iid = require("../lib/image-id");
 
 
-function _paintTileLabels(c, easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY) {
-  var easedTextMargin = compute.textMargin(easedZoom);
+function _paintTileLabels(c, zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY) {
+  var textMargin = compute.textMargin(zoom);
   c.fillStyle = defs.labelColor;
   c.font = 32 + "px " + defs.labelFont;
   c.textAlign = "left";
@@ -25,7 +25,7 @@ function _paintTileLabels(c, easedZoom, firstVisibleLocalX, firstVisibleLocalY, 
       var latLon = nnng.from(ngx, ngy);
       var lat = latLon[0].toFixed(6);
       var lon = latLon[1].toFixed(6);
-      c.fillText(tx + "n," + ty + "e (" + lat + "°N," + lon + "°E)", ldx + easedTextMargin, ldy);
+      c.fillText(tx + "n," + ty + "e (" + lat + "°N," + lon + "°E)", ldx + textMargin, ldy);
     }
   }
 }
@@ -38,7 +38,7 @@ function Painter(callbacks) {
 }
 
 Painter.prototype = {
-  _paintTileBorders: function (c, easedZoom) {
+  _paintTileBorders: function (c, zoom) {
     if (!this._tileBordersPath) {
       var path = new Path2D();
       path.moveTo(0, 0);
@@ -57,13 +57,13 @@ Painter.prototype = {
       }
       this._tileBordersPath = path;
     }
-    c.lineWidth = compute.tileBorderLineWidth(easedZoom);
+    c.lineWidth = compute.tileBorderLineWidth(zoom);
     c.strokeStyle = defs.borderColor;
     c.stroke(this._tileBordersPath);
   },
 
-  _paintTileContents: function (c, easedTime, easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY) {
-    var groupCount         = compute.groupCount(easedZoom);
+  _paintTileContents: function (c, time, zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY) {
+    var groupCount         = compute.groupCount(zoom);
     var groupSize          = defs.imageSize * groupCount;
     var firstVisibleGroupX = Math.floor(firstVisibleLocalX / groupCount) * groupCount;
     var firstVisibleGroupY = Math.floor(firstVisibleLocalY / groupCount) * groupCount;
@@ -73,7 +73,7 @@ Painter.prototype = {
       var gdx = gx * defs.imageSize;
       for (var gy = firstVisibleGroupY; gy <= lastVisibleGroupY; gy += groupCount) {
         var gdy = gy * defs.imageSize;
-        var groupId = iid.fromLocal(gx, gy, Math.floor(easedTime), Math.round(easedZoom));
+        var groupId = iid.fromLocal(gx, gy, Math.floor(time), Math.round(zoom));
         var canvas = this._callbacks.getRenderedGroup(groupId);
         if (canvas) {
           c.drawImage(canvas, gdx, gdy, groupSize, groupSize);
@@ -97,27 +97,27 @@ Painter.prototype = {
     c.save();
     c.fillStyle = defs.backgroundColor;
     c.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-    var scrollLeftAndHalf = compute.scrollLeftAndHalf(canvas.clientWidth, state.left, state.easedZoom);
-    var scrollTopAndHalf  = compute.scrollTopAndHalf(canvas.clientHeight, state.top, state.easedZoom);
+    var scrollLeftAndHalf = compute.scrollLeftAndHalf(canvas.clientWidth, state.left, state.zoom);
+    var scrollTopAndHalf  = compute.scrollTopAndHalf(canvas.clientHeight, state.top, state.zoom);
     c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
-    var scaleRatio = compute.scaleRatio(state.easedZoom);
+    var scaleRatio = compute.scaleRatio(state.zoom);
     c.scale(scaleRatio, scaleRatio);
-    var firstVisibleLocalX = compute.firstVisibleLocalX(canvas.clientWidth, state.left, state.easedZoom);
-    var firstVisibleLocalY = compute.firstVisibleLocalY(canvas.clientHeight, state.top, state.easedZoom);
-    var lastVisibleLocalX  = compute.lastVisibleLocalX(canvas.clientWidth, state.left, state.easedZoom);
-    var lastVisibleLocalY  = compute.lastVisibleLocalY(canvas.clientHeight, state.top, state.easedZoom);
-    if (state.easedZoom < 3) {
-      c.globalAlpha = 1 - (state.easedZoom - 2);
-      _paintTileLabels(c, state.easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
+    var firstVisibleLocalX = compute.firstVisibleLocalX(canvas.clientWidth, state.left, state.zoom);
+    var firstVisibleLocalY = compute.firstVisibleLocalY(canvas.clientHeight, state.top, state.zoom);
+    var lastVisibleLocalX  = compute.lastVisibleLocalX(canvas.clientWidth, state.left, state.zoom);
+    var lastVisibleLocalY  = compute.lastVisibleLocalY(canvas.clientHeight, state.top, state.zoom);
+    if (state.zoom < 3) {
+      c.globalAlpha = 1 - (state.zoom - 2);
+      _paintTileLabels(c, state.zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
       c.globalAlpha = 1;
     }
-    this._paintTileBorders(c, state.easedZoom);
+    this._paintTileBorders(c, state.zoom);
     c.restore();
     c.save();
     c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
     c.scale(scaleRatio, scaleRatio);
-    this._paintTileContents(c, state.easedTime, state.easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
+    this._paintTileContents(c, state.time, state.zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
     c.restore();
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);

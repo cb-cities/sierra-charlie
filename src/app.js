@@ -54,26 +54,26 @@ module.exports = {
 
 
   _updateLoader: function () {
-    this._geometryLoader.update(this.easedLeftSignal, this.easedTopSignal);
+    this._geometryLoader.update(this.left, this.top);
   },
 
   _updateRenderer: function () {
     this._renderer.update({
-        canvas:    this.canvas,
-        left:      this.easedLeftSignal,
-        top:       this.easedTopSignal,
-        easedTime: this.easedTimeSignal,
-        easedZoom: this.easedZoomSignal
+        canvas: this.canvas,
+        left:   this.left,
+        top:    this.top,
+        time:   this.time,
+        zoom:   this.zoom
       });
   },
   
   _updatePainter: function () {
     this._painter.update({
-        canvas:    this.canvas,
-        left:      this.easedLeftSignal,
-        top:       this.easedTopSignal,
-        easedTime: this.easedTimeSignal,
-        easedZoom: this.easedZoomSignal
+        canvas: this.canvas,
+        left:   this.left,
+        top:    this.top,
+        time:   this.time,
+        zoom:   this.zoom
       });
   },
 
@@ -129,27 +129,27 @@ module.exports = {
 
   importScrollPosition: function () {
     this.setState({
-        leftSignal: this.node.scrollLeft / compute.spaceWidth(this.easedZoomSignal),
-        topSignal:  this.node.scrollTop / compute.spaceHeight(this.easedZoomSignal)
+        leftSignal: this.node.scrollLeft / compute.spaceWidth(this.zoom),
+        topSignal:  this.node.scrollTop / compute.spaceHeight(this.zoom)
       });
   },
 
   computeDerivedState: function () {
-    this.easedLeftSignal = this.getEasedState("leftSignal");
-    this.easedTopSignal  = this.getEasedState("topSignal");
-    this.easedTimeSignal = compute.time(this.getEasedState("rawTimeSignal"));
-    this.easedZoomSignal = this.getEasedState("zoomSignal");
+    this.left = this.getEasedState("leftSignal");
+    this.top  = this.getEasedState("topSignal");
+    this.time = compute.time(this.getEasedState("rawTimeSignal"));
+    this.zoom = this.getEasedState("zoomSignal");
   },
 
   exportScrollPosition: function () {
-    this.node.scrollLeft = compute.scrollLeft(this.easedLeftSignal, this.easedZoomSignal);
-    this.node.scrollTop  = compute.scrollTop(this.easedTopSignal, this.easedZoomSignal);
+    this.node.scrollLeft = compute.scrollLeft(this.left, this.zoom);
+    this.node.scrollTop  = compute.scrollTop(this.top, this.zoom);
   },
 
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var left = compute.fromClientX(event.clientX, this.canvas.clientWidth, this.easedLeftSignal, this.easedZoomSignal);
-    var top  = compute.fromClientY(event.clientY, this.canvas.clientHeight, this.easedTopSignal, this.easedZoomSignal);
+    var left = compute.fromClientX(event.clientX, this.canvas.clientWidth, this.left, this.zoom);
+    var top  = compute.fromClientY(event.clientY, this.canvas.clientHeight, this.top, this.zoom);
     var delay = !event.shiftKey ? 500 : 2500;
     this.easeLeft(left, delay);
     this.easeTop(top, delay);
@@ -163,12 +163,12 @@ module.exports = {
   render: function () {
     return (
       r.div("map-frame",
-        r.canvas("map-picture"),
+        r.canvas("map-canvas"),
         r.div({
             className: "map-space",
             style: {
-              width:  compute.spaceWidth(this.easedZoomSignal),
-              height: compute.spaceHeight(this.easedZoomSignal)
+              width:  compute.spaceWidth(this.zoom),
+              height: compute.spaceHeight(this.zoom)
             },
             onDoubleClick: this.onDoubleClick
           })));
