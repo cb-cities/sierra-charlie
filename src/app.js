@@ -140,8 +140,8 @@ module.exports = {
       var frame = r.domNode(this);
       var zoom  = this.getEasedState("zoom");
       this.setState({
-          left: frame.scrollLeft / compute.spaceWidth(zoom),
-          top:  frame.scrollTop / compute.spaceHeight(zoom)
+          left: compute.leftFromFrame(frame.scrollLeft, zoom),
+          top:  compute.topFromFrame(frame.scrollTop, zoom)
         });
     }
   },
@@ -210,8 +210,8 @@ module.exports = {
     var canvas = r.domNode(this).firstChild;
     var width  = canvas.clientWidth;
     var height = canvas.clientHeight;
-    var left   = compute.fromMouseX(event.clientX, width, this.state.left, this.state.zoom);
-    var top    = compute.fromMouseY(event.clientY, height, this.state.top, this.state.zoom);
+    var left   = compute.leftFromMouse(event.clientX, width, this.state.left, this.state.zoom);
+    var top    = compute.topFromMouseY(event.clientY, height, this.state.top, this.state.zoom);
     var duration = !event.shiftKey ? 500 : 2500;
     this.setLeft(left, duration);
     this.setTop(top, duration);

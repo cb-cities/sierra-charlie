@@ -91,12 +91,20 @@ var _ = module.exports = {
     return clampLocalY(Math.floor((_.scrollTopAndHalf(height, top, zoom) + height - 1) / _.imageSize(zoom)));
   },
   
-  fromMouseX: function (x, width, left, zoom) {
-    return clampF((_.scrollLeftAndHalf(width, left, zoom) + x) / _.spaceWidth(zoom));
+  leftFromFrame: function (scrollLeft, zoom) {
+    return scrollLeft / _.spaceWidth(zoom);
   },
   
-  fromMouseY: function (y, height, top, zoom) {
-    return clampF((_.scrollTopAndHalf(height, top, zoom) + y) / _.spaceHeight(zoom));
+  topFromFrame: function (scrollTop, zoom) {
+    return scrollTop / _.spaceHeight(zoom);
+  },
+  
+  leftFromMouse: function (clientX, width, left, zoom) {
+    return clampF((_.scrollLeftAndHalf(width, left, zoom) + clientX) / _.spaceWidth(zoom));
+  },
+  
+  topFromMouse: function (clientY, height, top, zoom) {
+    return clampF((_.scrollTopAndHalf(height, top, zoom) + clientY) / _.spaceHeight(zoom));
   },
   
   textMargin: function (zoom) {
