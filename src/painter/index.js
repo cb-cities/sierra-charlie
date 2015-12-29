@@ -82,8 +82,7 @@ Painter.prototype = {
     }
   },
 
-  _paint: function (state) {
-    var canvas = state.canvas;
+  _paint: function (canvas, left, top, time, zoom) {
     var width  = window.devicePixelRatio * canvas.clientWidth;
     var height = window.devicePixelRatio * canvas.clientHeight;
     if (canvas.width !== width || canvas.height !== height) {
@@ -97,38 +96,38 @@ Painter.prototype = {
     c.save();
     c.fillStyle = defs.backgroundColor;
     c.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-    var scrollLeftAndHalf = compute.scrollLeftAndHalf(canvas.clientWidth, state.left, state.zoom);
-    var scrollTopAndHalf  = compute.scrollTopAndHalf(canvas.clientHeight, state.top, state.zoom);
+    var scrollLeftAndHalf = compute.scrollLeftAndHalf(canvas.clientWidth, left, zoom);
+    var scrollTopAndHalf  = compute.scrollTopAndHalf(canvas.clientHeight, top, zoom);
     c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
-    var scaleRatio = compute.scaleRatio(state.zoom);
+    var scaleRatio = compute.scaleRatio(zoom);
     c.scale(scaleRatio, scaleRatio);
-    var firstVisibleLocalX = compute.firstVisibleLocalX(canvas.clientWidth, state.left, state.zoom);
-    var firstVisibleLocalY = compute.firstVisibleLocalY(canvas.clientHeight, state.top, state.zoom);
-    var lastVisibleLocalX  = compute.lastVisibleLocalX(canvas.clientWidth, state.left, state.zoom);
-    var lastVisibleLocalY  = compute.lastVisibleLocalY(canvas.clientHeight, state.top, state.zoom);
-    if (state.zoom < 3) {
-      c.globalAlpha = 1 - (state.zoom - 2);
-      _paintTileLabels(c, state.zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
+    var firstVisibleLocalX = compute.firstVisibleLocalX(canvas.clientWidth, left, zoom);
+    var firstVisibleLocalY = compute.firstVisibleLocalY(canvas.clientHeight, top, zoom);
+    var lastVisibleLocalX  = compute.lastVisibleLocalX(canvas.clientWidth, left, zoom);
+    var lastVisibleLocalY  = compute.lastVisibleLocalY(canvas.clientHeight, top, zoom);
+    if (zoom < 3) {
+      c.globalAlpha = 1 - (zoom - 2);
+      _paintTileLabels(c, zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
       c.globalAlpha = 1;
     }
-    this._paintTileBorders(c, state.zoom);
+    this._paintTileBorders(c, zoom);
     c.restore();
     c.save();
     c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
     c.scale(scaleRatio, scaleRatio);
-    this._paintTileContents(c, state.time, state.zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
+    this._paintTileContents(c, time, zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
     c.restore();
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     this._pendingPaint = false;
   },
 
-  update: function (state) {
+  update: function (canvas, left, top, time, zoom) {
     if (!this._pendingPaint) {
       this._pendingPaint = true;
       window.requestAnimationFrame(function () {
-          this._paint(state);
+          this._paint(canvas, left, top, time, zoom);
         }.bind(this));
     }
   }

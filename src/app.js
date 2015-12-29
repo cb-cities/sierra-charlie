@@ -52,38 +52,13 @@ module.exports = {
       }.bind(this));
   },
 
-
-  _updateLoader: function () {
-    this._geometryLoader.update(this.left, this.top);
-  },
-
-  _updateRenderer: function () {
-    this._renderer.update({
-        canvas: this.canvas,
-        left:   this.left,
-        top:    this.top,
-        time:   this.time,
-        zoom:   this.zoom
-      });
-  },
-  
-  _updatePainter: function () {
-    this._painter.update({
-        canvas: this.canvas,
-        left:   this.left,
-        top:    this.top,
-        time:   this.time,
-        zoom:   this.zoom
-      });
-  },
-
   onTileLoad: function (tileId, tileData) {
-    this._updateRenderer();
-    this._updatePainter();
+    this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
+    this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
   },
   
   onImageRender: function (imageId) {
-    this._updatePainter();
+    this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
   },
 
   componentDidMount: function () {
@@ -104,9 +79,9 @@ module.exports = {
     this.forceUpdate(); // Trigger a React re-render to update the size of map-space
     this.computeDerivedState();
     this.exportScrollPosition();
-    this._updateLoader();
-    this._updateRenderer();
-    this._updatePainter();
+    this._geometryLoader.update(this.left, this.top);
+    this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
+    this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
   },
 
   componentDidUpdate: function () {
@@ -116,9 +91,9 @@ module.exports = {
   update: function () {
     this.computeDerivedState();
     this.exportScrollPosition();
-    this._updateLoader();
-    this._updateRenderer();
-    this._updatePainter();
+    this._geometryLoader.update(this.left, this.top);
+    this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
+    this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
   },
 
   onScroll: function (event) {
