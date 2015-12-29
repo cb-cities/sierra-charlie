@@ -40,18 +40,18 @@ Painter.prototype = {
     if (!this._tileBordersPath) {
       var path = new Path2D();
       path.moveTo(0, 0);
-      path.lineTo(0, defs.height);
+      path.lineTo(0, defs.maxHeight);
       for (var lx = 1; lx <= defs.tileXCount; lx++) {
         var ldx = lx * defs.imageSize;
         path.moveTo(ldx, 0);
-        path.lineTo(ldx, defs.height);
+        path.lineTo(ldx, defs.maxHeight);
       }
       path.moveTo(0, 0);
-      path.lineTo(defs.width, 0);
+      path.lineTo(defs.maxWidth, 0);
       for (var ly = 1; ly <= defs.tileYCount; ly++) {
         var ldy = ly * defs.imageSize;
         path.moveTo(0, ldy);
-        path.lineTo(defs.width, ldy);
+        path.lineTo(defs.maxWidth, ldy);
       }
       this._tileBordersPath = path;
     }

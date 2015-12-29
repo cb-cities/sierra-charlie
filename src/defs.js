@@ -26,8 +26,8 @@ var _ = module.exports = {
 
   maxTileCount: tileXCount * tileYCount,
 
-  width:  tileXCount * imageSize,
-  height: tileYCount * imageSize,
+  maxWidth:  tileXCount * imageSize,
+  maxHeight: tileYCount * imageSize,
 
   maxZoom: 7,
 
