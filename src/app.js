@@ -55,33 +55,34 @@ module.exports = {
   componentDidMount: function () {
     this._geometryLoader = new GeometryLoader({
         onTileLoad: function (tileId, tileData) {
-          this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
-          this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
+          var canvas = r.domNode(this).firstChild;
+          this._renderer.update(canvas, this.left, this.top, this.time, this.zoom);
+          this._painter.update(canvas, this.left, this.top, this.time, this.zoom);
         }.bind(this),
       });
     this._renderer = new Renderer({
         getLoadedTile: this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
         onImageRender: function (imageId) {
-          this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
+          var canvas = r.domNode(this).firstChild;
+          this._painter.update(canvas, this.left, this.top, this.time, this.zoom);
         }.bind(this)
       });
     this._painter = new Painter({
         getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
       });
     
-    this.frame = r.domNode(this);
-    this.frame.addEventListener("scroll", this.onScroll);
-    this.canvas = this.frame.firstChild;
-    this.forceUpdate(); // Trigger a React re-render to update the size of map-space
+    var frame  = r.domNode(this);
+    var canvas = frame.firstChild;
+    frame.addEventListener("scroll", this.onScroll);
     this.left = this.getEasedState("left");
     this.top  = this.getEasedState("top");
     this.time = compute.time(this.getEasedState("rawTime"));
     this.zoom = this.getEasedState("zoom");
-    this.frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
-    this.frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
+    frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
+    frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
     this._geometryLoader.update(this.left, this.top);
-    this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
-    this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
+    this._renderer.update(canvas, this.left, this.top, this.time, this.zoom);
+    this._painter.update(canvas, this.left, this.top, this.time, this.zoom);
   },
 
   componentDidUpdate: function () {
@@ -89,30 +90,34 @@ module.exports = {
   },
 
   update: function () {
+    var frame  = r.domNode(this);
+    var canvas = frame.firstChild;
     this.left = this.getEasedState("left");
     this.top  = this.getEasedState("top");
     this.time = compute.time(this.getEasedState("rawTime"));
     this.zoom = this.getEasedState("zoom");
-    this.frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
-    this.frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
+    frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
+    frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
     this._geometryLoader.update(this.left, this.top);
-    this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
-    this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
+    this._renderer.update(canvas, this.left, this.top, this.time, this.zoom);
+    this._painter.update(canvas, this.left, this.top, this.time, this.zoom);
   },
 
   onScroll: function (event) {
     if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
+      var frame = r.domNode(this);
       this.setState({
-          left: this.frame.scrollLeft / compute.spaceWidth(this.zoom),
-          top:  this.frame.scrollTop / compute.spaceHeight(this.zoom)
+          left: frame.scrollLeft / compute.spaceWidth(this.zoom),
+          top:  frame.scrollTop / compute.spaceHeight(this.zoom)
         });
     }
   },
 
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var left = compute.fromClientX(event.clientX, this.canvas.clientWidth, this.left, this.zoom);
-    var top  = compute.fromClientY(event.clientY, this.canvas.clientHeight, this.top, this.zoom);
+    var canvas = r.domNode(this).firstChild;
+    var left = compute.fromClientX(event.clientX, canvas.clientWidth, this.left, this.zoom);
+    var top  = compute.fromClientY(event.clientY, canvas.clientHeight, this.top, this.zoom);
     var delay = !event.shiftKey ? 500 : 2500;
     this.setLeft(left, delay);
     this.setTop(top, delay);
@@ -124,14 +129,15 @@ module.exports = {
   },
 
   render: function () {
+    var zoom = this.zoom !== undefined ? this.zoom : this.state.zoom;
     return (
       r.div("map-frame",
         r.canvas("map-canvas"),
         r.div({
             className: "map-space",
             style: {
-              width:  compute.spaceWidth(this.zoom),
-              height: compute.spaceHeight(this.zoom)
+              width:  compute.spaceWidth(zoom),
+              height: compute.spaceHeight(zoom)
             },
             onDoubleClick: this.onDoubleClick
           })));
