@@ -46,7 +46,7 @@ function GeometryLoaderWorker(origin) {
 
 GeometryLoaderWorker.prototype = {
   update: function (state) {
-    this._localSource.reset(state.attentionLocalX, state.attentionLocalY);
+    this._localSource.reset(state.signalLocalX, state.signalLocalY);
     this._loadNextTileGroup();
   },
 
@@ -93,8 +93,8 @@ onmessage = function (event) {
       break;
     case "update":
       worker.update({
-          attentionLocalX: event.data.attentionLocalX,
-          attentionLocalY: event.data.attentionLocalY
+          signalLocalX: event.data.signalLocalX,
+          signalLocalY: event.data.signalLocalY
         });
       break;
   }

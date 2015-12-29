@@ -42,9 +42,9 @@ GeometryLoader.prototype = {
   update: function (state) {
     if (!this._isFinished()) {
       this._worker.postMessage({
-          message:         "update",
-          attentionLocalX: state.attentionLocalX,
-          attentionLocalY: state.attentionLocalY
+          message:      "update",
+          signalLocalX: state.signalLocalX,
+          signalLocalY: state.signalLocalY
         });
     }
   },

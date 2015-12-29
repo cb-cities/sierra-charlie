@@ -34,24 +34,24 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      attentionLeft: 0.4897637424698795,
-      attentionTop: 0.4768826844262295,
+      signalLeft: 0.4897637424698795,
+      signalTop: 0.4768826844262295,
       rawTimeValue: 10 + 9 / 60,
       zoomPower: 4
     };
   },
 
-  easeAttentionLeft: function (attentionLeft, duration) {
-    this.pendingScrollX = true;
-    this.easeState("attentionLeft", attentionLeft, duration, function () {
-        this.pendingScrollX = false;
+  easeSignalLeft: function (signalLeft, duration) {
+    this.pendingSignalX = true;
+    this.easeState("signalLeft", signalLeft, duration, function () {
+        this.pendingSignalX = false;
       }.bind(this));
   },
  
-  easeAttentionTop: function (attentionTop, duration) {
-    this.pendingScrollY = true;
-    this.easeState("attentionTop", attentionTop, duration, function () {
-        this.pendingScrollY = false;
+  easeSignalTop: function (signalTop, duration) {
+    this.pendingSignalY = true;
+    this.easeState("signalTop", signalTop, duration, function () {
+        this.pendingSignalY = false;
       }.bind(this));
   },
 
@@ -72,17 +72,18 @@ module.exports = {
 
   _updateLoader: function () {
     this._geometryLoader.update({
-        attentionLocalX: this.attentionLocalX,
-        attentionLocalY: this.attentionLocalY
+        signalLocalX: this.signalLocalX,
+        signalLocalY: this.signalLocalY
       });
   },
 
   _updateRenderer: function () {
     this._renderer.update({
+        signalLocalX:        this.signalLocalX,
+        signalLocalY:        this.signalLocalY,
+      
         floorTimeValue:         this.floorTimeValue,
         floorZoomPower:         this.floorZoomPower,
-        attentionLocalX:        this.attentionLocalX,
-        attentionLocalY:        this.attentionLocalY,
         firstVisibleLocalX:     this.firstVisibleLocalX,
         lastVisibleLocalX:      this.lastVisibleLocalX,
         firstVisibleLocalY:     this.firstVisibleLocalY,
@@ -92,6 +93,9 @@ module.exports = {
   
   _updatePainter: function () {
     this._painter.update({
+        scrollLeft:         this.scrollLeft,
+        scrollTop:          this.scrollTop,
+      
         canvas:             this.canvas,
         floorTimeValue:     this.floorTimeValue,
         roundZoomPower:     this.roundZoomPower,
@@ -99,8 +103,6 @@ module.exports = {
         easedZoomLevel:     this.easedZoomLevel,
         groupCount:         this.groupCount,
         groupSize:          this.groupSize,
-        scrollLeft:         this.scrollLeft,
-        scrollTop:          this.scrollTop,
         firstVisibleLocalX: this.firstVisibleLocalX,
         lastVisibleLocalX:  this.lastVisibleLocalX,
         firstVisibleLocalY: this.firstVisibleLocalY,
@@ -144,10 +146,6 @@ module.exports = {
     this._updatePainter();
   },
 
-  componentWillUnmount: function () {
-    this.node.removeEventListener("scroll", this.onScroll);
-  },
-
   componentDidUpdate: function () {
     this.update();
   },
@@ -161,21 +159,21 @@ module.exports = {
   },
 
   onScroll: function (event) {
-    if (!this.pendingScrollX && !this.pendingScrollY && !this.pendingZoom) {
+    if (!this.pendingSignalX && !this.pendingSignalY && !this.pendingZoom) {
       this.importScrollPosition();
     }
   },
 
   importScrollPosition: function () {
     this.setState({
-        attentionLeft: this.node.scrollLeft / this.easedWidth,
-        attentionTop:  this.node.scrollTop / this.easedHeight
+        signalLeft: this.node.scrollLeft / this.easedWidth,
+        signalTop:  this.node.scrollTop / this.easedHeight
       });
   },
 
   computeDerivedState: function () {
-    this.easedAttentionLeft = this.getEasedState("attentionLeft");
-    this.easedAttentionTop  = this.getEasedState("attentionTop");
+    this.easedSignalLeft = this.getEasedState("signalLeft");
+    this.easedSignalTop  = this.getEasedState("signalTop");
     this.easedTimeValue     = computeTimeValue(this.getEasedState("rawTimeValue"));
     this.easedZoomPower     = this.getEasedState("zoomPower");
     this.floorTimeValue     = Math.floor(this.easedTimeValue);
@@ -189,10 +187,12 @@ module.exports = {
     this.groupSize          = defs.imageSize * this.groupCount;
     this.easedWidth         = defs.tileXCount * this.easedImageSize;
     this.easedHeight        = defs.tileYCount * this.easedImageSize;
-    this.scrollLeft         = Math.floor(this.easedAttentionLeft * this.easedWidth - this.canvas.clientWidth / 2);
-    this.scrollTop          = Math.floor(this.easedAttentionTop * this.easedHeight - this.canvas.clientHeight / 2);
-    this.attentionLocalX    = Math.floor(this.easedAttentionLeft * defs.tileXCount);
-    this.attentionLocalY    = Math.floor(this.easedAttentionTop * defs.tileYCount);
+    
+    this.scrollLeft         = Math.floor(this.easedSignalLeft * this.easedWidth - this.canvas.clientWidth / 2);
+    this.scrollTop          = Math.floor(this.easedSignalTop * this.easedHeight - this.canvas.clientHeight / 2);
+    this.signalLocalX    = Math.floor(this.easedSignalLeft * defs.tileXCount);
+    this.signalLocalY    = Math.floor(this.easedSignalTop * defs.tileYCount);
+    
     this.firstVisibleLocalX = defs.clampLocalX(Math.floor(this.scrollLeft / this.easedImageSize));
     this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((this.scrollLeft + this.canvas.clientWidth - 1) / this.easedImageSize));
     this.firstVisibleLocalY = defs.clampLocalY(Math.floor(this.scrollTop / this.easedImageSize));
@@ -204,8 +204,8 @@ module.exports = {
   },
 
   exportScrollPosition: function () {
-    this.node.scrollLeft = Math.floor(this.easedAttentionLeft * this.easedWidth);
-    this.node.scrollTop  = Math.floor(this.easedAttentionTop * this.easedHeight);
+    this.node.scrollLeft = Math.floor(this.easedSignalLeft * this.easedWidth);
+    this.node.scrollTop  = Math.floor(this.easedSignalTop * this.easedHeight);
   },
 
   onDoubleClick: function (event) {
@@ -213,8 +213,8 @@ module.exports = {
     var delay = !event.shiftKey ? 500 : 2500;
     var left = (this.scrollLeft + event.clientX) / this.easedWidth;
     var top  = (this.scrollTop + event.clientY) / this.easedHeight;
-    this.easeAttentionLeft(Math.max(0, Math.min(left, 1)), delay);
-    this.easeAttentionTop(Math.max(0, Math.min(top, 1)), delay);
+    this.easeSignalLeft(Math.max(0, Math.min(left, 1)), delay);
+    this.easeSignalTop(Math.max(0, Math.min(top, 1)), delay);
     if (!event.altKey) {
       this.easeZoomPower(Math.max(0, this.state.zoomPower - 1), delay);
     } else {

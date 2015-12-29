@@ -161,8 +161,8 @@ Renderer.prototype = {
         state.lastVisibleLocalX,
         state.firstVisibleLocalY,
         state.lastVisibleLocalY,
-        state.attentionLocalX,
-        state.attentionLocalY);
+        state.signalLocalX,
+        state.signalLocalY);
       if (!this._pendingRender) {
         this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
       }

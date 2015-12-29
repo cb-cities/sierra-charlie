@@ -30,23 +30,23 @@ addEventListener("keydown", function (event) {
     switch (event.keyCode) {
       case 37: // left
       case 36: // home
-        var left = this.state.attentionLeft - pageWidth / (event.keyCode === 36 ? 1 : 10);
-        this.easeAttentionLeft(Math.max(0, left), delay);
+        var left = this.state.signalLeft - pageWidth / (event.keyCode === 36 ? 1 : 10);
+        this.easeSignalLeft(Math.max(0, left), delay);
         break;
       case 39: // right
       case 35: // end
-        var left = this.state.attentionLeft + pageWidth / (event.keyCode === 35 ? 1 : 10);
-        this.easeAttentionLeft(Math.min(left, 1), delay);
+        var left = this.state.signalLeft + pageWidth / (event.keyCode === 35 ? 1 : 10);
+        this.easeSignalLeft(Math.min(left, 1), delay);
         break;
       case 38: // up
       case 33: // page up
-        var top = this.state.attentionTop - pageHeight / (event.keyCode === 33 ? 1 : 10);
-        this.easeAttentionTop(Math.max(0, top), delay);
+        var top = this.state.signalTop - pageHeight / (event.keyCode === 33 ? 1 : 10);
+        this.easeSignalTop(Math.max(0, top), delay);
         break;
       case 40: // down
       case 34: // page down
-        var top = this.state.attentionTop + pageHeight / (event.keyCode === 34 ? 1 : 10);
-        this.easeAttentionTop(Math.min(top, 1), delay);
+        var top = this.state.signalTop + pageHeight / (event.keyCode === 34 ? 1 : 10);
+        this.easeSignalTop(Math.min(top, 1), delay);
         break;
       case 219: // left bracket
         var rawTimeValue = (Math.round((this.state.rawTimeValue * 3600) - timeDelta) / 3600);
