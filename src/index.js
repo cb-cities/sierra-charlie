@@ -17,7 +17,7 @@ var vertexShader = require("./shaders/vertex-shader.glsl");
 var that = r.render(app(), document.getElementById("root"));
 
 addEventListener("resize", function (event) {
-    this.forceUpdate();
+    this.update();
   }.bind(that));
 
 addEventListener("keydown", function (event) {

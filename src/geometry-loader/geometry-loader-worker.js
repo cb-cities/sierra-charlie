@@ -29,11 +29,7 @@ function _postLoadedTileGroup(tileGroupId, tileGroupData) {
           tileId:   tileId,
           tileData: {
             roadLinks: tileData.roadLinks || [],
-            roadNodes: tileData.roadNodes || [],
-            localMeanTravelTimes: tileData.localMeanTravelTimes || [],
-            globalMeanTravelTimes: tileGroupData.globalMeanTravelTimes || [],
-            maxLocalMeanTravelTime: tileGroupData.maxLocalMeanTravelTime || 0,
-            maxGlobalMeanTravelTime: tileGroupData.maxGlobalMeanTravelTime || 0
+            roadNodes: tileData.roadNodes || []
           }
         });
     }

@@ -136,7 +136,7 @@ module.exports = {
     this.node = r.domNode(this);
     this.canvas = this.node.firstChild;
     this.node.addEventListener("scroll", this.onScroll);
-    this.forceUpdate();
+    this.forceUpdate(); // Trigger a React re-render to update the size of map-space
     this.computeDerivedState();
     this.exportScrollPosition();
     this._updateLoader();
@@ -148,7 +148,11 @@ module.exports = {
     this.node.removeEventListener("scroll", this.onScroll);
   },
 
-  componentDidUpdate: function (prevProps, prevState) {
+  componentDidUpdate: function () {
+    this.update();
+  },
+
+  update: function () {
     this.computeDerivedState();
     this.exportScrollPosition();
     this._updateLoader();
@@ -174,19 +178,19 @@ module.exports = {
     this.easedAttentionTop  = this.getEasedState("attentionTop");
     this.easedTimeValue     = computeTimeValue(this.getEasedState("rawTimeValue"));
     this.easedZoomPower     = this.getEasedState("zoomPower");
-    this.floorTimeValue = Math.floor(this.easedTimeValue);
-    this.timeSlice      = computeTimeSlice(this.floorTimeValue);
-    this.floorZoomPower = Math.floor(this.easedZoomPower);
-    this.roundZoomPower = Math.round(this.easedZoomPower);
-    this.ceilZoomPower  = Math.ceil(this.easedZoomPower);
-    this.easedZoomLevel = Math.pow(2, this.easedZoomPower);
-    this.easedImageSize = defs.imageSize / this.easedZoomLevel;
-    this.groupCount     = Math.pow(2, this.roundZoomPower);
-    this.groupSize      = defs.imageSize * this.groupCount;
-    this.easedWidth     = defs.tileXCount * this.easedImageSize;
-    this.easedHeight    = defs.tileYCount * this.easedImageSize;
-    this.scrollLeft     = Math.floor(this.easedAttentionLeft * this.easedWidth - this.canvas.clientWidth / 2);
-    this.scrollTop      = Math.floor(this.easedAttentionTop * this.easedHeight - this.canvas.clientHeight / 2);
+    this.floorTimeValue     = Math.floor(this.easedTimeValue);
+    this.timeSlice          = computeTimeSlice(this.floorTimeValue);
+    this.floorZoomPower     = Math.floor(this.easedZoomPower);
+    this.roundZoomPower     = Math.round(this.easedZoomPower);
+    this.ceilZoomPower      = Math.ceil(this.easedZoomPower);
+    this.easedZoomLevel     = Math.pow(2, this.easedZoomPower);
+    this.easedImageSize     = defs.imageSize / this.easedZoomLevel;
+    this.groupCount         = Math.pow(2, this.roundZoomPower);
+    this.groupSize          = defs.imageSize * this.groupCount;
+    this.easedWidth         = defs.tileXCount * this.easedImageSize;
+    this.easedHeight        = defs.tileYCount * this.easedImageSize;
+    this.scrollLeft         = Math.floor(this.easedAttentionLeft * this.easedWidth - this.canvas.clientWidth / 2);
+    this.scrollTop          = Math.floor(this.easedAttentionTop * this.easedHeight - this.canvas.clientHeight / 2);
     this.attentionLocalX    = Math.floor(this.easedAttentionLeft * defs.tileXCount);
     this.attentionLocalY    = Math.floor(this.easedAttentionTop * defs.tileYCount);
     this.firstVisibleLocalX = defs.clampLocalX(Math.floor(this.scrollLeft / this.easedImageSize));
