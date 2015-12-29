@@ -81,8 +81,6 @@ module.exports = {
         lastVisibleLocalYSignal:  this.lastVisibleLocalYSignal,
         easedTimeSignal:          this.easedTimeSignal,
         easedZoomSignal:          this.easedZoomSignal,
-        groupCount:               this.groupCount,
-        groupSize:                this.groupSize,
         firstVisibleGroupX:       this.firstVisibleGroupX,
         firstVisibleGroupY:       this.firstVisibleGroupY,
         lastVisibleGroupX:        this.lastVisibleGroupX,
@@ -153,8 +151,6 @@ module.exports = {
     this.easedTimeSignal          = tmp.computeTime(this.getEasedState("rawTimeSignal"));
     this.easedZoomSignal          = this.getEasedState("zoomSignal");
     this.easedImageSize           = tmp.computeImageSize(this.easedZoomSignal);
-    this.groupCount               = tmp.computeGroupCount(this.easedZoomSignal);
-    this.groupSize                = defs.imageSize * this.groupCount;
     this.easedWidth               = defs.tileXCount * this.easedImageSize;
     this.easedHeight              = defs.tileYCount * this.easedImageSize;
     this.scrollLeftSignal         = Math.floor(this.easedLeftSignal * this.easedWidth - this.canvas.clientWidth / 2);
@@ -165,10 +161,11 @@ module.exports = {
     this.firstVisibleLocalYSignal = defs.clampLocalY(Math.floor(this.scrollTopSignal / this.easedImageSize));
     this.lastVisibleLocalXSignal  = defs.clampLocalX(Math.floor((this.scrollLeftSignal + this.canvas.clientWidth - 1) / this.easedImageSize));
     this.lastVisibleLocalYSignal  = defs.clampLocalY(Math.floor((this.scrollTopSignal + this.canvas.clientHeight - 1) / this.easedImageSize));
-    this.firstVisibleGroupX       = Math.floor(this.firstVisibleLocalXSignal / this.groupCount) * this.groupCount;
-    this.firstVisibleGroupY       = Math.floor(this.firstVisibleLocalYSignal / this.groupCount) * this.groupCount;
-    this.lastVisibleGroupX        = Math.floor(this.lastVisibleLocalXSignal / this.groupCount) * this.groupCount;
-    this.lastVisibleGroupY        = Math.floor(this.lastVisibleLocalYSignal / this.groupCount) * this.groupCount;
+    var groupCount                = tmp.computeGroupCount(this.easedZoomSignal);
+    this.firstVisibleGroupX       = Math.floor(this.firstVisibleLocalXSignal / groupCount) * groupCount;
+    this.firstVisibleGroupY       = Math.floor(this.firstVisibleLocalYSignal / groupCount) * groupCount;
+    this.lastVisibleGroupX        = Math.floor(this.lastVisibleLocalXSignal / groupCount) * groupCount;
+    this.lastVisibleGroupY        = Math.floor(this.lastVisibleLocalYSignal / groupCount) * groupCount;
   },
 
   exportScrollPosition: function () {

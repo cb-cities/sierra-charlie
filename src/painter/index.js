@@ -62,7 +62,9 @@ Painter.prototype = {
     c.stroke(this._tileBordersPath);
   },
 
-  _paintTileContents: function (c, easedTime, easedZoom, groupCount, groupSize, firstVisibleGroupX, firstVisibleGroupY, lastVisibleGroupX, lastVisibleGroupY) {
+  _paintTileContents: function (c, easedTime, easedZoom, firstVisibleGroupX, firstVisibleGroupY, lastVisibleGroupX, lastVisibleGroupY) {
+    var groupCount = tmp.computeGroupCount(easedZoom);
+    var groupSize  = defs.imageSize * groupCount;
     for (var gx = firstVisibleGroupX; gx <= lastVisibleGroupX; gx += groupCount) {
       var gdx = gx * defs.imageSize;
       for (var gy = firstVisibleGroupY; gy <= lastVisibleGroupY; gy += groupCount) {
@@ -105,7 +107,7 @@ Painter.prototype = {
     c.save();
     c.translate(-state.scrollLeftSignal, -state.scrollTopSignal);
     c.scale(scaleRatio, scaleRatio);
-    this._paintTileContents(c, state.easedTimeSignal, state.easedZoomSignal, state.groupCount, state.groupSize, state.firstVisibleGroupX, state.firstVisibleGroupY, state.lastVisibleGroupX, state.lastVisibleGroupY);
+    this._paintTileContents(c, state.easedTimeSignal, state.easedZoomSignal, state.firstVisibleGroupX, state.firstVisibleGroupY, state.lastVisibleGroupX, state.lastVisibleGroupY);
     c.restore();
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
