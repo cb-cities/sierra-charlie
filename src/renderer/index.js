@@ -161,8 +161,8 @@ Renderer.prototype = {
         state.firstVisibleLocalY,
         state.lastVisibleLocalX,
         state.lastVisibleLocalY,
-        state.localX,
-        state.localY);
+        compute.localX(state.left),
+        compute.localY(state.top));
       if (!this._pendingRender) {
         this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
       }

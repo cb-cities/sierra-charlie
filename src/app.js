@@ -59,28 +59,28 @@ module.exports = {
 
   _updateRenderer: function () {
     this._renderer.update({
-        localX:             this.localXSignal,
-        localY:             this.localYSignal,
+        left:               this.easedLeftSignal,
+        top:                this.easedTopSignal,
+        easedTime:          this.easedTimeSignal,
+        easedZoom:          this.easedZoomSignal,
         firstVisibleLocalX: this.firstVisibleLocalXSignal,
         firstVisibleLocalY: this.firstVisibleLocalYSignal,
         lastVisibleLocalX:  this.lastVisibleLocalXSignal,
         lastVisibleLocalY:  this.lastVisibleLocalYSignal,
-        easedTime:          this.easedTimeSignal,
-        easedZoom:          this.easedZoomSignal
       });
   },
   
   _updatePainter: function () {
     this._painter.update({
         canvas:             this.canvas,
-        scrollLeft:         this.scrollLeftSignal,
-        scrollTop:          this.scrollTopSignal,
+        left:               this.easedLeftSignal,
+        top:                this.easedTopSignal,
+        easedTime:          this.easedTimeSignal,
+        easedZoom:          this.easedZoomSignal,
         firstVisibleLocalX: this.firstVisibleLocalXSignal,
         firstVisibleLocalY: this.firstVisibleLocalYSignal,
         lastVisibleLocalX:  this.lastVisibleLocalXSignal,
         lastVisibleLocalY:  this.lastVisibleLocalYSignal,
-        easedTime:          this.easedTimeSignal,
-        easedZoom:          this.easedZoomSignal
       });
   },
 
@@ -146,30 +146,28 @@ module.exports = {
     this.easedTopSignal           = this.getEasedState("topSignal");
     this.easedTimeSignal          = compute.time(this.getEasedState("rawTimeSignal"));
     this.easedZoomSignal          = this.getEasedState("zoomSignal");
-    this.scrollLeftSignal         = Math.floor(this.easedLeftSignal * compute.spaceWidth(this.easedZoomSignal) - this.canvas.clientWidth / 2);
-    this.scrollTopSignal          = Math.floor(this.easedTopSignal * compute.spaceHeight(this.easedZoomSignal) - this.canvas.clientHeight / 2);
-    this.localXSignal             = Math.floor(this.easedLeftSignal * defs.tileXCount);
-    this.localYSignal             = Math.floor(this.easedTopSignal * defs.tileYCount);
     
-    var imageSize                 = compute.imageSize(this.easedZoomSignal);
-    this.firstVisibleLocalXSignal = defs.clampLocalX(Math.floor(this.scrollLeftSignal / imageSize));
-    this.firstVisibleLocalYSignal = defs.clampLocalY(Math.floor(this.scrollTopSignal / imageSize));
-    this.lastVisibleLocalXSignal  = defs.clampLocalX(Math.floor((this.scrollLeftSignal + this.canvas.clientWidth - 1) / imageSize));
-    this.lastVisibleLocalYSignal  = defs.clampLocalY(Math.floor((this.scrollTopSignal + this.canvas.clientHeight - 1) / imageSize));
+    var imageSize = compute.imageSize(this.easedZoomSignal);
+    var moveLeft  = compute.moveLeft(this.easedLeftSignal, this.easedZoomSignal, this.canvas.clientWidth);
+    var moveTop   = compute.moveTop(this.easedTopSignal, this.easedZoomSignal, this.canvas.clientHeight);
+    this.firstVisibleLocalXSignal = defs.clampLocalX(Math.floor(moveLeft / imageSize));
+    this.firstVisibleLocalYSignal = defs.clampLocalY(Math.floor(moveTop / imageSize));
+    this.lastVisibleLocalXSignal  = defs.clampLocalX(Math.floor((moveLeft + this.canvas.clientWidth - 1) / imageSize));
+    this.lastVisibleLocalYSignal  = defs.clampLocalY(Math.floor((moveTop + this.canvas.clientHeight - 1) / imageSize));
   },
 
   exportScrollPosition: function () {
-    this.node.scrollLeft = Math.floor(this.easedLeftSignal * compute.spaceWidth(this.easedZoomSignal));
-    this.node.scrollTop  = Math.floor(this.easedTopSignal * compute.spaceHeight(this.easedZoomSignal));
+    this.node.scrollLeft = compute.scrollLeft(this.easedLeftSignal, this.easedZoomSignal);
+    this.node.scrollTop  = compute.scrollTop(this.easedTopSignal, this.easedZoomSignal);
   },
 
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
+    var left = compute.fromClientX(event.clientX, this.easedLeftSignal, this.easedZoomSignal, this.canvas.clientWidth);
+    var top  = compute.fromClientY(event.clientY, this.easedTopSignal, this.easedZoomSignal, this.canvas.clientHeight);
     var delay = !event.shiftKey ? 500 : 2500;
-    var left = (this.scrollLeftSignal + event.clientX) / compute.spaceWidth(this.easedZoomSignal);
-    var top  = (this.scrollTopSignal + event.clientY) / compute.spaceHeight(this.easedZoomSignal);
-    this.easeLeft(Math.max(0, Math.min(left, 1)), delay);
-    this.easeTop(Math.max(0, Math.min(top, 1)), delay);
+    this.easeLeft(compute.clamp(0, left, 1), delay);
+    this.easeTop(compute.clamp(0, top, 1), delay);
     if (!event.altKey) {
       this.easeZoom(Math.max(0, this.state.zoomSignal - 1), delay);
     } else {

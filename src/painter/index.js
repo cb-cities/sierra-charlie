@@ -97,7 +97,9 @@ Painter.prototype = {
     c.save();
     c.fillStyle = defs.backgroundColor;
     c.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-    c.translate(-state.scrollLeft, -state.scrollTop);
+    var moveLeft = compute.moveLeft(state.left, state.easedZoom, canvas.clientWidth);
+    var moveTop  = compute.moveTop(state.top, state.easedZoom, canvas.clientHeight);
+    c.translate(-moveLeft, -moveTop);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     var scaleRatio = compute.scaleRatio(state.easedZoom);
     c.scale(scaleRatio, scaleRatio);
@@ -109,7 +111,7 @@ Painter.prototype = {
     this._paintTileBorders(c, state.easedZoom);
     c.restore();
     c.save();
-    c.translate(-state.scrollLeft, -state.scrollTop);
+    c.translate(-moveLeft, -moveTop);
     c.scale(scaleRatio, scaleRatio);
     this._paintTileContents(c, state.easedTime, state.easedZoom, state.firstVisibleLocalX, state.firstVisibleLocalY, state.lastVisibleLocalX, state.lastVisibleLocalY);
     c.restore();

@@ -4,6 +4,14 @@ var defs = require("./defs");
 
 
 var _ = module.exports = {
+  localX: function (left) {
+    return Math.floor(left * defs.tileXCount);
+  },
+  
+  localY: function (top) {
+    return Math.floor(top * defs.tileYCount);
+  },
+  
   zoomLevel: function (zoom) {
     return Math.pow(2, zoom);
   },
@@ -22,6 +30,34 @@ var _ = module.exports = {
   
   spaceHeight: function (zoom) {
     return defs.tileYCount * _.imageSize(zoom);
+  },
+  
+  scrollLeft: function (left, zoom) {
+    return Math.floor(left * _.spaceWidth(zoom));
+  },
+  
+  scrollTop: function (top, zoom) {
+    return Math.floor(top * _.spaceHeight(zoom));
+  },
+  
+  moveLeft: function (left, zoom, clientWidth) {
+    return Math.floor(left * _.spaceWidth(zoom) - clientWidth / 2);
+  },
+  
+  moveTop: function (top, zoom, clientHeight) {
+    return Math.floor(top * _.spaceHeight(zoom) - clientHeight / 2);
+  },
+  
+  clamp: function (lo, value, hi) {
+    return Math.max(lo, Math.min(value, hi));
+  },
+  
+  fromClientX: function (clientX, left, zoom, clientWidth) {
+    return (_.moveLeft(left, zoom, clientWidth) + clientX) / _.spaceWidth(zoom);
+  },
+  
+  fromClientY: function (clientY, top, zoom, clientHeight) {
+    return (_.moveTop(top, zoom, clientHeight) + clientY) / _.spaceHeight(zoom);
   },
   
   textMargin: function (zoom) {
