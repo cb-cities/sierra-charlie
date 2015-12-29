@@ -157,10 +157,10 @@ Renderer.prototype = {
     this._floorZoom = Math.floor(state.easedZoom);
     if (!this._isFinished()) {
       this._localSource.resetBounds(
-        state.firstVisibleLocalX,
-        state.firstVisibleLocalY,
-        state.lastVisibleLocalX,
-        state.lastVisibleLocalY,
+        compute.firstVisibleLocalX(state.left, state.easedZoom, state.canvas.clientWidth),
+        compute.firstVisibleLocalY(state.top, state.easedZoom, state.canvas.clientHeight),
+        compute.lastVisibleLocalX(state.left, state.easedZoom, state.canvas.clientWidth),
+        compute.lastVisibleLocalY(state.top, state.easedZoom, state.canvas.clientHeight),
         compute.localX(state.left),
         compute.localY(state.top));
       if (!this._pendingRender) {

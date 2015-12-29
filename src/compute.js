@@ -3,6 +3,25 @@
 var defs = require("./defs");
 
 
+function clampF(f) {
+  return (
+    Math.max(0,
+      Math.min(f, 1)));
+}
+
+function clampLocalX(lx) {
+  return (
+    Math.max(0,
+      Math.min(lx, defs.tileXCount - 1)));
+}
+
+function clampLocalY(ly) {
+  return (
+    Math.max(0,
+      Math.min(ly, defs.tileYCount - 1)));
+}
+
+
 var _ = module.exports = {
   localX: function (left) {
     return Math.floor(left * defs.tileXCount);
@@ -48,16 +67,28 @@ var _ = module.exports = {
     return Math.floor(top * _.spaceHeight(zoom) - clientHeight / 2);
   },
   
-  clamp: function (lo, value, hi) {
-    return Math.max(lo, Math.min(value, hi));
+  firstVisibleLocalX: function (left, zoom, clientWidth) {
+    return clampLocalX(Math.floor(_.moveLeft(left, zoom, clientWidth) / _.imageSize(zoom)));
+  },
+  
+  firstVisibleLocalY: function (top, zoom, clientHeight) {
+    return clampLocalY(Math.floor(_.moveTop(top, zoom, clientHeight) / _.imageSize(zoom)));
+  },
+  
+  lastVisibleLocalX: function (left, zoom, clientWidth) {
+    return clampLocalX(Math.floor((_.moveLeft(left, zoom, clientWidth) + clientWidth - 1) / _.imageSize(zoom)));
+  },
+  
+  lastVisibleLocalY: function (top, zoom, clientHeight) {
+    return clampLocalY(Math.floor((_.moveTop(top, zoom, clientHeight) + clientHeight - 1) / _.imageSize(zoom)));
   },
   
   fromClientX: function (clientX, left, zoom, clientWidth) {
-    return (_.moveLeft(left, zoom, clientWidth) + clientX) / _.spaceWidth(zoom);
+    return clampF((_.moveLeft(left, zoom, clientWidth) + clientX) / _.spaceWidth(zoom));
   },
   
   fromClientY: function (clientY, top, zoom, clientHeight) {
-    return (_.moveTop(top, zoom, clientHeight) + clientY) / _.spaceHeight(zoom);
+    return clampF((_.moveTop(top, zoom, clientHeight) + clientY) / _.spaceHeight(zoom));
   },
   
   textMargin: function (zoom) {

@@ -103,9 +103,13 @@ Painter.prototype = {
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
     var scaleRatio = compute.scaleRatio(state.easedZoom);
     c.scale(scaleRatio, scaleRatio);
+    var firstVisibleLocalX = compute.firstVisibleLocalX(state.left, state.easedZoom, canvas.clientWidth);
+    var firstVisibleLocalY = compute.firstVisibleLocalY(state.top, state.easedZoom, canvas.clientHeight);
+    var lastVisibleLocalX  = compute.lastVisibleLocalX(state.left, state.easedZoom, canvas.clientWidth);
+    var lastVisibleLocalY  = compute.lastVisibleLocalY(state.top, state.easedZoom, canvas.clientHeight);
     if (state.easedZoom < 3) {
       c.globalAlpha = 1 - (state.easedZoom - 2);
-      _paintTileLabels(c, state.easedZoom, state.firstVisibleLocalX, state.firstVisibleLocalY, state.lastVisibleLocalX, state.lastVisibleLocalY);
+      _paintTileLabels(c, state.easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
       c.globalAlpha = 1;
     }
     this._paintTileBorders(c, state.easedZoom);
@@ -113,7 +117,7 @@ Painter.prototype = {
     c.save();
     c.translate(-moveLeft, -moveTop);
     c.scale(scaleRatio, scaleRatio);
-    this._paintTileContents(c, state.easedTime, state.easedZoom, state.firstVisibleLocalX, state.firstVisibleLocalY, state.lastVisibleLocalX, state.lastVisibleLocalY);
+    this._paintTileContents(c, state.easedTime, state.easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
     c.restore();
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);

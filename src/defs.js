@@ -71,18 +71,6 @@ var _ = module.exports = {
     return _.tileToNationalGridY(_.localToTileY(y));
   },
 
-  clampLocalX: function (lx) {
-    return (
-      Math.max(0,
-        Math.min(lx, tileXCount - 1)));
-  },
-
-  clampLocalY: function (ly) {
-    return (
-      Math.max(0,
-        Math.min(ly, tileYCount - 1)));
-  },
-
   backgroundColor:        "#000",
   inverseBackgroundColor: "#fff",
 

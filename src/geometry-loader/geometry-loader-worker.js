@@ -4,6 +4,7 @@
 
 var BoundedSpiral = require("../lib/bounded-spiral");
 var http = require("http-request-wrapper");
+var compute = require("../compute")
 var defs = require("../defs");
 var tid = require("../lib/tile-id");
 var tgid = require("../lib/tile-group-id");
@@ -45,9 +46,9 @@ function GeometryLoaderWorker(origin) {
 }
 
 GeometryLoaderWorker.prototype = {
-  update: function (leftSignal, topSignal) {
-    var lx = Math.floor(leftSignal * defs.tileXCount);
-    var ly = Math.floor(topSignal * defs.tileYCount);
+  update: function (left, top) {
+    var lx = compute.localX(left);
+    var ly = compute.localY(top);
     this._localSource.reset(lx, ly);
     this._loadNextTileGroup();
   },
@@ -94,7 +95,7 @@ onmessage = function (event) {
       worker = new GeometryLoaderWorker(event.data.origin);
       break;
     case "update":
-      worker.update(event.data.leftSignal, event.data.topSignal);
+      worker.update(event.data.left, event.data.top);
       break;
   }
 };
