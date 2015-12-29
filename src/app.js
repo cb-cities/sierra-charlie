@@ -17,29 +17,15 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      width:      0,
-      height:     0,
-      pixelRatio: window.devicePixelRatio,
-      left:       0.4897637424698795,
-      top:        0.4768826844262295,
-      rawTime:    10 + 9 / 60,
-      zoom:       4
+      width:   0,
+      height:  0,
+      left:    0.4897637424698795,
+      top:     0.4768826844262295,
+      rawTime: 10 + 9 / 60,
+      zoom:    4
     };
   },
   
-  setSize: function (width, height) {
-    this.setState({
-        width:  width,
-        height: height
-      });
-  },
-  
-  setPixelRatio: function (pixelRatio) {
-    this.setState({
-        pixelRatio: pixelRatio
-      });
-  },
-
   setLeft: function (left, duration) {
     this.easingLeft = true;
     this.easeState("left", left, duration, function () {
@@ -70,10 +56,6 @@ module.exports = {
 
   componentDidMount: function () {
     var frame  = r.domNode(this);
-    var canvas = frame.firstChild;
-
-    addEventListener("resize", this.onResize);
-    matchMedia("screen and (min-resolution: 2dppx)").addListener(this.onRescale);
     frame.addEventListener("scroll", this.onScroll);
     
     this._geometryLoader = new GeometryLoader({
@@ -86,10 +68,11 @@ module.exports = {
     this._painter = new Painter({
         getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
       });
-      
+
+    addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
-    
-    this.setSize(canvas.clientWidth, canvas.clientHeight);
+
+    this.forceUpdate(); // In lieu of this.setSize
   },
   
   render: function () {
@@ -110,6 +93,8 @@ module.exports = {
   componentDidUpdate: function () {
     var frame  = r.domNode(this);
     var canvas = frame.firstChild;
+    var width  = canvas.clientWidth;
+    var height = canvas.clientHeight;
     var left   = this.getEasedState("left");
     var top    = this.getEasedState("top");
     var time   = compute.time(this.getEasedState("rawTime"));
@@ -117,20 +102,10 @@ module.exports = {
     frame.scrollLeft = compute.scrollLeft(left, zoom);
     frame.scrollTop  = compute.scrollTop(top, zoom);
     this._geometryLoader.update(left, top);
-    this._renderer.update(canvas.clientWidth, canvas.clientHeight, left, top, time, zoom);
+    this._renderer.update(width, height, left, top, time, zoom);
     this._painter.update(canvas, left, top, time, zoom);
   },
   
-  onResize: function (event) {
-    var canvas = r.domNode(this).firstChild;
-    this.setSize(canvas.clientWidth, canvas.clientHeight);
-  },
-  
-  onRescale: function (event) {
-    console.log("window.devicePixelRatio:", window.devicePixelRatio);
-    this.setPixelRatio(window.devicePixelRatio);
-  },
-
   onScroll: function (event) {
     if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
       var frame = r.domNode(this);
@@ -144,11 +119,13 @@ module.exports = {
   
   onTileLoad: function () {
     var canvas = r.domNode(this).firstChild;
+    var width  = canvas.clientWidth;
+    var height = canvas.clientHeight;
     var left   = this.getEasedState("left");
     var top    = this.getEasedState("top");
     var time   = compute.time(this.getEasedState("rawTime"));
     var zoom   = this.getEasedState("zoom");
-    this._renderer.update(canvas.clientWidth, canvas.clientHeight, left, top, time, zoom);
+    this._renderer.update(width, height, left, top, time, zoom);
     this._painter.update(canvas, left, top, time, zoom);
   },
   
@@ -161,14 +138,20 @@ module.exports = {
     this._painter.update(canvas, left, top, time, zoom);
   },
   
+  onResize: function (event) {
+    this.forceUpdate(); // In lieu of this.setSize()
+  },
+
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
-    var canvas = r.domNode(this).firstChild;
-    var pageWidth  = compute.pageWidth(this.state.width, this.state.zoom);
-    var pageHeight = compute.pageHeight(this.state.height, this.state.zoom);
-    var duration = event.shiftKey ? 2500 : 500;
-    var timeDelta = (event.ctrlKey || event.altKey) ? 60 : 3600;
-    var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10;
+    var canvas     = r.domNode(this).firstChild;
+    var width      = canvas.clientWidth;
+    var height     = canvas.clientHeight;
+    var pageWidth  = compute.pageWidth(width, this.state.zoom);
+    var pageHeight = compute.pageHeight(height, this.state.zoom);
+    var duration   = event.shiftKey ? 2500 : 500;
+    var timeDelta  = (event.ctrlKey || event.altKey) ? 60 : 3600;
+    var zoomDelta  = (event.altKey || event.ctrlKey) ? 2 : 10;
     switch (event.keyCode) {
       case 37: // left
       case 36: // home
@@ -217,8 +200,10 @@ module.exports = {
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
     var canvas = r.domNode(this).firstChild;
-    var left = compute.fromMouseX(event.clientX, this.state.width, this.state.left, this.state.zoom);
-    var top  = compute.fromMouseY(event.clientY, this.state.height, this.state.top, this.state.zoom);
+    var width  = canvas.clientWidth;
+    var height = canvas.clientHeight;
+    var left   = compute.fromMouseX(event.clientX, width, this.state.left, this.state.zoom);
+    var top    = compute.fromMouseY(event.clientY, height, this.state.top, this.state.zoom);
     var duration = !event.shiftKey ? 500 : 2500;
     this.setLeft(left, duration);
     this.setTop(top, duration);
