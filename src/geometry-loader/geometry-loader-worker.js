@@ -1,7 +1,5 @@
 "use strict";
 
-/* global postMessage, onmessage:true */
-
 var BoundedSpiral = require("../lib/bounded-spiral");
 var http = require("http-request-wrapper");
 var compute = require("../compute")

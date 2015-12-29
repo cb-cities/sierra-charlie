@@ -1,7 +1,5 @@
 "use strict";
 
-/* global Path2D */
-
 var nnng = require("nnng");
 var compute = require("../compute");
 var defs = require("../defs");
@@ -127,7 +125,7 @@ Painter.prototype = {
   update: function (canvas, left, top, time, zoom) {
     if (!this._pendingPaint) {
       this._pendingPaint = true;
-      window.requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
           this._paint(canvas, left, top, time, zoom);
         }.bind(this));
     }
