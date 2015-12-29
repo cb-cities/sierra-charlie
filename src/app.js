@@ -16,13 +16,13 @@ function computeTimeSignal(rawTimeSignal) {
       24 - Math.round((-rawTimeSignal * 3600) % (24 * 3600)) / 3600);
 }
 
-function computeTimeSlice(timeSignal) {
+function computeTimeSlice(time) {
   return (
-    (timeSignal >=  8 && timeSignal < 10) ? 1 :
-    (timeSignal >= 10 && timeSignal < 13) ? 2 :
-    (timeSignal >= 13 && timeSignal < 16) ? 3 :
-    (timeSignal >= 16 && timeSignal < 19) ? 4 :
-    (timeSignal >= 19 && timeSignal < 21) ? 5 :
+    (time >=  8 && time < 10) ? 1 :
+    (time >= 10 && time < 13) ? 2 :
+    (time >= 13 && time < 16) ? 3 :
+    (time >= 16 && time < 19) ? 4 :
+    (time >= 19 && time < 21) ? 5 :
     0);
 }
 

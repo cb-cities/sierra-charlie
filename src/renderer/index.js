@@ -6,8 +6,8 @@ var iid = require("../lib/image-id");
 var tid = require("../lib/tile-id");
 
 
-function _renderRoadLinks(c, timeSignal, zoomSignal, tileData) {
-  var zoomLevel = Math.pow(2, zoomSignal);
+function _renderRoadLinks(c, time, zoom, tileData) {
+  var zoomLevel = Math.pow(2, zoom);
   c.lineWidth = 4 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
   c.strokeStyle = "#666";
   for (var i = 0; i < tileData.roadLinks.length; i++) {
@@ -22,8 +22,8 @@ function _renderRoadLinks(c, timeSignal, zoomSignal, tileData) {
   }
 }
 
-function _renderRoadNodes(c, timeSignal, zoomSignal, tileData) {
-  var zoomLevel = Math.pow(2, zoomSignal);
+function _renderRoadNodes(c, time, zoom, tileData) {
+  var zoomLevel = Math.pow(2, zoom);
   var nodeSize = 8 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
   c.lineWidth = 2 * Math.sqrt(zoomLevel) * (defs.tileSize / defs.imageSize);
   c.strokeStyle = "#999";
@@ -49,9 +49,9 @@ Renderer.prototype = {
 
   _setRenderedImage: function (imageId, flag) {
     this._renderedImages[imageId] = flag;
-    var timeSignal = iid.getTimeSignal(imageId);
-    var zoomSignal = iid.getZoomSignal(imageId);
-    this._incrementRenderedImageCount(timeSignal, zoomSignal);
+    var time = iid.getTime(imageId);
+    var zoom = iid.getZoom(imageId);
+    this._incrementRenderedImageCount(time, zoom);
   },
 
   getRenderedImage: function (imageId) {
@@ -66,25 +66,25 @@ Renderer.prototype = {
     return this._renderedGroups[groupId];
   },
 
-  _incrementRenderedImageCount: function (timeSignal, zoomSignal) {
-    var perTimeSignal = this._renderedImageCount[timeSignal];
+  _incrementRenderedImageCount: function (time, zoom) {
+    var perTimeSignal = this._renderedImageCount[time];
     if (!perTimeSignal) {
-      perTimeSignal = this._renderedImageCount[timeSignal] = [];
+      perTimeSignal = this._renderedImageCount[time] = [];
     }
-    var perZoomSignal = perTimeSignal[zoomSignal];
+    var perZoomSignal = perTimeSignal[zoom];
     if (!perZoomSignal) {
-      perTimeSignal[zoomSignal] = 1;
+      perTimeSignal[zoom] = 1;
     } else {
-      perTimeSignal[zoomSignal]++;
+      perTimeSignal[zoom]++;
     }
   },
 
-  _getRenderedImageCount: function (timeSignal, zoomSignal) {
-    var perTimeSignal = this._renderedImageCount[timeSignal];
+  _getRenderedImageCount: function (time, zoom) {
+    var perTimeSignal = this._renderedImageCount[time];
     if (!perTimeSignal) {
       return 0;
     } else {
-      var perZoomSignal = perTimeSignal[zoomSignal];
+      var perZoomSignal = perTimeSignal[zoom];
       if (!perZoomSignal) {
         return 0;
       } else {
@@ -96,15 +96,15 @@ Renderer.prototype = {
   _renderImage: function (imageId) {
     var tileId = iid.toTileId(imageId);
     var tileData = this._callbacks.getLoadedTile(tileId);
-    var timeSignal  = iid.getTimeSignal(imageId);
-    var zoomSignal  = iid.getZoomSignal(imageId);
-    var zoomLevel  = Math.pow(2, zoomSignal);
+    var time  = iid.getTime(imageId);
+    var zoom  = iid.getZoom(imageId);
+    var zoomLevel  = Math.pow(2, zoom);
     var groupCount = zoomLevel;
     var imageSize  = window.devicePixelRatio * defs.imageSize / zoomLevel;
     var groupSize  = imageSize * groupCount;
     var gx = Math.floor(iid.getLocalX(imageId) / groupCount) * groupCount;
     var gy = Math.floor(iid.getLocalY(imageId) / groupCount) * groupCount;
-    var groupId = iid.fromLocal(gx, gy, timeSignal, zoomSignal);
+    var groupId = iid.fromLocal(gx, gy, time, zoom);
     var canvas = this.getRenderedGroup(groupId);
     var c;
     if (!canvas) {
@@ -118,8 +118,8 @@ Renderer.prototype = {
     } else {
       c = canvas.getContext("2d");
     }
-    _renderRoadLinks(c, timeSignal, zoomSignal, tileData);
-    _renderRoadNodes(c, timeSignal, zoomSignal, tileData);
+    _renderRoadLinks(c, time, zoom, tileData);
+    _renderRoadNodes(c, time, zoom, tileData);
     this._setRenderedImage(imageId, true);
   },
 
