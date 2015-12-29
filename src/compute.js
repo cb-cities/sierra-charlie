@@ -116,15 +116,11 @@ var _ = module.exports = {
   },
   
   roadLinkLineWidth: function (zoom) {
-    return 4 * Math.sqrt(_.zoomLevel(zoom)) * (defs.tileSize / defs.imageSize);
+    return 2 * Math.sqrt(_.zoomLevel(zoom) / 2) * (defs.tileSize / defs.imageSize);
   },
   
   roadNodeSquareSize: function (zoom) {
-    return 8 * Math.sqrt(_.zoomLevel(zoom)) * (defs.tileSize / defs.imageSize);
-  },
-  
-  roadNodeLineWidth: function (zoom) {
-    return 2 * Math.sqrt(_.zoomLevel(zoom)) * (defs.tileSize / defs.imageSize);
+    return 8 * Math.sqrt(_.zoomLevel(zoom) / 2) * (defs.tileSize / defs.imageSize);
   },
   
   scaleRatio: function (zoom) {

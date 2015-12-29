@@ -62,19 +62,6 @@ module.exports = {
     };
   },
   
-  getDerivedStateForRenderer: function () {
-    var frame  = r.domNode(this);
-    var canvas = frame.firstChild;
-    return {
-      width:  canvas.clientWidth,
-      height: canvas.clientHeight,
-      left:   this.getEasedState("left"),
-      top:    this.getEasedState("top"),
-      time:   compute.time(this.state.rawTime),
-      zoom:   this.state.zoom
-    };
-  },
-  
   updateFrame: function (left, top, zoom) {
     var frame = r.domNode(this);
     var left  = this.getEasedState("left");
@@ -92,7 +79,7 @@ module.exports = {
       });
       
     this._renderer = new Renderer({
-        getDerivedState: this.getDerivedStateForRenderer,
+        getDerivedState: this.getDerivedState,
         getLoadedTile:   this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
         onImageRender:   this.onImageRender
       });

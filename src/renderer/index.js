@@ -9,7 +9,7 @@ var tid = require("../lib/tile-id");
 
 function _renderRoadLinks(c, time, zoom, tileData) {
   c.lineWidth = compute.roadLinkLineWidth(zoom);
-  c.strokeStyle = "#666";
+  c.strokeStyle = "#fff";
   for (var i = 0; i < tileData.roadLinks.length; i++) {
     var roadLink = tileData.roadLinks[i];
     var ps = roadLink.ps;
@@ -24,11 +24,10 @@ function _renderRoadLinks(c, time, zoom, tileData) {
 
 function _renderRoadNodes(c, time, zoom, tileData) {
   var nodeSize = compute.roadNodeSquareSize(zoom);
-  c.lineWidth = compute.roadNodeLineWidth(zoom);
-  c.strokeStyle = "#999";
+  c.fillStyle = "#fff";
   for (var i = 0; i < tileData.roadNodes.length; i++) {
     var p = tileData.roadNodes[i].p;
-    c.strokeRect(p.x - nodeSize / 2, p.y - nodeSize / 2, nodeSize, nodeSize);
+    c.fillRect(p.x - nodeSize / 2, p.y - nodeSize / 2, nodeSize, nodeSize);
   }
 }
 
@@ -36,8 +35,8 @@ function _renderRoadNodes(c, time, zoom, tileData) {
 function Renderer(props) {
   this._props = props;
   this._localSource = new BoundedSpiral(0, 0, defs.tileXCount - 1, defs.tileYCount - 1);
-  this._floorTime = null;
-  this._floorZoom = null;
+  this._time = null;
+  this._zoom = null;
   this._pendingRender = null;
   this._renderedImages = {};
   this._renderedImageCount = [];
@@ -129,7 +128,7 @@ Renderer.prototype = {
       }
       var tileId = tid.fromLocal(local.x, local.y);
       if (this._props.getLoadedTile(tileId)) {
-        var imageId = iid.fromTileId(tileId, this._floorTime, this._floorZoom);
+        var imageId = iid.fromTileId(tileId, this._time, this._zoom);
         if (!(this.getRenderedImage(imageId))) {
           return imageId;
         }
@@ -149,13 +148,13 @@ Renderer.prototype = {
   },
   
   _isFinished: function () {
-    return this._getRenderedImageCount(this._floorTime, this._floorZoom) === defs.maxTileCount;
+    return this._getRenderedImageCount(this._time, this._zoom) === defs.maxTileCount;
   },
 
   update: function () {
     var state = this._props.getDerivedState();
-    this._floorTime = Math.floor(state.time);
-    this._floorZoom = Math.floor(state.zoom);
+    this._time = Math.floor(state.time);
+    this._zoom = Math.round(state.zoom);
     if (!this._isFinished()) {
       this._localSource.resetBounds(
         compute.firstVisibleLocalX(state.width, state.left, state.zoom),
