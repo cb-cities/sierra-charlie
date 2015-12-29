@@ -107,13 +107,6 @@ Painter.prototype = {
     c.restore();
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
-    if (state.invertColor) {
-      c.restore();
-      c.globalCompositeOperation = "difference";
-      c.fillStyle = "#fff";
-      c.fillRect(0, 0, state.clientWidth, state.clientHeight);
-      c.globalCompositeOperation = "source-over";
-    }
     this._pendingPaint = false;
   },
 

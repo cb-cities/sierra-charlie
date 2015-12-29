@@ -42,15 +42,7 @@ function Renderer(callbacks) {
 }
 
 Renderer.prototype = {
-  reset: function () {
-    clearTimeout(this._pendingRender);
-    this._pendingRender = null;
-    this._renderedImages = {};
-    this._renderedImageCount = [];
-    this._renderedGroups = {};
-    this._callbacks.onImageRender(null);
-  },
-  
+
   _setRenderedImage: function (imageId, flag) {
     this._renderedImages[imageId] = flag;
     var timeValue = iid.getTimeValue(imageId);

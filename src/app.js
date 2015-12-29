@@ -79,7 +79,6 @@ module.exports = {
         canvas:             this.canvas,
         clientWidth:        this.state.clientWidth,
         clientHeight:       this.state.clientHeight,
-        invertColor:        this.state.invertColor,
         floorTimeValue:     this.floorTimeValue,
         roundZoomPower:     this.roundZoomPower,
         easedZoomPower:     this.easedZoomPower,
@@ -128,7 +127,6 @@ module.exports = {
     this.importClientSize();
     this.computeDerivedState();
     this.exportScrollPosition();
-    this.exportBackgroundColor();
     this._updateLoader();
     this._updateRenderer();
     this._updatePainter();
@@ -143,7 +141,6 @@ module.exports = {
   componentDidUpdate: function (prevProps, prevState) {
     this.computeDerivedState();
     this.exportScrollPosition();
-    this.exportBackgroundColor(prevState);
     this._updateLoader();
     this._updateRenderer();
     this._updatePainter();
@@ -227,15 +224,6 @@ module.exports = {
     this.node.scrollTop  = Math.floor(this.easedAttentionTop * this.easedHeight);
   },
 
-  exportBackgroundColor: function (prevState) {
-    if (!prevState || prevState.invertColor !== this.state.invertColor) {
-      document.body.style.backgroundColor = (
-        !this.state.invertColor ?
-          defs.backgroundColor :
-          defs.inverseBackgroundColor);
-    }
-  },
-
 
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
@@ -280,15 +268,6 @@ module.exports = {
       case 189: // minus
         var zoomPower = Math.min(Math.round((this.state.zoomPower * 10) + zoomDelta) / 10, defs.maxZoomPower);
         this.easeZoomPower(zoomPower, delay);
-        break;
-      // case 67: // c
-      //   this.setState({
-      //       invertColor: !this.state.invertColor
-      //     });
-      //   break;
-      case 70: // f
-        this._renderer.reset();
-        this._updateRenderer();
         break;
       case 82: // r
         this.setState({
