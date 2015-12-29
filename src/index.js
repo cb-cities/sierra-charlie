@@ -4,6 +4,7 @@ window.React = require("react/addons");
 
 var r = require("react-wrapper");
 var app = r.wrap(require("./app"));
+var compute = require("./compute");
 var defs = require("./defs");
 
 require("./index.appcache");

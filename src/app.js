@@ -59,32 +59,28 @@ module.exports = {
 
   _updateRenderer: function () {
     this._renderer.update({
-        localXSignal:             this.localXSignal,
-        localYSignal:             this.localYSignal,
-        firstVisibleLocalXSignal: this.firstVisibleLocalXSignal,
-        firstVisibleLocalYSignal: this.firstVisibleLocalYSignal,
-        lastVisibleLocalXSignal:  this.lastVisibleLocalXSignal,
-        lastVisibleLocalYSignal:  this.lastVisibleLocalYSignal,
-        easedTimeSignal:          this.easedTimeSignal,
-        easedZoomSignal:          this.easedZoomSignal
+        localX:             this.localXSignal,
+        localY:             this.localYSignal,
+        firstVisibleLocalX: this.firstVisibleLocalXSignal,
+        firstVisibleLocalY: this.firstVisibleLocalYSignal,
+        lastVisibleLocalX:  this.lastVisibleLocalXSignal,
+        lastVisibleLocalY:  this.lastVisibleLocalYSignal,
+        easedTime:          this.easedTimeSignal,
+        easedZoom:          this.easedZoomSignal
       });
   },
   
   _updatePainter: function () {
     this._painter.update({
-        canvas:                   this.canvas,
-        scrollLeftSignal:         this.scrollLeftSignal,
-        scrollTopSignal:          this.scrollTopSignal,
-        firstVisibleLocalXSignal: this.firstVisibleLocalXSignal,
-        firstVisibleLocalYSignal: this.firstVisibleLocalYSignal,
-        lastVisibleLocalXSignal:  this.lastVisibleLocalXSignal,
-        lastVisibleLocalYSignal:  this.lastVisibleLocalYSignal,
-        easedTimeSignal:          this.easedTimeSignal,
-        easedZoomSignal:          this.easedZoomSignal,
-        firstVisibleGroupX:       this.firstVisibleGroupX,
-        firstVisibleGroupY:       this.firstVisibleGroupY,
-        lastVisibleGroupX:        this.lastVisibleGroupX,
-        lastVisibleGroupY:        this.lastVisibleGroupY,
+        canvas:             this.canvas,
+        scrollLeft:         this.scrollLeftSignal,
+        scrollTop:          this.scrollTopSignal,
+        firstVisibleLocalX: this.firstVisibleLocalXSignal,
+        firstVisibleLocalY: this.firstVisibleLocalYSignal,
+        lastVisibleLocalX:  this.lastVisibleLocalXSignal,
+        lastVisibleLocalY:  this.lastVisibleLocalYSignal,
+        easedTime:          this.easedTimeSignal,
+        easedZoom:          this.easedZoomSignal
       });
   },
 
@@ -160,12 +156,6 @@ module.exports = {
     this.firstVisibleLocalYSignal = defs.clampLocalY(Math.floor(this.scrollTopSignal / imageSize));
     this.lastVisibleLocalXSignal  = defs.clampLocalX(Math.floor((this.scrollLeftSignal + this.canvas.clientWidth - 1) / imageSize));
     this.lastVisibleLocalYSignal  = defs.clampLocalY(Math.floor((this.scrollTopSignal + this.canvas.clientHeight - 1) / imageSize));
-    
-    var groupCount                = compute.groupCount(this.easedZoomSignal);
-    this.firstVisibleGroupX       = Math.floor(this.firstVisibleLocalXSignal / groupCount) * groupCount;
-    this.firstVisibleGroupY       = Math.floor(this.firstVisibleLocalYSignal / groupCount) * groupCount;
-    this.lastVisibleGroupX        = Math.floor(this.lastVisibleLocalXSignal / groupCount) * groupCount;
-    this.lastVisibleGroupY        = Math.floor(this.lastVisibleLocalYSignal / groupCount) * groupCount;
   },
 
   exportScrollPosition: function () {

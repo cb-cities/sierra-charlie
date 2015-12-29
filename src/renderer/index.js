@@ -153,16 +153,16 @@ Renderer.prototype = {
   },
 
   update: function (state) {
-    this._floorTime = Math.floor(state.easedTimeSignal);
-    this._floorZoom = Math.floor(state.easedZoomSignal);
+    this._floorTime = Math.floor(state.easedTime);
+    this._floorZoom = Math.floor(state.easedZoom);
     if (!this._isFinished()) {
       this._localSource.resetBounds(
-        state.firstVisibleLocalXSignal,
-        state.firstVisibleLocalYSignal,
-        state.lastVisibleLocalXSignal,
-        state.lastVisibleLocalYSignal,
-        state.localXSignal,
-        state.localYSignal);
+        state.firstVisibleLocalX,
+        state.firstVisibleLocalY,
+        state.lastVisibleLocalX,
+        state.lastVisibleLocalY,
+        state.localX,
+        state.localY);
       if (!this._pendingRender) {
         this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
       }

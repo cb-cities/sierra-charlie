@@ -62,9 +62,13 @@ Painter.prototype = {
     c.stroke(this._tileBordersPath);
   },
 
-  _paintTileContents: function (c, easedTime, easedZoom, firstVisibleGroupX, firstVisibleGroupY, lastVisibleGroupX, lastVisibleGroupY) {
-    var groupCount = compute.groupCount(easedZoom);
-    var groupSize  = defs.imageSize * groupCount;
+  _paintTileContents: function (c, easedTime, easedZoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY) {
+    var groupCount         = compute.groupCount(easedZoom);
+    var groupSize          = defs.imageSize * groupCount;
+    var firstVisibleGroupX = Math.floor(firstVisibleLocalX / groupCount) * groupCount;
+    var firstVisibleGroupY = Math.floor(firstVisibleLocalY / groupCount) * groupCount;
+    var lastVisibleGroupX  = Math.floor(lastVisibleLocalX / groupCount) * groupCount;
+    var lastVisibleGroupY  = Math.floor(lastVisibleLocalY / groupCount) * groupCount;
     for (var gx = firstVisibleGroupX; gx <= lastVisibleGroupX; gx += groupCount) {
       var gdx = gx * defs.imageSize;
       for (var gy = firstVisibleGroupY; gy <= lastVisibleGroupY; gy += groupCount) {
@@ -93,21 +97,21 @@ Painter.prototype = {
     c.save();
     c.fillStyle = defs.backgroundColor;
     c.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-    c.translate(-state.scrollLeftSignal, -state.scrollTopSignal);
+    c.translate(-state.scrollLeft, -state.scrollTop);
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
-    var scaleRatio = compute.scaleRatio(state.easedZoomSignal);
+    var scaleRatio = compute.scaleRatio(state.easedZoom);
     c.scale(scaleRatio, scaleRatio);
-    if (state.easedZoomSignal < 3) {
-      c.globalAlpha = 1 - (state.easedZoomSignal - 2);
-      _paintTileLabels(c, state.easedZoomSignal, state.firstVisibleLocalXSignal, state.firstVisibleLocalYSignal, state.lastVisibleLocalXSignal, state.lastVisibleLocalYSignal);
+    if (state.easedZoom < 3) {
+      c.globalAlpha = 1 - (state.easedZoom - 2);
+      _paintTileLabels(c, state.easedZoom, state.firstVisibleLocalX, state.firstVisibleLocalY, state.lastVisibleLocalX, state.lastVisibleLocalY);
       c.globalAlpha = 1;
     }
-    this._paintTileBorders(c, state.easedZoomSignal);
+    this._paintTileBorders(c, state.easedZoom);
     c.restore();
     c.save();
-    c.translate(-state.scrollLeftSignal, -state.scrollTopSignal);
+    c.translate(-state.scrollLeft, -state.scrollTop);
     c.scale(scaleRatio, scaleRatio);
-    this._paintTileContents(c, state.easedTimeSignal, state.easedZoomSignal, state.firstVisibleGroupX, state.firstVisibleGroupY, state.lastVisibleGroupX, state.lastVisibleGroupY);
+    this._paintTileContents(c, state.easedTime, state.easedZoom, state.firstVisibleLocalX, state.firstVisibleLocalY, state.lastVisibleLocalX, state.lastVisibleLocalY);
     c.restore();
     c.save();
     c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
