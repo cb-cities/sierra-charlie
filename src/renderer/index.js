@@ -67,28 +67,28 @@ Renderer.prototype = {
   },
 
   _incrementRenderedImageCount: function (time, zoom) {
-    var perTimeSignal = this._renderedImageCount[time];
-    if (!perTimeSignal) {
-      perTimeSignal = this._renderedImageCount[time] = [];
+    var perTime = this._renderedImageCount[time];
+    if (!perTime) {
+      perTime = this._renderedImageCount[time] = [];
     }
-    var perZoomSignal = perTimeSignal[zoom];
-    if (!perZoomSignal) {
-      perTimeSignal[zoom] = 1;
+    var perZoom = perTime[zoom];
+    if (!perZoom) {
+      perTime[zoom] = 1;
     } else {
-      perTimeSignal[zoom]++;
+      perTime[zoom]++;
     }
   },
 
   _getRenderedImageCount: function (time, zoom) {
-    var perTimeSignal = this._renderedImageCount[time];
-    if (!perTimeSignal) {
+    var perTime = this._renderedImageCount[time];
+    if (!perTime) {
       return 0;
     } else {
-      var perZoomSignal = perTimeSignal[zoom];
-      if (!perZoomSignal) {
+      var perZoom = perTime[zoom];
+      if (!perZoom) {
         return 0;
       } else {
-        return perZoomSignal;
+        return perZoom;
       }
     }
   },
