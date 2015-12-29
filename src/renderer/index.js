@@ -35,8 +35,8 @@ function _renderRoadNodes(c, timeValue, zoomLevel, tileData) {
 function Renderer(callbacks) {
   this._callbacks = callbacks;
   this._localSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount - 1);
-  this._floorSignalTime = null;
-  this._floorSignalZoom = null;
+  this._floorTimeSignal = null;
+  this._floorZoomSignal = null;
   this._pendingRender = null;
   this._renderedImages = {};
   this._renderedImageCount = [];
@@ -129,7 +129,7 @@ Renderer.prototype = {
       }
       var tileId = tid.fromLocal(local.x, local.y);
       if (this._callbacks.getLoadedTile(tileId)) {
-        var imageId = iid.fromTileId(tileId, this._floorSignalTime, this._floorSignalZoom);
+        var imageId = iid.fromTileId(tileId, this._floorTimeSignal, this._floorZoomSignal);
         if (!(this.getRenderedImage(imageId))) {
           return imageId;
         }
@@ -149,20 +149,20 @@ Renderer.prototype = {
   },
   
   _isFinished: function () {
-    return this._getRenderedImageCount(this._floorSignalTime, this._floorSignalZoom) === defs.maxTileCount;
+    return this._getRenderedImageCount(this._floorTimeSignal, this._floorZoomSignal) === defs.maxTileCount;
   },
 
   update: function (state) {
-    this._floorSignalTime = state.floorSignalTime;
-    this._floorSignalZoom = state.floorSignalZoom;
+    this._floorTimeSignal = state.floorTimeSignal;
+    this._floorZoomSignal = state.floorZoomSignal;
     if (!this._isFinished()) {
       this._localSource.resetBounds(
         state.firstVisibleLocalX,
         state.lastVisibleLocalX,
         state.firstVisibleLocalY,
         state.lastVisibleLocalY,
-        state.signalLocalX,
-        state.signalLocalY);
+        state.localXSignal,
+        state.localYSignal);
       if (!this._pendingRender) {
         this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
       }

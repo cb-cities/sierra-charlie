@@ -34,23 +34,23 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      signalLeft: 0.4897637424698795,
-      signalTop: 0.4768826844262295,
+      leftSignal: 0.4897637424698795,
+      topSignal: 0.4768826844262295,
       rawTimeValue: 10 + 9 / 60,
       zoomPower: 4
     };
   },
 
-  easeSignalLeft: function (signalLeft, duration) {
+  easeSignalLeft: function (leftSignal, duration) {
     this.easingSignalLeft = true;
-    this.easeState("signalLeft", signalLeft, duration, function () {
+    this.easeState("leftSignal", leftSignal, duration, function () {
         this.easingSignalLeft = false;
       }.bind(this));
   },
  
-  easeSignalTop: function (signalTop, duration) {
+  easeSignalTop: function (topSignal, duration) {
     this.easingSignalTop = true;
-    this.easeState("signalTop", signalTop, duration, function () {
+    this.easeState("topSignal", topSignal, duration, function () {
         this.easingSignalTop = false;
       }.bind(this));
   },
@@ -76,11 +76,11 @@ module.exports = {
 
   _updateRenderer: function () {
     this._renderer.update({
-        floorSignalTime:         this.floorSignalTime,
-        floorSignalZoom:         this.floorSignalZoom,
+        floorTimeSignal:         this.floorTimeSignal,
+        floorZoomSignal:         this.floorZoomSignal,
       
-        signalLocalX:        this.signalLocalX,
-        signalLocalY:        this.signalLocalY,
+        localXSignal:        this.localXSignal,
+        localYSignal:        this.localYSignal,
         firstVisibleLocalX:     this.firstVisibleLocalX,
         lastVisibleLocalX:      this.lastVisibleLocalX,
         firstVisibleLocalY:     this.firstVisibleLocalY,
@@ -90,7 +90,7 @@ module.exports = {
   
   _updatePainter: function () {
     this._painter.update({
-        floorSignalTime:     this.floorSignalTime,
+        floorTimeSignal:     this.floorTimeSignal,
       
         scrollLeft:         this.scrollLeft,
         scrollTop:          this.scrollTop,
@@ -164,19 +164,19 @@ module.exports = {
 
   importScrollPosition: function () {
     this.setState({
-        signalLeft: this.node.scrollLeft / this.easedWidth,
-        signalTop:  this.node.scrollTop / this.easedHeight
+        leftSignal: this.node.scrollLeft / this.easedWidth,
+        topSignal:  this.node.scrollTop / this.easedHeight
       });
   },
 
   computeDerivedState: function () {
-    this.easedSignalLeft = this.getEasedState("signalLeft");
-    this.easedSignalTop  = this.getEasedState("signalTop");
+    this.easedSignalLeft = this.getEasedState("leftSignal");
+    this.easedSignalTop  = this.getEasedState("topSignal");
     this.easedTimeValue     = computeTimeValue(this.getEasedState("rawTimeValue"));
     this.easedZoomPower     = this.getEasedState("zoomPower");
-    this.floorSignalTime    = Math.floor(this.easedTimeValue);
-    this.timeSlice          = computeTimeSlice(this.floorSignalTime);
-    this.floorSignalZoom    = Math.floor(this.easedZoomPower);
+    this.floorTimeSignal    = Math.floor(this.easedTimeValue);
+    this.timeSlice          = computeTimeSlice(this.floorTimeSignal);
+    this.floorZoomSignal    = Math.floor(this.easedZoomPower);
     this.roundZoomPower     = Math.round(this.easedZoomPower);
     this.ceilZoomPower      = Math.ceil(this.easedZoomPower);
     this.easedZoomLevel     = Math.pow(2, this.easedZoomPower);
@@ -188,8 +188,8 @@ module.exports = {
     
     this.scrollLeft         = Math.floor(this.easedSignalLeft * this.easedWidth - this.canvas.clientWidth / 2);
     this.scrollTop          = Math.floor(this.easedSignalTop * this.easedHeight - this.canvas.clientHeight / 2);
-    this.signalLocalX    = Math.floor(this.easedSignalLeft * defs.tileXCount);
-    this.signalLocalY    = Math.floor(this.easedSignalTop * defs.tileYCount);
+    this.localXSignal    = Math.floor(this.easedSignalLeft * defs.tileXCount);
+    this.localYSignal    = Math.floor(this.easedSignalTop * defs.tileYCount);
     
     this.firstVisibleLocalX = defs.clampLocalX(Math.floor(this.scrollLeft / this.easedImageSize));
     this.lastVisibleLocalX  = defs.clampLocalX(Math.floor((this.scrollLeft + this.canvas.clientWidth - 1) / this.easedImageSize));

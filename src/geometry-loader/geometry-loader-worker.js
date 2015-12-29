@@ -45,9 +45,9 @@ function GeometryLoaderWorker(origin) {
 }
 
 GeometryLoaderWorker.prototype = {
-  update: function (signalLeft, signalTop) {
-    var lx = Math.floor(signalLeft * defs.tileXCount);
-    var ly = Math.floor(signalTop * defs.tileYCount);
+  update: function (leftSignal, topSignal) {
+    var lx = Math.floor(leftSignal * defs.tileXCount);
+    var ly = Math.floor(topSignal * defs.tileYCount);
     this._localSource.reset(lx, ly);
     this._loadNextTileGroup();
   },
@@ -94,7 +94,7 @@ onmessage = function (event) {
       worker = new GeometryLoaderWorker(event.data.origin);
       break;
     case "update":
-      worker.update(event.data.signalLeft, event.data.signalTop);
+      worker.update(event.data.leftSignal, event.data.topSignal);
       break;
   }
 };

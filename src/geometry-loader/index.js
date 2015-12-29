@@ -39,12 +39,12 @@ GeometryLoader.prototype = {
     return this._loadedTileCount === defs.maxTileCount;
   },
 
-  update: function (signalLeft, signalTop) {
+  update: function (leftSignal, topSignal) {
     if (!this._isFinished()) {
       this._worker.postMessage({
           message:    "update",
-          signalLeft: signalLeft,
-          signalTop:  signalTop
+          leftSignal: leftSignal,
+          topSignal:  topSignal
         });
     }
   },
