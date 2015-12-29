@@ -98,9 +98,9 @@ module.exports = {
         getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
       });
     
-    this.node = r.domNode(this);
-    this.canvas = this.node.firstChild;
-    this.node.addEventListener("scroll", this.onScroll);
+    this.frame = r.domNode(this);
+    this.frame.addEventListener("scroll", this.onScroll);
+    this.canvas = this.frame.firstChild;
     this.forceUpdate(); // Trigger a React re-render to update the size of map-space
     this.computeDerivedState();
     this.exportScrollPosition();
@@ -129,8 +129,8 @@ module.exports = {
 
   importScrollPosition: function () {
     this.setState({
-        leftSignal: this.node.scrollLeft / compute.spaceWidth(this.zoom),
-        topSignal:  this.node.scrollTop / compute.spaceHeight(this.zoom)
+        leftSignal: this.frame.scrollLeft / compute.spaceWidth(this.zoom),
+        topSignal:  this.frame.scrollTop / compute.spaceHeight(this.zoom)
       });
   },
 
@@ -142,8 +142,8 @@ module.exports = {
   },
 
   exportScrollPosition: function () {
-    this.node.scrollLeft = compute.scrollLeft(this.left, this.zoom);
-    this.node.scrollTop  = compute.scrollTop(this.top, this.zoom);
+    this.frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
+    this.frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
   },
 
   onDoubleClick: function (event) {
