@@ -45,8 +45,10 @@ function GeometryLoaderWorker(origin) {
 }
 
 GeometryLoaderWorker.prototype = {
-  update: function (state) {
-    this._localSource.reset(state.signalLocalX, state.signalLocalY);
+  update: function (signalLeft, signalTop) {
+    var lx = Math.floor(signalLeft * defs.tileXCount);
+    var ly = Math.floor(signalTop * defs.tileYCount);
+    this._localSource.reset(lx, ly);
     this._loadNextTileGroup();
   },
 
@@ -92,10 +94,7 @@ onmessage = function (event) {
       worker = new GeometryLoaderWorker(event.data.origin);
       break;
     case "update":
-      worker.update({
-          signalLocalX: event.data.signalLocalX,
-          signalLocalY: event.data.signalLocalY
-        });
+      worker.update(event.data.signalLeft, event.data.signalTop);
       break;
   }
 };

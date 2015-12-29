@@ -71,19 +71,16 @@ module.exports = {
 
 
   _updateLoader: function () {
-    this._geometryLoader.update({
-        signalLocalX: this.signalLocalX,
-        signalLocalY: this.signalLocalY
-      });
+    this._geometryLoader.update(this.easedSignalLeft, this.easedSignalTop);
   },
 
   _updateRenderer: function () {
     this._renderer.update({
+        floorSignalTime:         this.floorSignalTime,
+        floorSignalZoom:         this.floorSignalZoom,
+      
         signalLocalX:        this.signalLocalX,
         signalLocalY:        this.signalLocalY,
-      
-        floorTimeValue:         this.floorTimeValue,
-        floorZoomPower:         this.floorZoomPower,
         firstVisibleLocalX:     this.firstVisibleLocalX,
         lastVisibleLocalX:      this.lastVisibleLocalX,
         firstVisibleLocalY:     this.firstVisibleLocalY,
@@ -93,11 +90,12 @@ module.exports = {
   
   _updatePainter: function () {
     this._painter.update({
+        floorSignalTime:     this.floorSignalTime,
+      
         scrollLeft:         this.scrollLeft,
         scrollTop:          this.scrollTop,
       
         canvas:             this.canvas,
-        floorTimeValue:     this.floorTimeValue,
         roundZoomPower:     this.roundZoomPower,
         easedZoomPower:     this.easedZoomPower,
         easedZoomLevel:     this.easedZoomLevel,
@@ -176,9 +174,9 @@ module.exports = {
     this.easedSignalTop  = this.getEasedState("signalTop");
     this.easedTimeValue     = computeTimeValue(this.getEasedState("rawTimeValue"));
     this.easedZoomPower     = this.getEasedState("zoomPower");
-    this.floorTimeValue     = Math.floor(this.easedTimeValue);
-    this.timeSlice          = computeTimeSlice(this.floorTimeValue);
-    this.floorZoomPower     = Math.floor(this.easedZoomPower);
+    this.floorSignalTime    = Math.floor(this.easedTimeValue);
+    this.timeSlice          = computeTimeSlice(this.floorSignalTime);
+    this.floorSignalZoom    = Math.floor(this.easedZoomPower);
     this.roundZoomPower     = Math.round(this.easedZoomPower);
     this.ceilZoomPower      = Math.ceil(this.easedZoomPower);
     this.easedZoomLevel     = Math.pow(2, this.easedZoomPower);
