@@ -98,9 +98,9 @@ Painter.prototype = {
     c.save();
     c.fillStyle = defs.backgroundColor;
     c.fillRect(0, 0, state.width, state.height);
-    var scrollLeftAndHalf = compute.scrollLeftAndHalf(state.width, state.left, state.zoom);
-    var scrollTopAndHalf  = compute.scrollTopAndHalf(state.height, state.top, state.zoom);
-    c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
+    var scrollLeft = compute.scrollLeft(state.width, state.left, state.zoom);
+    var scrollTop  = compute.scrollTop(state.height, state.top, state.zoom);
+    c.translate(-scrollLeft, -scrollTop);
     c.translate(0.5 / devicePixelRatio, 0.5 / devicePixelRatio);
     var scaleRatio = compute.scaleRatio(state.zoom);
     c.scale(scaleRatio, scaleRatio);
@@ -116,7 +116,7 @@ Painter.prototype = {
     this._paintTileBorders(c, state.zoom);
     c.restore();
     c.save();
-    c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
+    c.translate(-scrollLeft, -scrollTop);
     c.scale(scaleRatio, scaleRatio);
     this._paintTileContents(c, state.time, state.zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
     c.restore();

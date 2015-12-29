@@ -59,52 +59,52 @@ var _ = module.exports = {
     return height / _.spaceHeight(zoom);
   },
   
-  scrollLeft: function (left, zoom) {
+  frameScrollLeft: function (left, zoom) {
     return Math.floor(left * _.spaceWidth(zoom));
   },
   
-  scrollTop: function (top, zoom) {
+  frameScrollTop: function (top, zoom) {
     return Math.floor(top * _.spaceHeight(zoom));
   },
   
-  scrollLeftAndHalf: function (width, left, zoom) {
+  scrollLeft: function (width, left, zoom) {
     return Math.floor(left * _.spaceWidth(zoom) - width / 2);
   },
   
-  scrollTopAndHalf: function (height, top, zoom) {
+  scrollTop: function (height, top, zoom) {
     return Math.floor(top * _.spaceHeight(zoom) - height / 2);
   },
   
   firstVisibleLocalX: function (width, left, zoom) {
-    return clampLocalX(Math.floor(_.scrollLeftAndHalf(width, left, zoom) / _.imageSize(zoom)));
+    return clampLocalX(Math.floor(_.scrollLeft(width, left, zoom) / _.imageSize(zoom)));
   },
   
   firstVisibleLocalY: function (height, top, zoom) {
-    return clampLocalY(Math.floor(_.scrollTopAndHalf(height, top, zoom) / _.imageSize(zoom)));
+    return clampLocalY(Math.floor(_.scrollTop(height, top, zoom) / _.imageSize(zoom)));
   },
   
   lastVisibleLocalX: function (width, left, zoom) {
-    return clampLocalX(Math.floor((_.scrollLeftAndHalf(width, left, zoom) + width - 1) / _.imageSize(zoom)));
+    return clampLocalX(Math.floor((_.scrollLeft(width, left, zoom) + width - 1) / _.imageSize(zoom)));
   },
   
   lastVisibleLocalY: function (height, top, zoom) {
-    return clampLocalY(Math.floor((_.scrollTopAndHalf(height, top, zoom) + height - 1) / _.imageSize(zoom)));
+    return clampLocalY(Math.floor((_.scrollTop(height, top, zoom) + height - 1) / _.imageSize(zoom)));
   },
   
-  leftFromFrame: function (scrollLeft, zoom) {
+  leftFromFrameScrollLeft: function (scrollLeft, zoom) {
     return scrollLeft / _.spaceWidth(zoom);
   },
   
-  topFromFrame: function (scrollTop, zoom) {
+  topFromFrameScrollTop: function (scrollTop, zoom) {
     return scrollTop / _.spaceHeight(zoom);
   },
   
-  leftFromMouse: function (clientX, width, left, zoom) {
-    return clampF((_.scrollLeftAndHalf(width, left, zoom) + clientX) / _.spaceWidth(zoom));
+  leftFromEventClientX: function (clientX, width, left, zoom) {
+    return clampF((_.scrollLeft(width, left, zoom) + clientX) / _.spaceWidth(zoom));
   },
   
-  topFromMouse: function (clientY, height, top, zoom) {
-    return clampF((_.scrollTopAndHalf(height, top, zoom) + clientY) / _.spaceHeight(zoom));
+  topFromEventClientY: function (clientY, height, top, zoom) {
+    return clampF((_.scrollTop(height, top, zoom) + clientY) / _.spaceHeight(zoom));
   },
   
   textMargin: function (zoom) {

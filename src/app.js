@@ -64,8 +64,8 @@ module.exports = {
   
   updateFrame: function (left, top, zoom) {
     var frame = r.domNode(this);
-    frame.scrollLeft = compute.scrollLeft(left, zoom);
-    frame.scrollTop  = compute.scrollTop(top, zoom);
+    frame.scrollLeft = compute.frameScrollLeft(left, zoom);
+    frame.scrollTop  = compute.frameScrollTop(top, zoom);
   },
 
   componentDidMount: function () {    
@@ -135,8 +135,8 @@ module.exports = {
       var frame = r.domNode(this);
       var zoom  = this.getEasedState("zoom");
       this.setState({
-          left: compute.leftFromFrame(frame.scrollLeft, zoom),
-          top:  compute.topFromFrame(frame.scrollTop, zoom)
+          left: compute.leftFromFrameScrollLeft(frame.scrollLeft, zoom),
+          top:  compute.topFromFrameScrollTop(frame.scrollTop, zoom)
         });
     }
   },
@@ -205,8 +205,8 @@ module.exports = {
     var canvas = r.domNode(this).firstChild;
     var width  = canvas.clientWidth;
     var height = canvas.clientHeight;
-    var left   = compute.leftFromMouse(event.clientX, width, this.state.left, this.state.zoom);
-    var top    = compute.topFromMouseY(event.clientY, height, this.state.top, this.state.zoom);
+    var left   = compute.leftFromEventClientX(event.clientX, width, this.state.left, this.state.zoom);
+    var top    = compute.topFromEventClientY(event.clientY, height, this.state.top, this.state.zoom);
     var duration = !event.shiftKey ? 500 : 2500;
     this.setLeft(left, duration);
     this.setTop(top, duration);
