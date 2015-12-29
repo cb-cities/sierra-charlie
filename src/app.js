@@ -166,8 +166,8 @@ module.exports = {
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
     var canvas = r.domNode(this).firstChild;
-    var left = compute.fromClientX(event.clientX, canvas.clientWidth, this.state.left, this.state.zoom);
-    var top  = compute.fromClientY(event.clientY, canvas.clientHeight, this.state.top, this.state.zoom);
+    var left = compute.fromMouseX(event.clientX, canvas.clientWidth, this.state.left, this.state.zoom);
+    var top  = compute.fromMouseY(event.clientY, canvas.clientHeight, this.state.top, this.state.zoom);
     var duration = !event.shiftKey ? 500 : 2500;
     this.setLeft(left, duration);
     this.setTop(top, duration);
