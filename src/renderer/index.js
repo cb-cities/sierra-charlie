@@ -97,7 +97,7 @@ Renderer.prototype = {
     var tileData   = this._callbacks.getLoadedTile(tileId);
     var time       = iid.getTime(imageId);
     var zoom       = iid.getZoom(imageId);
-    var imageSize  = window.devicePixelRatio * compute.imageSize(zoom);
+    var imageSize  = this._pixelRatio * compute.imageSize(zoom);
     var groupCount = compute.groupCount(zoom);
     var groupSize  = imageSize * groupCount;
     var gx         = Math.floor(iid.getLocalX(imageId) / groupCount) * groupCount;
@@ -153,6 +153,7 @@ Renderer.prototype = {
   },
 
   update: function (canvas, left, top, time, zoom) {
+    this._pixelRatio = window.devicePixelRatio;
     this._floorTime = Math.floor(time);
     this._floorZoom = Math.floor(zoom);
     if (!this._isFinished()) {

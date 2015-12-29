@@ -38,7 +38,7 @@ function Painter(callbacks) {
 }
 
 Painter.prototype = {
-  _paintTileBorders: function (c, zoom) {
+  _paintTileBorders: function (c, pixelRatio, zoom) {
     if (!this._tileBordersPath) {
       var path = new Path2D();
       path.moveTo(0, 0);
@@ -57,7 +57,7 @@ Painter.prototype = {
       }
       this._tileBordersPath = path;
     }
-    c.lineWidth = compute.tileBorderLineWidth(zoom);
+    c.lineWidth = compute.tileBorderLineWidth(pixelRatio, zoom);
     c.strokeStyle = defs.borderColor;
     c.stroke(this._tileBordersPath);
   },
@@ -83,8 +83,9 @@ Painter.prototype = {
   },
 
   _paint: function (canvas, left, top, time, zoom) {
-    var width  = window.devicePixelRatio * canvas.clientWidth;
-    var height = window.devicePixelRatio * canvas.clientHeight;
+    var pixelRatio = window.devicePixelRatio;
+    var width  = pixelRatio * canvas.clientWidth;
+    var height = pixelRatio * canvas.clientHeight;
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width  = width;
       canvas.height = height;
@@ -92,14 +93,14 @@ Painter.prototype = {
     var c = canvas.getContext("2d", {
         alpha: false
       });
-    c.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    c.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     c.save();
     c.fillStyle = defs.backgroundColor;
     c.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
     var scrollLeftAndHalf = compute.scrollLeftAndHalf(canvas.clientWidth, left, zoom);
     var scrollTopAndHalf  = compute.scrollTopAndHalf(canvas.clientHeight, top, zoom);
     c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
-    c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
+    c.translate(0.5 / pixelRatio, 0.5 / pixelRatio);
     var scaleRatio = compute.scaleRatio(zoom);
     c.scale(scaleRatio, scaleRatio);
     var firstVisibleLocalX = compute.firstVisibleLocalX(canvas.clientWidth, left, zoom);
@@ -111,7 +112,7 @@ Painter.prototype = {
       _paintTileLabels(c, zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
       c.globalAlpha = 1;
     }
-    this._paintTileBorders(c, zoom);
+    this._paintTileBorders(c, pixelRatio, zoom);
     c.restore();
     c.save();
     c.translate(-scrollLeftAndHalf, -scrollTopAndHalf);
@@ -119,7 +120,7 @@ Painter.prototype = {
     this._paintTileContents(c, time, zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
     c.restore();
     c.save();
-    c.translate(0.5 / window.devicePixelRatio, 0.5 / window.devicePixelRatio);
+    c.translate(0.5 / pixelRatio, 0.5 / pixelRatio);
     this._pendingPaint = false;
   },
 

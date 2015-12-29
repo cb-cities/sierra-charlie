@@ -103,8 +103,8 @@ var _ = module.exports = {
     return 4 * Math.sqrt(_.zoomLevel(zoom));
   },
   
-  tileBorderLineWidth: function (zoom) {
-    return _.zoomLevel(zoom) / window.devicePixelRatio;
+  tileBorderLineWidth: function (pixelRatio, zoom) {
+    return _.zoomLevel(zoom) / pixelRatio;
   },
   
   roadLinkLineWidth: function (zoom) {

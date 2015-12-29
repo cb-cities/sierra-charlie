@@ -123,13 +123,13 @@ module.exports = {
     var canvas = r.domNode(this).firstChild;
     var left = compute.fromClientX(event.clientX, canvas.clientWidth, this.state.left, this.state.zoom);
     var top  = compute.fromClientY(event.clientY, canvas.clientHeight, this.state.top, this.state.zoom);
-    var delay = !event.shiftKey ? 500 : 2500;
-    this.setLeft(left, delay);
-    this.setTop(top, delay);
+    var duration = !event.shiftKey ? 500 : 2500;
+    this.setLeft(left, duration);
+    this.setTop(top, duration);
     if (!event.altKey) {
-      this.setZoom(Math.max(0, this.state.zoom - 1), delay);
+      this.setZoom(Math.max(0, this.state.zoom - 1), duration);
     } else {
-      this.setZoom(Math.min(this.state.zoom + 1, defs.maxZoom), delay);
+      this.setZoom(Math.min(this.state.zoom + 1, defs.maxZoom), duration);
     }
   },
 
