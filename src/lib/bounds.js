@@ -1,10 +1,10 @@
 "use strict";
 
 
-function Bounds(startX, endX, startY, endY) {
+function Bounds(startX, startY, endX, endY) {
   this.startX = startX;
-  this.endX   = endX;
   this.startY = startY;
+  this.endX   = endX;
   this.endY   = endY;
 }
 
@@ -20,17 +20,17 @@ Bounds.prototype = {
   contain: function (point) {
     return (
       point.x >= this.startX &&
-      point.x < this.endX &&
       point.y >= this.startY &&
+      point.x < this.endX &&
       point.y < this.endY);
   },
 
   intersect: function (bounds) {
     return (
       this.startX < bounds.endX &&
-      this.endX   >=  bounds.startX &&
       this.startY < bounds.endY &&
-      this.endY   >=  bounds.startY);
+      this.endX >= bounds.startX &&
+      this.endY >= bounds.startY);
   }
 };
 

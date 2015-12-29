@@ -50,11 +50,11 @@ addEventListener("keydown", function (event) {
         break;
       case 219: // left bracket
         var rawTime = Math.round((this.state.rawTimeSignal * 3600) - timeDelta) / 3600;
-        this.easeTime(rawTime, delay);
+        this.easeRawTime(rawTime, delay);
         break;
       case 221: // right bracket
         var rawTime = Math.round((this.state.rawTimeSignal * 3600) + timeDelta) / 3600;
-        this.easeTime(rawTime, delay);
+        this.easeRawTime(rawTime, delay);
         break;
       case 187: // plus
         var zoom = Math.max(0, (Math.round((this.state.zoomSignal * 10) - zoomDelta) / 10));

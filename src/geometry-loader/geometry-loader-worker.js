@@ -11,8 +11,8 @@ var tgid = require("../lib/tile-group-id");
 
 function _postLoadedTileGroup(tileGroupId, tileGroupData) {
   var firstTileX = tgid.toFirstTileX(tileGroupId);
-  var lastTileX  = tgid.toLastTileX(tileGroupId);
   var firstTileY = tgid.toFirstTileY(tileGroupId);
+  var lastTileX  = tgid.toLastTileX(tileGroupId);
   var lastTileY  = tgid.toLastTileY(tileGroupId);
   for (var ty = lastTileY; ty >= firstTileY; ty--) {
     if (ty < defs.firstTileY || ty > defs.lastTileY) {
@@ -39,7 +39,7 @@ function _postLoadedTileGroup(tileGroupId, tileGroupData) {
 
 function GeometryLoaderWorker(origin) {
   this._origin = origin;
-  this._localSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount - 1);
+  this._localSource = new BoundedSpiral(0, 0, defs.tileXCount - 1, defs.tileYCount - 1);
   this._pendingTileGroupId = null;
   this._loadedTileGroupIds = {};
 }

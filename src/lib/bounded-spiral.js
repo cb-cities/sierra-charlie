@@ -3,25 +3,25 @@
 var UnboundedSpiral = require("./unbounded-spiral");
 
 
-function BoundedSpiral(firstX, lastX, firstY, lastY, offsetX, offsetY) {
-  this.setBounds(firstX, lastX, firstY, lastY);
+function BoundedSpiral(firstX, firstY, lastX, lastY, offsetX, offsetY) {
+  this.setBounds(firstX, firstY, lastX, lastY);
   this.source = new UnboundedSpiral(firstX, firstY);
   this.count = 0;
 }
 
 BoundedSpiral.prototype = {
-  setBounds: function (firstX, lastX, firstY, lastY) {
+  setBounds: function (firstX, firstY, lastX, lastY) {
     this.firstX = firstX;
-    this.lastX  = lastX;
     this.firstY = firstY;
+    this.lastX  = lastX;
     this.lastY  = lastY;
     this.maxCountX = lastX - firstX + 1;
     this.maxCountY = lastY - firstY + 1;
     this.maxCount  = this.maxCountX * this.maxCountY;
   },
 
-  resetBounds: function (firstX, lastX, firstY, lastY, offsetX, offsetY) {
-    this.setBounds(firstX, lastX, firstY, lastY);
+  resetBounds: function (firstX, firstY, lastX, lastY, offsetX, offsetY) {
+    this.setBounds(firstX, firstY, lastX, lastY);
     this.source.reset(offsetX, offsetY);
     this.count = 0;
   },
@@ -34,8 +34,8 @@ BoundedSpiral.prototype = {
   isBounded: function (point) {
     return (
       point.x >= this.firstX &&
-      point.x <= this.lastX &&
       point.y >= this.firstY &&
+      point.x <= this.lastX &&
       point.y <= this.lastY);
   },
 

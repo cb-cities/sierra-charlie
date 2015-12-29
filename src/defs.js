@@ -4,8 +4,8 @@ var tileSize  = 1000;
 var imageSize = 1024;
 
 var firstTileX = 490;
-var lastTileX  = 572;
 var firstTileY = 148;
+var lastTileX  = 572;
 var lastTileY  = 207;
 
 var tileXCount = lastTileX - firstTileX + 1;
@@ -17,8 +17,8 @@ var _ = module.exports = {
   imageSize: imageSize,
 
   firstTileX: firstTileX,
-  lastTileX:  lastTileX,
   firstTileY: firstTileY,
+  lastTileX:  lastTileX,
   lastTileY:  lastTileY,
 
   tileXCount: tileXCount,

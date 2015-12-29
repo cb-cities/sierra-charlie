@@ -36,7 +36,7 @@ function _renderRoadNodes(c, time, zoom, tileData) {
 
 function Renderer(callbacks) {
   this._callbacks = callbacks;
-  this._localSource = new BoundedSpiral(0, defs.tileXCount - 1, 0, defs.tileYCount - 1);
+  this._localSource = new BoundedSpiral(0, 0, defs.tileXCount - 1, defs.tileYCount - 1);
   this._floorTimeSignal = null;
   this._floorZoomSignal = null;
   this._pendingRender = null;
@@ -159,10 +159,10 @@ Renderer.prototype = {
     this._floorZoomSignal = state.floorZoomSignal;
     if (!this._isFinished()) {
       this._localSource.resetBounds(
-        state.firstVisibleLocalX,
-        state.lastVisibleLocalX,
-        state.firstVisibleLocalY,
-        state.lastVisibleLocalY,
+        state.firstVisibleLocalXSignal,
+        state.firstVisibleLocalYSignal,
+        state.lastVisibleLocalXSignal,
+        state.lastVisibleLocalYSignal,
         state.localXSignal,
         state.localYSignal);
       if (!this._pendingRender) {

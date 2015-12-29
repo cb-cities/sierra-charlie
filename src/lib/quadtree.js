@@ -7,7 +7,7 @@ var maxCount = 1;
 
 function Quadtree(size, startX, startY) {
   this.size = size;
-  this.bounds = new Bounds(startX, startX + size, startY, startY + size);
+  this.bounds = new Bounds(startX, startY, startX + size, startY + size);
   this.points = [];
 }
 
