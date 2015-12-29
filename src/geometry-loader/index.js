@@ -4,8 +4,8 @@ var GeometryLoaderWorker = require("worker?inline!./geometry-loader-worker");
 var defs = require("../defs");
 
 
-function GeometryLoader(callbacks) {
-  this._callbacks = callbacks;
+function GeometryLoader(props) {
+  this._props = props;
   this._loadedTiles = {};
   this._loadedTileCount = 0;
   this._startWorker();
@@ -39,12 +39,13 @@ GeometryLoader.prototype = {
     return this._loadedTileCount === defs.maxTileCount;
   },
 
-  update: function (left, top) {
+  update: function () {
+    var state = this._props.getDerivedState();
     if (!this._isFinished()) {
       this._worker.postMessage({
           message: "update",
-          left:    left,
-          top:     top
+          left:    state.left,
+          top:     state.top
         });
     }
   },
@@ -53,7 +54,7 @@ GeometryLoader.prototype = {
     switch (event.data.message) {
       case "tileLoad":
         this._setLoadedTile(event.data.tileId, event.data.tileData);
-        this._callbacks.onTileLoad(event.data.tileId, event.data.tileData);
+        this._props.onTileLoad(event.data.tileId, event.data.tileData);
         if (this._isFinished()) {
           this._stopWorker();
         }

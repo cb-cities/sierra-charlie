@@ -49,6 +49,19 @@ module.exports = {
       }.bind(this));
   },
   
+  getDerivedState: function () {
+    var frame  = r.domNode(this);
+    var canvas = frame.firstChild;
+    return {
+      width:  canvas.clientWidth,
+      height: canvas.clientHeight,
+      left:   this.getEasedState("left"),
+      top:    this.getEasedState("top"),
+      time:   compute.time(this.getEasedState("rawTime")),
+      zoom:   this.getEasedState("zoom")
+    };
+  },
+  
   updateFrame: function (left, top, zoom) {
     var frame = r.domNode(this);
     frame.scrollLeft = compute.scrollLeft(left, zoom);
@@ -59,7 +72,8 @@ module.exports = {
     this.ignoreScroll = 0;
     
     this._geometryLoader = new GeometryLoader({
-        onTileLoad: this.onTileLoad
+        getDerivedState: this.getDerivedState,
+        onTileLoad:      this.onTileLoad
       });
       
     this._renderer = new Renderer({
@@ -147,7 +161,7 @@ module.exports = {
   },
   
   onResize: function (event) {
-    // this.forceUpdate(); // In lieu of this.setSize()
+    this.forceUpdate(); // In lieu of this.setSize()
   },
 
   onKeyDown: function (event) {
