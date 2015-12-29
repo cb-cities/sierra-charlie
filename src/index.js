@@ -31,44 +31,44 @@ addEventListener("keydown", function (event) {
     switch (event.keyCode) {
       case 37: // left
       case 36: // home
-        var left = Math.max(0, this.state.leftSignal - pageWidth / (event.keyCode === 36 ? 1 : 10));
-        this.easeLeft(left, delay);
+        var left = Math.max(0, this.state.left - pageWidth / (event.keyCode === 36 ? 1 : 10));
+        this.setLeft(left, delay);
         break;
       case 39: // right
       case 35: // end
-        var left = Math.min(this.state.leftSignal + pageWidth / (event.keyCode === 35 ? 1 : 10), 1);
-        this.easeLeft(left, delay);
+        var left = Math.min(this.state.left + pageWidth / (event.keyCode === 35 ? 1 : 10), 1);
+        this.setLeft(left, delay);
         break;
       case 38: // up
       case 33: // page up
-        var top = Math.max(0, this.state.topSignal - pageHeight / (event.keyCode === 33 ? 1 : 10));
-        this.easeTop(top, delay);
+        var top = Math.max(0, this.state.top - pageHeight / (event.keyCode === 33 ? 1 : 10));
+        this.setTop(top, delay);
         break;
       case 40: // down
       case 34: // page down
-        var top = Math.min(this.state.topSignal + pageHeight / (event.keyCode === 34 ? 1 : 10), 1);
-        this.easeTop(top, delay);
+        var top = Math.min(this.state.top + pageHeight / (event.keyCode === 34 ? 1 : 10), 1);
+        this.setTop(top, delay);
         break;
       case 219: // left bracket
-        var rawTime = Math.round((this.state.rawTimeSignal * 3600) - timeDelta) / 3600;
-        this.easeRawTime(rawTime, delay);
+        var rawTime = Math.round((this.state.rawTime * 3600) - timeDelta) / 3600;
+        this.setRawTime(rawTime, delay);
         break;
       case 221: // right bracket
-        var rawTime = Math.round((this.state.rawTimeSignal * 3600) + timeDelta) / 3600;
-        this.easeRawTime(rawTime, delay);
+        var rawTime = Math.round((this.state.rawTime * 3600) + timeDelta) / 3600;
+        this.setRawTime(rawTime, delay);
         break;
       case 187: // plus
-        var zoom = Math.max(0, (Math.round((this.state.zoomSignal * 10) - zoomDelta) / 10));
-        this.easeZoom(zoom, delay);
+        var zoom = Math.max(0, (Math.round((this.state.zoom * 10) - zoomDelta) / 10));
+        this.setZoom(zoom, delay);
         break;
       case 189: // minus
-        var zoom = Math.min(Math.round((this.state.zoomSignal * 10) + zoomDelta) / 10, defs.maxZoom);
-        this.easeZoom(zoom, delay);
+        var zoom = Math.min(Math.round((this.state.zoom * 10) + zoomDelta) / 10, defs.maxZoom);
+        this.setZoom(zoom, delay);
         break;
       default:
         if (event.keyCode >= 49 && event.keyCode <= 56) {
           var zoom = event.keyCode - 49;
-          this.easeZoom(zoom, delay);
+          this.setZoom(zoom, delay);
         }
     }
   }.bind(that));

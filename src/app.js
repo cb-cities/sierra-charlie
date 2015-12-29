@@ -17,57 +17,53 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      leftSignal:    0.4897637424698795,
-      topSignal:     0.4768826844262295,
-      rawTimeSignal: 10 + 9 / 60,
-      zoomSignal:    4
+      left:    0.4897637424698795,
+      top:     0.4768826844262295,
+      rawTime: 10 + 9 / 60,
+      zoom:    4
     };
   },
 
-  easeLeft: function (left, duration) {
+  setLeft: function (left, duration) {
     this.easingLeft = true;
-    this.easeState("leftSignal", left, duration, function () {
+    this.easeState("left", left, duration, function () {
         this.easingLeft = false;
       }.bind(this));
   },
  
-  easeTop: function (top, duration) {
+  setTop: function (top, duration) {
     this.easingTop = true;
-    this.easeState("topSignal", top, duration, function () {
+    this.easeState("top", top, duration, function () {
         this.easingTop = false;
       }.bind(this));
   },
 
-  easeRawTime: function (rawTime, duration) {
+  setRawTime: function (rawTime, duration) {
     this.easingRawTime = true;
-    this.easeState("rawTimeSignal", rawTime, duration, function () {
+    this.easeState("rawTime", rawTime, duration, function () {
         this.easingRawTime = false;
       }.bind(this));
   },
 
-  easeZoom: function (zoom, duration) {
+  setZoom: function (zoom, duration) {
     this.easingZoom = true;
-    this.easeState("zoomSignal", zoom, duration, function () {
+    this.easeState("zoom", zoom, duration, function () {
         this.easingZoom = false;
       }.bind(this));
   },
 
-  onTileLoad: function (tileId, tileData) {
-    this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
-    this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
-  },
-  
-  onImageRender: function (imageId) {
-    this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
-  },
-
   componentDidMount: function () {
     this._geometryLoader = new GeometryLoader({
-        onTileLoad: this.onTileLoad
+        onTileLoad: function (tileId, tileData) {
+          this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
+          this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
+        }.bind(this),
       });
     this._renderer = new Renderer({
         getLoadedTile: this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
-        onImageRender: this.onImageRender
+        onImageRender: function (imageId) {
+          this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
+        }.bind(this)
       });
     this._painter = new Painter({
         getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
@@ -77,8 +73,12 @@ module.exports = {
     this.frame.addEventListener("scroll", this.onScroll);
     this.canvas = this.frame.firstChild;
     this.forceUpdate(); // Trigger a React re-render to update the size of map-space
-    this.computeDerivedState();
-    this.exportScrollPosition();
+    this.left = this.getEasedState("left");
+    this.top  = this.getEasedState("top");
+    this.time = compute.time(this.getEasedState("rawTime"));
+    this.zoom = this.getEasedState("zoom");
+    this.frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
+    this.frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
     this._geometryLoader.update(this.left, this.top);
     this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
     this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
@@ -89,8 +89,12 @@ module.exports = {
   },
 
   update: function () {
-    this.computeDerivedState();
-    this.exportScrollPosition();
+    this.left = this.getEasedState("left");
+    this.top  = this.getEasedState("top");
+    this.time = compute.time(this.getEasedState("rawTime"));
+    this.zoom = this.getEasedState("zoom");
+    this.frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
+    this.frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
     this._geometryLoader.update(this.left, this.top);
     this._renderer.update(this.canvas, this.left, this.top, this.time, this.zoom);
     this._painter.update(this.canvas, this.left, this.top, this.time, this.zoom);
@@ -98,27 +102,11 @@ module.exports = {
 
   onScroll: function (event) {
     if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
-      this.importScrollPosition();
+      this.setState({
+          left: this.frame.scrollLeft / compute.spaceWidth(this.zoom),
+          top:  this.frame.scrollTop / compute.spaceHeight(this.zoom)
+        });
     }
-  },
-
-  importScrollPosition: function () {
-    this.setState({
-        leftSignal: this.frame.scrollLeft / compute.spaceWidth(this.zoom),
-        topSignal:  this.frame.scrollTop / compute.spaceHeight(this.zoom)
-      });
-  },
-
-  computeDerivedState: function () {
-    this.left = this.getEasedState("leftSignal");
-    this.top  = this.getEasedState("topSignal");
-    this.time = compute.time(this.getEasedState("rawTimeSignal"));
-    this.zoom = this.getEasedState("zoomSignal");
-  },
-
-  exportScrollPosition: function () {
-    this.frame.scrollLeft = compute.scrollLeft(this.left, this.zoom);
-    this.frame.scrollTop  = compute.scrollTop(this.top, this.zoom);
   },
 
   onDoubleClick: function (event) {
@@ -126,12 +114,12 @@ module.exports = {
     var left = compute.fromClientX(event.clientX, this.canvas.clientWidth, this.left, this.zoom);
     var top  = compute.fromClientY(event.clientY, this.canvas.clientHeight, this.top, this.zoom);
     var delay = !event.shiftKey ? 500 : 2500;
-    this.easeLeft(left, delay);
-    this.easeTop(top, delay);
+    this.setLeft(left, delay);
+    this.setTop(top, delay);
     if (!event.altKey) {
-      this.easeZoom(Math.max(0, this.state.zoomSignal - 1), delay);
+      this.setZoom(Math.max(0, this.state.zoom - 1), delay);
     } else {
-      this.easeZoom(Math.min(this.state.zoomSignal + 1, defs.maxZoom), delay);
+      this.setZoom(Math.min(this.state.zoom + 1, defs.maxZoom), delay);
     }
   },
 
