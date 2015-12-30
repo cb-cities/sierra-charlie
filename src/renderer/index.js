@@ -44,7 +44,6 @@ function Renderer(props) {
 }
 
 Renderer.prototype = {
-
   _setRenderedImage: function (imageId, flag) {
     this._renderedImages[imageId] = flag;
     var time = iid.getTime(imageId);
@@ -152,19 +151,21 @@ Renderer.prototype = {
   },
 
   update: function () {
-    var state = this._props.getDerivedState();
-    this._time = Math.floor(state.time);
-    this._zoom = Math.round(state.zoom);
-    if (!this._isFinished()) {
-      this._localSource.resetBounds(
-        compute.firstVisibleLocalX(state.width, state.left, state.zoom),
-        compute.firstVisibleLocalY(state.height, state.top, state.zoom),
-        compute.lastVisibleLocalX(state.width, state.left, state.zoom),
-        compute.lastVisibleLocalY(state.height, state.top, state.zoom),
-        compute.localX(state.left),
-        compute.localY(state.top));
-      if (!this._pendingRender) {
-        this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
+    if (!this._props.useWebGL) {
+      var state = this._props.getDerivedState();
+      this._time = Math.floor(state.time);
+      this._zoom = Math.round(state.zoom);
+      if (!this._isFinished()) {
+        this._localSource.resetBounds(
+          compute.firstVisibleLocalX(state.width, state.left, state.zoom),
+          compute.firstVisibleLocalY(state.height, state.top, state.zoom),
+          compute.lastVisibleLocalX(state.width, state.left, state.zoom),
+          compute.lastVisibleLocalY(state.height, state.top, state.zoom),
+          compute.localX(state.left),
+          compute.localY(state.top));
+        if (!this._pendingRender) {
+          this._pendingRender = setTimeout(this._renderNextImage.bind(this), 0);
+        }
       }
     }
   }

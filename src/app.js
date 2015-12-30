@@ -20,7 +20,7 @@ module.exports = {
       left:    0.4897637424698795,
       top:     0.4768826844262295,
       rawTime: 10 + 9 / 60,
-      zoom:    4
+      zoom:    5
     };
   },
   
@@ -72,13 +72,16 @@ module.exports = {
     frame.scrollTop  = compute.frameScrollTop(top, zoom);
   },
 
-  componentDidMount: function () {    
+  componentDidMount: function () {
+    var useWebGL = true;
+    
     this._geometryLoader = new GeometryLoader({
         getDerivedState: this.getDerivedState,
         onTileLoad:      this.onTileLoad
       });
       
     this._renderer = new Renderer({
+        useWebGL:        useWebGL,
         getDerivedState: this.getDerivedState,
         getLoadedTile:   this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
         onImageRender:   this.onImageRender
@@ -86,12 +89,18 @@ module.exports = {
 
     var frame  = r.domNode(this);
     var canvas = frame.firstChild;
-    this._painter = new Painter(canvas, {
+    this._painter = new Painter({
+        useWebGL:         useWebGL,
+        canvas:           canvas,
+        getLoadedTile:    this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
+        getLoadedTileIds: this._geometryLoader.getLoadedTileIds.bind(this._geometryLoader),
         getDerivedState:  this.getDerivedState,
         getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
       });
 
     frame.addEventListener("scroll", this.onScroll);
+    canvas.addEventListener("webglcontextlost", this.onLoseContext);
+    canvas.addEventListener("webglcontextrestored", this.onRestoreContext);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
 
@@ -139,6 +148,15 @@ module.exports = {
           top:  compute.topFromFrameScrollTop(frame.scrollTop, zoom)
         });
     }
+  },
+  
+  onLoseContext: function (event) {
+    event.preventDefault();
+    this._painter.loseContext();
+  },
+  
+  onRestoreContext: function () {
+    this._painter.restoreContext();
   },
   
   onResize: function (event) {
@@ -194,7 +212,7 @@ module.exports = {
         this.setZoom(zoom, duration);
         break;
       default:
-        if (event.keyCode >= 49 && event.keyCode <= 56) {
+        if (event.keyCode >= 49 && event.keyCode <= 57) {
           var zoom = event.keyCode - 49;
           this.setZoom(zoom, duration);
         }

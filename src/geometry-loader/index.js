@@ -35,6 +35,10 @@ GeometryLoader.prototype = {
     return this._loadedTiles[tileId];
   },
   
+  getLoadedTileIds: function () {
+    return Object.keys(this._loadedTiles);
+  },
+  
   _isFinished: function () {
     return this._loadedTileCount === defs.maxTileCount;
   },

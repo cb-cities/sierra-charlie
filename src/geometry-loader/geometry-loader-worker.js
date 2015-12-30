@@ -8,6 +8,46 @@ var tid = require("../lib/tile-id");
 var tgid = require("../lib/tile-group-id");
 
 
+function _processTileData(tileData) {
+  var roadNodes = tileData.roadNodes || [];
+  var roadLinks = tileData.roadLinks || [];
+  var vertexCount = roadNodes.length;
+  var indexCount = roadNodes.length;
+  for (var i = 0; i < roadLinks.length; i++) {
+    vertexCount += roadLinks[i].ps.length;
+    indexCount += (roadLinks[i].ps.length - 1) * 2;
+  }
+  var vertices = new Float32Array(vertexCount * 2);
+  var indices = new Uint16Array(indexCount);
+  for (var i = 0; i < roadNodes.length; i++) {
+    vertices[2 * i] = roadNodes[i].p.x;
+    vertices[2 * i + 1] = roadNodes[i].p.y;
+    indices[i] = i;
+  }
+  var vertexOffset = roadNodes.length;
+  var indexOffset = roadNodes.length;
+  for (var i = 0; i < roadLinks.length; i++) {
+    for (var j = 0; j < roadLinks[i].ps.length; j++) {
+      var k = vertexOffset + j;
+      vertices[2 * k] = roadLinks[i].ps[j].x;
+      vertices[2 * k + 1] = roadLinks[i].ps[j].y;
+      roadLinks[i].indexOffset = indexOffset;
+      indices[indexOffset++] = k;
+      if (j !== 0 && j !== roadLinks[i].ps.length - 1) {
+        indices[indexOffset++] = k;
+      }
+    }
+    vertexOffset += roadLinks[i].ps.length;
+  }
+  return {
+    roadNodes: roadNodes,
+    roadLinks: roadLinks,
+    vertices: vertices,
+    indices: indices
+  };
+}
+
+
 function _postLoadedTileGroup(tileGroupId, tileGroupData) {
   var firstTileX = tgid.toFirstTileX(tileGroupId);
   var firstTileY = tgid.toFirstTileY(tileGroupId);
@@ -26,10 +66,7 @@ function _postLoadedTileGroup(tileGroupId, tileGroupData) {
       postMessage({
           message:  "tileLoad",
           tileId:   tileId,
-          tileData: {
-            roadLinks: tileData.roadLinks || [],
-            roadNodes: tileData.roadNodes || []
-          }
+          tileData: _processTileData(tileData)
         });
     }
   }
