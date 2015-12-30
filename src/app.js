@@ -142,6 +142,7 @@ module.exports = {
   },
   
   onResize: function (event) {
+    this._renderer.update();
     this._painter.update();
   },
 

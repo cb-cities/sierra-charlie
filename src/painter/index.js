@@ -82,6 +82,40 @@ Painter.prototype = {
       }
     }
   },
+  
+  _paintCanvas: function (canvas, state, devicePixelRatio) {
+    var c = canvas.getContext("2d", {
+        alpha: false
+      });
+    c.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    c.save();
+    c.fillStyle = defs.backgroundColor;
+    c.fillRect(0, 0, state.width, state.height);
+    var scrollLeft = compute.scrollLeft(state.width, state.left, state.zoom);
+    var scrollTop  = compute.scrollTop(state.height, state.top, state.zoom);
+    c.translate(-scrollLeft, -scrollTop);
+    c.translate(0.5 / devicePixelRatio, 0.5 / devicePixelRatio);
+    var scaleRatio = compute.scaleRatio(state.zoom);
+    c.scale(scaleRatio, scaleRatio);
+    var firstVisibleLocalX = compute.firstVisibleLocalX(state.width, state.left, state.zoom);
+    var firstVisibleLocalY = compute.firstVisibleLocalY(state.height, state.top, state.zoom);
+    var lastVisibleLocalX  = compute.lastVisibleLocalX(state.width, state.left, state.zoom);
+    var lastVisibleLocalY  = compute.lastVisibleLocalY(state.height, state.top, state.zoom);
+    if (state.zoom < 3) {
+      c.globalAlpha = 1 - (state.zoom - 2);
+      _paintTileLabels(c, state.zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
+      c.globalAlpha = 1;
+    }
+    this._paintTileBorders(c, state.zoom);
+    c.restore();
+    c.save();
+    c.translate(-scrollLeft, -scrollTop);
+    c.scale(scaleRatio, scaleRatio);
+    this._paintTileContents(c, state.time, state.zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
+    c.restore();
+    c.save();
+    c.translate(0.5 / devicePixelRatio, 0.5 / devicePixelRatio);
+  },
 
   _paint: function () {
     requestAnimationFrame(this._paint.bind(this));
@@ -99,37 +133,7 @@ Painter.prototype = {
     
     if (this._pendingPaint) {
       this._pendingPaint = false;
-      var c = canvas.getContext("2d", {
-          alpha: false
-        });
-      c.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
-      c.save();
-      c.fillStyle = defs.backgroundColor;
-      c.fillRect(0, 0, state.width, state.height);
-      var scrollLeft = compute.scrollLeft(state.width, state.left, state.zoom);
-      var scrollTop  = compute.scrollTop(state.height, state.top, state.zoom);
-      c.translate(-scrollLeft, -scrollTop);
-      c.translate(0.5 / devicePixelRatio, 0.5 / devicePixelRatio);
-      var scaleRatio = compute.scaleRatio(state.zoom);
-      c.scale(scaleRatio, scaleRatio);
-      var firstVisibleLocalX = compute.firstVisibleLocalX(state.width, state.left, state.zoom);
-      var firstVisibleLocalY = compute.firstVisibleLocalY(state.height, state.top, state.zoom);
-      var lastVisibleLocalX  = compute.lastVisibleLocalX(state.width, state.left, state.zoom);
-      var lastVisibleLocalY  = compute.lastVisibleLocalY(state.height, state.top, state.zoom);
-      if (state.zoom < 3) {
-        c.globalAlpha = 1 - (state.zoom - 2);
-        _paintTileLabels(c, state.zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
-        c.globalAlpha = 1;
-      }
-      this._paintTileBorders(c, state.zoom);
-      c.restore();
-      c.save();
-      c.translate(-scrollLeft, -scrollTop);
-      c.scale(scaleRatio, scaleRatio);
-      this._paintTileContents(c, state.time, state.zoom, firstVisibleLocalX, firstVisibleLocalY, lastVisibleLocalX, lastVisibleLocalY);
-      c.restore();
-      c.save();
-      c.translate(0.5 / devicePixelRatio, 0.5 / devicePixelRatio);
+      this._paintCanvas(canvas, state, devicePixelRatio);
     }
   },
 
