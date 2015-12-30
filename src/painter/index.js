@@ -244,13 +244,15 @@ Painter.prototype = {
       var moveLoc = gl.getUniformLocation(this._context.program, "u_move");
       var colorLoc = gl.getUniformLocation(this._context.program, "u_color");
       var pointSizeLoc = gl.getUniformLocation(this._context.program, "u_pointSize");
-      var scale = 4 / Math.pow(2, state.zoom + 0.5);
+      var scale = Math.pow(2, state.zoom + 0.5) / 4;
       var zoomLevel = Math.pow(2, state.zoom + 0.5);
       var magic = devicePixelRatio * Math.sqrt(zoomLevel) / zoomLevel;
-      var move = [530000, 180000];
+      var moveX = (defs.firstTileX + state.left * defs.tileXCount) * defs.tileSize;
+      var moveY = (defs.lastTileY - state.top * defs.tileYCount) * defs.tileSize;
+      console.log(530000, 180000, moveX, moveY);
       gl.uniform2f(resolutionLoc, state.width, state.height);
       gl.uniform2f(scaleLoc, scale, scale);
-      gl.uniform2f(moveLoc, -move[0], -move[1]);
+      gl.uniform2f(moveLoc, -moveX, -moveY);
       var nodeSize = 9 * magic;
       var linkSize = 3 * magic;
       var nodeAlpha = Math.min(nodeSize, 1);

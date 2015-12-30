@@ -20,7 +20,7 @@ module.exports = {
       left:    0.4897637424698795,
       top:     0.4768826844262295,
       rawTime: 10 + 9 / 60,
-      zoom:    5
+      zoom:    7
     };
   },
   
