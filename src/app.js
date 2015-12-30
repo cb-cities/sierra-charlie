@@ -2,7 +2,6 @@
 
 var GeometryLoader = require("./geometry-loader");
 var Painter = require("./painter");
-var Renderer = require("./renderer");
 
 var r = require("react-wrapper");
 var compute = require("./compute");
@@ -72,30 +71,20 @@ module.exports = {
     frame.scrollTop  = compute.frameScrollTop(top, zoom);
   },
 
-  componentDidMount: function () {
-    var useWebGL = true;
-    
+  componentDidMount: function () {    
     this._geometryLoader = new GeometryLoader({
         getDerivedState: this.getDerivedState,
         onTileLoad:      this.onTileLoad
       });
       
-    this._renderer = new Renderer({
-        useWebGL:        useWebGL,
-        getDerivedState: this.getDerivedState,
-        getLoadedTile:   this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
-        onImageRender:   this.onImageRender
-      });
-
     var frame  = r.domNode(this);
     var canvas = frame.firstChild;
     this._painter = new Painter({
-        useWebGL:         useWebGL,
+        useWebGL:         true,
         canvas:           canvas,
         getLoadedTile:    this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
         getLoadedTileIds: this._geometryLoader.getLoadedTileIds.bind(this._geometryLoader),
-        getDerivedState:  this.getDerivedState,
-        getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
+        getDerivedState:  this.getDerivedState
       });
 
     frame.addEventListener("scroll", this.onScroll);
@@ -126,16 +115,10 @@ module.exports = {
     this.updateFrame();
     
     this._geometryLoader.update();
-    this._renderer.update();
     this._painter.update();
   },
   
   onTileLoad: function () {
-    this._renderer.update();
-    this._painter.update();
-  },
-  
-  onImageRender: function () {
     this._painter.update();
   },
   
@@ -160,7 +143,6 @@ module.exports = {
   },
   
   onResize: function (event) {
-    this._renderer.update();
     this._painter.update();
   },
 

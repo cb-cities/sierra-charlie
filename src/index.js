@@ -12,4 +12,8 @@ require("./index.css");
 require("./index.html");
 
 
-var that = r.render(app(), document.getElementById("root"));
+function main() {
+  var that = r.render(app(), document.getElementById("root"));
+}
+
+window.onload = main();
