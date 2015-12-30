@@ -249,7 +249,6 @@ Painter.prototype = {
       var magic = devicePixelRatio * Math.sqrt(zoomLevel) / zoomLevel;
       var moveX = (defs.firstTileX + state.left * defs.tileXCount) * defs.tileSize;
       var moveY = (defs.lastTileY - state.top * defs.tileYCount) * defs.tileSize;
-      console.log(530000, 180000, moveX, moveY);
       gl.uniform2f(resolutionLoc, state.width, state.height);
       gl.uniform2f(scaleLoc, scale, scale);
       gl.uniform2f(moveLoc, -moveX, -moveY);

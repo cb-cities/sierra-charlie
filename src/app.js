@@ -195,14 +195,14 @@ module.exports = {
         var top = Math.min(this.state.top + pageHeight / (event.keyCode === 34 ? 1 : 10), 1);
         this.setTop(top, duration);
         break;
-      case 219: // left bracket
-        var rawTime = Math.round((this.state.rawTime * 3600) - timeDelta) / 3600;
-        this.setRawTime(rawTime, duration);
-        break;
-      case 221: // right bracket
-        var rawTime = Math.round((this.state.rawTime * 3600) + timeDelta) / 3600;
-        this.setRawTime(rawTime, duration);
-        break;
+      // case 219: // left bracket
+      //   var rawTime = Math.round((this.state.rawTime * 3600) - timeDelta) / 3600;
+      //   this.setRawTime(rawTime, duration);
+      //   break;
+      // case 221: // right bracket
+      //   var rawTime = Math.round((this.state.rawTime * 3600) + timeDelta) / 3600;
+      //   this.setRawTime(rawTime, duration);
+      //   break;
       case 187: // plus
         var zoom = Math.max(0, (Math.round((this.state.zoom * 10) - zoomDelta) / 10));
         this.setZoom(zoom, duration);
