@@ -60,7 +60,6 @@ module.exports = {
     this.roadNodeIndices = new Uint32Array(defs.maxRoadNodeIndexCount);
     this.roadNodeIndexCount = 0;
     this.roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
-    this.roadLinkPointCount = 0;
     this.roadLinkIndexCount = 0;
     this.geometryLoader = new GeometryLoader();
     this.geometryLoader.addEventListener("message", this.onMessage);
@@ -102,7 +101,6 @@ module.exports = {
     this.vertices.set(data.vertices, this.vertexCount * 2);
     this.vertexCount += data.vertices.length / 2;
     this.roadLinkIndices.set(data.roadLinkIndices, this.roadLinkIndexCount);
-    this.roadLinkPointCount = data.roadLinkPointCount;
     this.roadLinkIndexCount += data.roadLinkIndices.length;
     if (this.vertexCount === defs.maxVertexCount) {
       this.stopGeometryLoader();

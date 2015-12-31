@@ -4,14 +4,26 @@ var oboe = require("oboe");
 var defs = require("./defs");
 
 
+function sliceVertices(array, offset, count) {
+  return new Float32Array(array.buffer.slice(offset * 2 * 4, count * 2 * 4));
+}
+
+
+function sliceIndices(array, offset, count) {
+  return new Uint32Array(array.buffer.slice(offset * 4, count * 4));
+}
+
+
 function start(origin) {
-  var vertices = [];
+  var vertices = new Float32Array(defs.maxVertexCount * 2);
   var vertexCount = 0;
-  var roadNodeIndices = [];
+  var vertexOffset = 0;
+  var roadNodeIndices = new Uint32Array(defs.maxRoadNodeIndexCount);
   var roadNodeIndexCount = 0;
-  var roadLinkIndices = [];
-  var roadLinkPointCount = 0;
+  var roadNodeIndexOffset = 0;
+  var roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
   var roadLinkIndexCount = 0;
+  var roadLinkIndexOffset = 0;
   var lastPost = 0;
   
   function post(data, force) {
@@ -26,30 +38,24 @@ function start(origin) {
   function postRoadNodes(force) {
     var data = {
       message: "loadRoadNodes",
-      vertices: vertices,
-      vertexCount: vertexCount,
-      roadNodeIndices: roadNodeIndices,
-      roadLinkPointCount: roadLinkPointCount,
-      roadNodeIndexCount: roadNodeIndexCount
+      vertices: sliceVertices(vertices, vertexOffset, vertexCount),
+      roadNodeIndices: sliceIndices(roadNodeIndices, roadNodeIndexOffset, roadNodeIndexCount)
     };
     if (post(data, force)) {
-      vertices = [];
-      roadNodeIndices = [];
+      vertexOffset = vertexCount;
+      roadNodeIndexOffset = roadNodeIndexCount;
     }
   }
   
   function postRoadLinks(force) {
     var data = {
       message: "loadRoadLinks",
-      vertices: vertices,
-      vertexCount: vertexCount,
-      roadLinkIndices: roadLinkIndices,
-      roadLinkPointCount: roadLinkPointCount,
-      roadLinkIndexCount: roadLinkIndexCount
+      vertices: sliceVertices(vertices, vertexOffset, vertexCount),
+      roadLinkIndices: sliceIndices(roadLinkIndices, roadLinkIndexOffset, roadLinkIndexCount)
     };
     if (post(data, force)) {
-      vertices = [];
-      roadLinkIndices = [];
+      vertexOffset = vertexCount;
+      roadLinkIndexOffset = roadLinkIndexCount;
     }
   }
   
@@ -57,9 +63,8 @@ function start(origin) {
     oboe(origin + "/json/roadnodes.json.gz")
       .node("!.*", function (p, path) {
           // var toid = path[0];
-          vertices = vertices.concat(p);
-          roadNodeIndices.push(vertexCount);
-          roadNodeIndexCount++;
+          roadNodeIndices[roadNodeIndexCount++] = vertexCount;
+          vertices.set(p, vertexCount * 2);
           vertexCount++;
           postRoadNodes();
           return oboe.drop;
@@ -76,16 +81,14 @@ function start(origin) {
     oboe(origin + "/json/roadlinks" + n + ".json.gz")
       .node("!.*", function (roadLink, path) {
           // var toid = path[0];
-          vertices = vertices.concat(roadLink.ps);
           var count = roadLink.ps.length / 2;
           for (var i = 0; i < count; i++) {
-            roadLinkIndices.push(vertexCount + i);
+            roadLinkIndices[roadLinkIndexCount++] = vertexCount + i;
             if (i !== 0 && i !== count - 1) {
-              roadLinkIndices.push(vertexCount + i);
+              roadLinkIndices[roadLinkIndexCount++] = vertexCount + i;
             }
           }
-          roadLinkPointCount += count;
-          roadLinkIndexCount += (count - 1) * 2;
+          vertices.set(roadLink.ps, vertexCount * 2)
           vertexCount += count;
           postRoadLinks();
           return oboe.drop;
