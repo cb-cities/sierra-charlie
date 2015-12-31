@@ -50,9 +50,9 @@ module.exports = {
         this.easingZoom = false;
       }.bind(this));
   },
-
-
-
+  
+  
+  
   startGeometryLoader: function () {
     this.vertices = new Float32Array(defs.maxVertexCount * 2);
     this.vertexCount = 0;
@@ -63,7 +63,7 @@ module.exports = {
     this.geometryLoader = new GeometryLoader();
     this.geometryLoader.addEventListener("message", this.onMessage);
     this.geometryLoader.postMessage({
-        message: "setOrigin",
+        message: "start",
         origin: location.origin
       });
   },
@@ -72,36 +72,34 @@ module.exports = {
     this.geometryLoader.removeEventListener("message", this.onMessage);
     this.geometryLoader.terminate();
   },
-  
-  updateGeometryLoader: function () {
-    if (this.vertexCount !== defs.maxVertexCount) {
-      this.geometryLoader.postMessage({
-          message: "update",
-          left: this.getEasedState("left"),
-          top: this.getEasedState("top")
-        });
-    }
-  },
 
   onMessage: function (event) {
     switch (event.data.message) {
-      case "loadGeometry":
-        this.onLoadGeometry(event.data);
+      case "loadRoadNodes":
+        this.onLoadRoadNodes(event.data);
+        break;
+      case "loadRoadLinks":
+        this.onLoadRoadLinks(event.data);
         break;
     }
   },
   
-  onLoadGeometry: function (data) {
-    this.vertices.set(data.roadNodeVertices, this.vertexCount * 2);
-    this.vertexCount += data.roadNodeVertices.length / 2;
-    this.vertices.set(data.roadLinkVertices, this.vertexCount * 2);
-    this.vertexCount += data.roadLinkVertices.length / 2;
+  onLoadRoadNodes: function (data) {
+    this.vertices.set(data.vertices, this.vertexCount * 2);
+    this.vertexCount += data.vertices.length / 2;
     this.roadNodeIndices.set(data.roadNodeIndices, this.roadNodeIndexCount);
     this.roadNodeIndexCount += data.roadNodeIndices.length;
-    this.roadNodeCount += data.roadNodes.length;
+    if (this.vertexCount === defs.maxVertexCount) {
+      this.stopGeometryLoader();
+    }
+    this.updatePainterContext();
+  },
+  
+  onLoadRoadLinks: function (data) {
+    this.vertices.set(data.vertices, this.vertexCount * 2);
+    this.vertexCount += data.vertices.length / 2;
     this.roadLinkIndices.set(data.roadLinkIndices, this.roadLinkIndexCount);
     this.roadLinkIndexCount += data.roadLinkIndices.length;
-    this.roadLinkCount += data.roadLinks.length;
     if (this.vertexCount === defs.maxVertexCount) {
       this.stopGeometryLoader();
     }
@@ -189,6 +187,7 @@ module.exports = {
       var left = this.getEasedState("left");
       var top = this.getEasedState("top");
       var zoom = this.getEasedState("zoom");
+      // var time = compute.time(this.getEasedState("rawTime"));
       var zoomLevel = Math.pow(2, zoom + 0.5);
       var magic = context.devicePixelRatio * Math.sqrt(zoomLevel) / zoomLevel;
       var gl = context.gl;
@@ -256,7 +255,6 @@ module.exports = {
 
   componentDidUpdate: function () {
     this.updateFrame();
-    this.updateGeometryLoader();
     this.needsPainting = true;
   },
   

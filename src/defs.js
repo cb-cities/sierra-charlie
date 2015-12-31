@@ -11,10 +11,10 @@ var lastTileY  = 207;
 var tileXCount = lastTileX - firstTileX + 1;
 var tileYCount = lastTileY - firstTileY + 1;
 
-var maxRoadNodeCount = 333294;
-var maxRoadLinkCount = 454720;
-var maxRoadLinkPointCount = 1458533;
-var maxRoadLinkIndexCount = 2007626;
+var maxRoadNodeCount = 343724;
+var maxRoadLinkCount = 500000;
+var maxRoadLinkPointCount = 3048765;
+var maxRoadLinkIndexCount = 5097530;
 
 
 var _ = module.exports = {
