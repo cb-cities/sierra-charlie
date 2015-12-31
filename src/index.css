@@ -6,7 +6,8 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: bold;
   background-color: #000;
 }
 
@@ -40,12 +41,34 @@ body {
   padding-bottom: 100vh;
 }
 
-#ui {
-  display: none;
+/*#ui {
   width: 100%;
   height: 100%;
   position: absolute;
   left: 0;
   top: 0;
   overflow: hidden;
+}*/
+
+#ui-load-progress-track {
+/*  opacity: dynamic;*/
+  width: 100%;
+  height: 4px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: rgba(255, 255, 255, 0.4);
+  -webkit-transition: opacity 1s 1s;
+  transition: opacity 1s 1s;
+}
+
+#ui-load-progress-bar {
+/*  width: dynamic*/
+  height: 4px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #09f;
+  -webkit-transition: width 0.2s;
+  transition: width 0.2s;
 }

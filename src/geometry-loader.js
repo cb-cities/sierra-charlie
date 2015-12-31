@@ -10,11 +10,12 @@ function start(origin) {
   var roadNodeIndices = [];
   var roadNodeIndexCount = 0;
   var roadLinkIndices = [];
+  var roadLinkPointCount = 0;
   var roadLinkIndexCount = 0;
   var lastPost = 0;
   
-  function post(data) {
-    if (lastPost + 100 < Date.now()) {
+  function post(data, force) {
+    if (force || lastPost + 100 < Date.now()) {
       lastPost = Date.now();
       postMessage(data);
       return true;
@@ -22,29 +23,31 @@ function start(origin) {
     return false;
   }
   
-  function postRoadNodes() {
+  function postRoadNodes(force) {
     var data = {
       message: "loadRoadNodes",
       vertices: vertices,
       vertexCount: vertexCount,
       roadNodeIndices: roadNodeIndices,
+      roadLinkPointCount: roadLinkPointCount,
       roadNodeIndexCount: roadNodeIndexCount
     };
-    if (post(data)) {
+    if (post(data, force)) {
       vertices = [];
       roadNodeIndices = [];
     }
   }
   
-  function postRoadLinks() {
+  function postRoadLinks(force) {
     var data = {
       message: "loadRoadLinks",
       vertices: vertices,
       vertexCount: vertexCount,
       roadLinkIndices: roadLinkIndices,
+      roadLinkPointCount: roadLinkPointCount,
       roadLinkIndexCount: roadLinkIndexCount
     };
-    if (post(data)) {
+    if (post(data, force)) {
       vertices = [];
       roadLinkIndices = [];
     }
@@ -62,7 +65,7 @@ function start(origin) {
           return oboe.drop;
         })
       .done(function () {
-          postRoadNodes();
+          postRoadNodes(true);
           if (cb) {
             cb();
           }
@@ -77,18 +80,18 @@ function start(origin) {
           var count = roadLink.ps.length / 2;
           for (var i = 0; i < count; i++) {
             roadLinkIndices.push(vertexCount + i);
-            roadLinkIndexCount++;
             if (i !== 0 && i !== count - 1) {
               roadLinkIndices.push(vertexCount + i);
-              roadLinkIndexCount++;
             }
           }
+          roadLinkPointCount += count;
+          roadLinkIndexCount += (count - 1) * 2;
           vertexCount += count;
           postRoadLinks();
           return oboe.drop;
         })
       .done(function () {
-          postRoadLinks();
+          postRoadLinks(true);
           if (cb) {
             cb();
           }
@@ -96,7 +99,7 @@ function start(origin) {
   }
   
   loadRoadNodes();
-  for (var i = 0; i < 5; i++) {
+  for (var i = 1; i < 5; i++) {
     loadRoadLinks(i);
   }
 }

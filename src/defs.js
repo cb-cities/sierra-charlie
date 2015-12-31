@@ -13,8 +13,8 @@ var tileYCount = lastTileY - firstTileY + 1;
 
 var maxRoadNodeCount = 343724;
 var maxRoadLinkCount = 500000;
-var maxRoadLinkPointCount = 3048765;
-var maxRoadLinkIndexCount = 5097530;
+var maxRoadLinkPointCount = 2092407;
+var maxRoadLinkIndexCount = 3384814;
 
 
 var _ = module.exports = {
@@ -36,7 +36,7 @@ var _ = module.exports = {
 
   maxZoom: 8,
   
-  maxVertexCount: (maxRoadNodeCount + maxRoadLinkPointCount) * 2,
+  maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
   
   maxRoadNodeCount: maxRoadNodeCount,
   maxRoadNodeIndexCount: maxRoadNodeCount,

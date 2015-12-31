@@ -2,7 +2,7 @@ module UI where
 
 import Effects exposing (Effects, Never)
 import Html exposing (Html, button, div, input, li, span, text, ul)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (id, style)
 import Html.Events exposing (onClick)
 import Result exposing (Result)
 import Signal exposing (Address, Mailbox)
@@ -17,6 +17,7 @@ type alias Model =
   { left : Float
   , top : Float
   , zoom : Float
+  , vertexCount : Int
   }
 
 
@@ -25,10 +26,11 @@ defaultModel =
   { left = 0.4897637424698795
   , top = 0.4768826844262295
   , zoom = 6
+  , vertexCount = 0
   }
 
 
-minZoom = 0
+maxZoom : Float
 maxZoom = 8
 
 
@@ -40,6 +42,7 @@ type Action =
   | SetZoom Float
   | IncreaseZoom
   | DecreaseZoom
+  | SetVertexCount Int
 
 
 noEffect : Model -> (Model, Effects Action)
@@ -52,21 +55,18 @@ update action model =
     case action of 
       Idle ->
         noEffect model
-      SetZoom zoom ->
-        noEffect <|
-          if zoom >= minZoom && zoom <= maxZoom
-            then {model | zoom = zoom}
-            else model
+      SetZoom newZoom ->
+        {model | zoom = max 0 (min newZoom maxZoom)}
+          |> noEffect
       IncreaseZoom ->
-        noEffect <|
-          if model.zoom > minZoom
-            then {model | zoom = model.zoom - 1}
-            else model
+        {model | zoom = max 0 (model.zoom - 1)}
+          |> noEffect
       DecreaseZoom ->
-        noEffect <|
-          if model.zoom < maxZoom
-            then {model | zoom = model.zoom + 1}
-            else model
+        {model | zoom = min (model.zoom + 1) maxZoom}
+          |> noEffect
+      SetVertexCount newCount ->
+        {model | vertexCount = max 0 newCount}
+          |> noEffect
 
 
 ---- VIEW ----
@@ -74,7 +74,29 @@ update action model =
 
 view : Address Action -> Model -> Html
 view address model =
-    div [style [("color", "#fff")]]
+    let
+      loadProgress = toFloat model.vertexCount / toFloat maxVertexCount * 100
+      loadDone = model.vertexCount == maxVertexCount
+      
+    in
+      div [style [("color", "#f00")]]
+        [ div
+            [ id "ui-load-progress-track"
+            , style
+                [ ("opacity", if loadDone then "0" else "1")
+                ]
+            ]
+            [ div
+              [ id "ui-load-progress-bar"
+              , style
+                  [ ("width", toString loadProgress ++ "%")
+                  ]
+              ]
+              []
+            ]
+        ]
+      -- [ text loadPercent ]
+{-
         [ div []
           [ text ("Left: " ++ toString model.left)
           , button [] [text "⇦"]
@@ -83,14 +105,14 @@ view address model =
           , button [] [text "⇨"]
           ]
         , div []
-          [ text (" Top: " ++ toString model.top)
+          [ text ("Top: " ++ toString model.top)
           , button [] [text "⇧"]
           , button [] [text "↑"]
           , button [] [text "↓"]
           , button [] [text "⇩"]
           ]
         , div []
-          [ text (" Scale: 1/2^" ++ toString model.zoom)
+          [ text ("Scale: 1/2^" ++ toString model.zoom)
           , button [onClick address (SetZoom 0)] [text "0"]
           , button [onClick address (SetZoom 1)] [text "1"]
           , button [onClick address (SetZoom 2)] [text "2"]
@@ -104,19 +126,24 @@ view address model =
           , button [onClick address IncreaseZoom] [text "+"]
           ]
         ]
+-}
 
 
 ---- INPUTS ----
 
 
-port getState : Maybe Model
+port storedModel : Maybe Model
+port maxVertexCount : Int
 
 
 init : (Model, Effects Action)
 init =
-    ( Maybe.withDefault defaultModel getState
+    ( Maybe.withDefault defaultModel storedModel
     , Effects.task (Task.succeed Idle)
     )
+
+
+port vertexCount : Signal Int
 
 
 app : App Model
@@ -125,7 +152,9 @@ app =
       { init = init
       , update = update
       , view = view
-      , inputs = []
+      , inputs =
+          [ Signal.map SetVertexCount vertexCount
+          ]
       }
 
 
@@ -134,23 +163,23 @@ port tasks =
     app.tasks
 
 
-port setState : Signal Model
-port setState =
+port model : Signal Model
+port model =
     app.model
 
 
-port setLeft : Signal Float
-port setLeft =
+port left : Signal Float
+port left =
     Signal.map .left app.model
 
 
-port setTop : Signal Float
-port setTop =
+port top : Signal Float
+port top =
     Signal.map .top app.model
 
 
-port setZoom : Signal Float
-port setZoom =
+port zoom : Signal Float
+port zoom =
     Signal.map .zoom app.model
 
 

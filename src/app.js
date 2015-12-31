@@ -21,6 +21,7 @@ module.exports = {
     return {
       left:    0.4897637424698795,
       top:     0.4768826844262295,
+      zoom:    6,
       rawTime: 10 + 9 / 60
     };
   },
@@ -59,6 +60,7 @@ module.exports = {
     this.roadNodeIndices = new Uint32Array(defs.maxRoadNodeIndexCount);
     this.roadNodeIndexCount = 0;
     this.roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
+    this.roadLinkPointCount = 0;
     this.roadLinkIndexCount = 0;
     this.geometryLoader = new GeometryLoader();
     this.geometryLoader.addEventListener("message", this.onMessage);
@@ -93,17 +95,20 @@ module.exports = {
       this.stopGeometryLoader();
     }
     this.updatePainterContext();
+    UI.ports.vertexCount.send(this.vertexCount);
   },
   
   onLoadRoadLinks: function (data) {
     this.vertices.set(data.vertices, this.vertexCount * 2);
     this.vertexCount += data.vertices.length / 2;
     this.roadLinkIndices.set(data.roadLinkIndices, this.roadLinkIndexCount);
+    this.roadLinkPointCount = data.roadLinkPointCount;
     this.roadLinkIndexCount += data.roadLinkIndices.length;
     if (this.vertexCount === defs.maxVertexCount) {
       this.stopGeometryLoader();
     }
     this.updatePainterContext();
+    UI.ports.vertexCount.send(this.vertexCount);
   },
 
 
