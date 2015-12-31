@@ -45,7 +45,9 @@ module.exports = {
         loader: 'raw',
         exclude: [/elm-stuff/, /node_modules/]
       }
-    ]
+    ],
+    
+    noParse: [/\.elm$/, /proj4\.js$/]
   },
   
   plugins: [

@@ -11,6 +11,11 @@ var lastTileY  = 207;
 var tileXCount = lastTileX - firstTileX + 1;
 var tileYCount = lastTileY - firstTileY + 1;
 
+var maxRoadNodeCount = 333294;
+var maxRoadLinkCount = 454720;
+var maxRoadLinkPointCount = 1458533;
+var maxRoadLinkIndexCount = 2007626;
+
 
 var _ = module.exports = {
   tileSize:  tileSize,
@@ -30,6 +35,15 @@ var _ = module.exports = {
   maxHeight: tileYCount * imageSize,
 
   maxZoom: 8,
+  
+  maxVertexCount: (maxRoadNodeCount + maxRoadLinkPointCount) * 2,
+  
+  maxRoadNodeCount: maxRoadNodeCount,
+  maxRoadNodeIndexCount: maxRoadNodeCount,
+  
+  maxRoadLinkCount: maxRoadLinkCount,
+  maxRoadLinkPointCount: maxRoadLinkPointCount,
+  maxRoadLinkIndexCount: maxRoadLinkIndexCount,
 
   tileToLocalX: function (tx) {
     return tx - firstTileX;
