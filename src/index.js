@@ -27,15 +27,15 @@ function init(storedModel) {
       localStorage.setItem("elm-ui-state", state);
     });
   
-  UI.ports.left.subscribe(function (left) {
-      // legacy.setLeft(left, 500);
-    });
-  UI.ports.top.subscribe(function (top) {
-      // legacy.setTop(top, 500);
-    });
-  UI.ports.zoom.subscribe(function (zoom) {
-      // legacy.setZoom(zoom, 500);
-    });
+  // UI.ports.left.subscribe(function (left) {
+  //     legacy.setLeft(left, 500);
+  //   });
+  // UI.ports.top.subscribe(function (top) {
+  //     legacy.setTop(top, 500);
+  //   });
+  // UI.ports.zoom.subscribe(function (zoom) {
+  //     legacy.setZoom(zoom, 500);
+  //   });
 }
 
 // try {
