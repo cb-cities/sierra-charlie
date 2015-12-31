@@ -18,9 +18,11 @@ function start(origin) {
   var vertices = new Float32Array(defs.maxVertexCount * 2);
   var vertexCount = 0;
   var vertexOffset = 0;
+  var roadNodes = [];
   var roadNodeIndices = new Uint32Array(defs.maxRoadNodeIndexCount);
   var roadNodeIndexCount = 0;
   var roadNodeIndexOffset = 0;
+  var roadLinks = [];
   var roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
   var roadLinkIndexCount = 0;
   var roadLinkIndexOffset = 0;
@@ -39,10 +41,12 @@ function start(origin) {
     var data = {
       message: "loadRoadNodes",
       vertices: sliceVertices(vertices, vertexOffset, vertexCount),
+      roadNodes: roadNodes,
       roadNodeIndices: sliceIndices(roadNodeIndices, roadNodeIndexOffset, roadNodeIndexCount)
     };
     if (post(data, force)) {
       vertexOffset = vertexCount;
+      roadNodes = [];
       roadNodeIndexOffset = roadNodeIndexCount;
     }
   }
@@ -51,10 +55,12 @@ function start(origin) {
     var data = {
       message: "loadRoadLinks",
       vertices: sliceVertices(vertices, vertexOffset, vertexCount),
+      roadLinks: roadLinks,
       roadLinkIndices: sliceIndices(roadLinkIndices, roadLinkIndexOffset, roadLinkIndexCount)
     };
     if (post(data, force)) {
       vertexOffset = vertexCount;
+      roadLinks = [];
       roadLinkIndexOffset = roadLinkIndexCount;
     }
   }
@@ -62,7 +68,11 @@ function start(origin) {
   function loadRoadNodes(cb) {
     oboe(origin + "/json/roadnodes.json.gz")
       .node("!.*", function (p, path) {
-          // var toid = path[0];
+          var toid = path[0];
+          roadNodes.push({
+              toid: toid,
+              indexOffset: roadNodeIndexCount
+            });
           roadNodeIndices[roadNodeIndexCount++] = vertexCount;
           vertices.set(p, vertexCount * 2);
           vertexCount++;
@@ -79,17 +89,26 @@ function start(origin) {
 
   function loadRoadLinks(n, cb) {
     oboe(origin + "/json/roadlinks" + n + ".json.gz")
-      .node("!.*", function (roadLink, path) {
-          // var toid = path[0];
-          var count = roadLink.ps.length / 2;
-          for (var i = 0; i < count; i++) {
+      .node("!.*", function (obj, path) {
+          var toid = path[0];
+          var pointCount = obj.ps.length / 2;
+          var indexCount = (pointCount - 1) * 2;
+          roadLinks.push({
+              toid: toid,
+              length: obj.len,
+              indexCount: indexCount,
+              indexOffset: roadLinkIndexCount,
+              negativeNode: obj.neg,
+              positiveNode: obj.pos
+            });
+          for (var i = 0; i < pointCount; i++) {
             roadLinkIndices[roadLinkIndexCount++] = vertexCount + i;
-            if (i !== 0 && i !== count - 1) {
+            if (i !== 0 && i !== pointCount - 1) {
               roadLinkIndices[roadLinkIndexCount++] = vertexCount + i;
             }
           }
-          vertices.set(roadLink.ps, vertexCount * 2)
-          vertexCount += count;
+          vertices.set(obj.ps, vertexCount * 2)
+          vertexCount += pointCount;
           postRoadLinks();
           return oboe.drop;
         })

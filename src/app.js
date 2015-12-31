@@ -57,8 +57,10 @@ module.exports = {
   startGeometryLoader: function () {
     this.vertices = new Float32Array(defs.maxVertexCount * 2);
     this.vertexCount = 0;
+    this.roadNodes = {};
     this.roadNodeIndices = new Uint32Array(defs.maxRoadNodeIndexCount);
     this.roadNodeIndexCount = 0;
+    this.roadLinks = {};
     this.roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
     this.roadLinkIndexCount = 0;
     this.geometryLoader = new GeometryLoader();
@@ -88,6 +90,10 @@ module.exports = {
   onLoadRoadNodes: function (data) {
     this.vertices.set(data.vertices, this.vertexCount * 2);
     this.vertexCount += data.vertices.length / 2;
+    for (var i = 0; i < data.roadNodes.length; i++) {
+      var roadNode = data.roadNodes[i];
+      this.roadNodes[roadNode.toid] = roadNode;
+    }
     this.roadNodeIndices.set(data.roadNodeIndices, this.roadNodeIndexCount);
     this.roadNodeIndexCount += data.roadNodeIndices.length;
     if (this.vertexCount === defs.maxVertexCount) {
@@ -100,6 +106,10 @@ module.exports = {
   onLoadRoadLinks: function (data) {
     this.vertices.set(data.vertices, this.vertexCount * 2);
     this.vertexCount += data.vertices.length / 2;
+    for (var i = 0; i < data.roadLinks.length; i++) {
+      var roadLink = data.roadLinks[i];
+      this.roadLinks[roadLink.toid] = roadLink;
+    }
     this.roadLinkIndices.set(data.roadLinkIndices, this.roadLinkIndexCount);
     this.roadLinkIndexCount += data.roadLinkIndices.length;
     if (this.vertexCount === defs.maxVertexCount) {
