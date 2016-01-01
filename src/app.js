@@ -298,7 +298,7 @@ module.exports = {
       gl.enableVertexAttribArray(cx.positionLoc);
       gl.vertexAttribPointer(cx.positionLoc, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.gridIndexBuf);
-      gl.uniform4f(cx.colorLoc, 0.5 / zoom, 0.5 / zoom, 0.5 / zoom, 1);
+      gl.uniform4f(cx.colorLoc, 0.1 + 0.5 / zoomLevel, 0.1 + 0.5 / zoomLevel, 0.1 + 0.5 / zoomLevel, 1);
       gl.drawElements(gl.LINES, this.gridIndexCount, gl.UNSIGNED_SHORT, 0);
 
       var roadNodeSize = 8 * cx.devicePixelRatio / zoomLevel * Math.cbrt(zoomLevel);
