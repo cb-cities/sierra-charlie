@@ -285,10 +285,14 @@ module.exports = {
   render: function () {
     var zoom = this.getEasedState("zoom");
     return (
-      r.div("map-frame",
-        r.canvas("map-canvas"),
+      r.div({
+          id: "map-frame"
+        },
+        r.canvas({
+          id: "map-canvas"
+        }),
         r.div({
-            className: "map-space",
+            id: "map-space",
             style: {
               width:  compute.spaceWidth(zoom),
               height: compute.spaceHeight(zoom)
