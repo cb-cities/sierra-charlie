@@ -3,10 +3,10 @@
 var tileSize  = 1000;
 var imageSize = 1024;
 
-var firstTileX = 490;
+var firstTileX = 489;
 var firstTileY = 148;
-var lastTileX  = 572;
-var lastTileY  = 207;
+var lastTileX  = 573;
+var lastTileY  = 209;
 
 var tileXCount = lastTileX - firstTileX + 1;
 var tileYCount = lastTileY - firstTileY + 1;
@@ -15,6 +15,16 @@ var maxRoadNodeCount = 343724;
 var maxRoadLinkCount = 423541;
 var maxRoadLinkPointCount = 2267772;
 var maxRoadLinkIndexCount = 3688462;
+
+var minRoadNodeX = 489475;
+var maxRoadNodeX = 573675;
+var minRoadNodeY = 148000;
+var maxRoadNodeY = 209500;
+
+var minRoadLinkX = 488527.5625;
+var maxRoadLinkX = 574923;
+var minRoadLinkY = 146817.515625;
+var maxRoadLinkY = 211143;
 
 
 var _ = module.exports = {
@@ -34,7 +44,7 @@ var _ = module.exports = {
   maxWidth:  tileXCount * imageSize,
   maxHeight: tileYCount * imageSize,
 
-  maxZoom: 8,
+  maxZoom: 7,
   
   maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
   

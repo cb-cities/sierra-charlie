@@ -17,7 +17,7 @@ Bounds.prototype = {
     return this.bottom - this.top;
   },
 
-  contain: function (p) {
+  contains: function (p) {
     return (
       this.left <= p.x &&
       p.x <= this.right &&
@@ -25,7 +25,7 @@ Bounds.prototype = {
       p.y <= this.bottom);
   },
 
-  intersect: function (rect) {
+  intersects: function (rect) {
     return (
       this.left <= rect.right &&
       rect.left <= this.right &&

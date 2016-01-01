@@ -32,7 +32,7 @@ defaultModel : Model
 defaultModel =
   { left = 0.4897637424698795
   , top = 0.4768826844262295
-  , zoom = 6
+  , zoom = 5
   , vertexCount = 0
   , roadNodes = Quadtree.empty 0 0 1048576
   , mousePosition = {x = 0, y = 0}
@@ -40,7 +40,7 @@ defaultModel =
 
 
 maxZoom : Float
-maxZoom = 8
+maxZoom = 7
 
 
 ---- UPDATE ----
