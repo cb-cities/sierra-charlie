@@ -9,6 +9,11 @@ import Signal exposing (Address, Mailbox)
 import StartApp exposing (App)
 import Task exposing (Task)
 
+import Common.Maybe exposing (maybe)
+import Common.Point exposing (Point)
+import Common.Rect
+import Common.Quadtree as Quadtree exposing (Quadtree, Item)
+
 
 ---- MODEL ----
 
@@ -18,6 +23,8 @@ type alias Model =
   , top : Float
   , zoom : Float
   , vertexCount : Int
+  , roadNodes : Quadtree String
+  , mousePosition : Point
   }
 
 
@@ -27,6 +34,8 @@ defaultModel =
   , top = 0.4768826844262295
   , zoom = 6
   , vertexCount = 0
+  , roadNodes = Quadtree.empty 0 0 1048576
+  , mousePosition = {x = 0, y = 0}
   }
 
 
@@ -43,6 +52,8 @@ type Action =
   | IncreaseZoom
   | DecreaseZoom
   | SetVertexCount Int
+  | AddRoadNode (Item String)
+  | SetMousePosition Point
 
 
 noEffect : Model -> (Model, Effects Action)
@@ -67,6 +78,12 @@ update action model =
       SetVertexCount newCount ->
         {model | vertexCount = max 0 newCount}
           |> noEffect
+      AddRoadNode newItem ->
+        {model | roadNodes = Quadtree.insert newItem model.roadNodes}
+          |> noEffect
+      SetMousePosition newPosition ->
+        {model | mousePosition = newPosition}
+          |> noEffect
 
 
 ---- VIEW ----
@@ -77,9 +94,8 @@ view address model =
     let
       loadProgress = toFloat model.vertexCount / toFloat maxVertexCount * 100
       loadDone = model.vertexCount == maxVertexCount
-      
     in
-      div [style [("color", "#f00")]]
+      div []
         [ div
             [ id "ui-load-progress-track"
             , style
@@ -132,18 +148,17 @@ view address model =
 ---- INPUTS ----
 
 
-port storedModel : Maybe Model
 port maxVertexCount : Int
 
 
 init : (Model, Effects Action)
 init =
-    ( Maybe.withDefault defaultModel storedModel
-    , Effects.task (Task.succeed Idle)
-    )
+    (defaultModel, Task.succeed Idle |> Effects.task)
 
 
-port vertexCount : Signal Int
+port setVertexCount : Signal Int
+port addRoadNode : Signal (Maybe (Item String))
+port setMousePosition : Signal Point
 
 
 app : App Model
@@ -153,7 +168,9 @@ app =
       , update = update
       , view = view
       , inputs =
-          [ Signal.map SetVertexCount vertexCount
+          [ Signal.map SetVertexCount setVertexCount
+          , Signal.map (maybe Idle AddRoadNode) addRoadNode
+          , Signal.map SetMousePosition setMousePosition
           ]
       }
 
@@ -161,11 +178,6 @@ app =
 port tasks : Signal (Task Never ())
 port tasks =
     app.tasks
-
-
-port model : Signal Model
-port model =
-    app.model
 
 
 port left : Signal Float

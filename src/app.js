@@ -1,6 +1,7 @@
 "use strict";
 
 var GeometryLoader = require("worker?inline!./geometry-loader");
+var Quadtree = require("./lib/quadtree");
 
 var r = require("react-wrapper");
 var compute = require("./compute");
@@ -60,6 +61,7 @@ module.exports = {
     this.roadNodes = {};
     this.roadNodeIndices = new Uint32Array(defs.maxRoadNodeIndexCount);
     this.roadNodeIndexCount = 0;
+    this.roadNodeTree = new Quadtree(0, 0, 1048576);
     this.roadLinks = {};
     this.roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
     this.roadLinkIndexCount = 0;
@@ -93,6 +95,15 @@ module.exports = {
     for (var i = 0; i < data.roadNodes.length; i++) {
       var roadNode = data.roadNodes[i];
       this.roadNodes[roadNode.toid] = roadNode;
+      var p = {
+         x: this.vertices[2 * roadNode.vertexOffset],
+         y: this.vertices[2 * roadNode.vertexOffset + 1]
+      };
+      // UI.ports.addRoadNode.send([p, roadNode.toid]);
+      this.roadNodeTree.insert({
+          p: p,
+          toid: roadNode.toid
+        });
     }
     this.roadNodeIndices.set(data.roadNodeIndices, this.roadNodeIndexCount);
     this.roadNodeIndexCount += data.roadNodeIndices.length;
@@ -100,7 +111,7 @@ module.exports = {
       this.stopGeometryLoader();
     }
     this.updatePainterContext();
-    UI.ports.vertexCount.send(this.vertexCount);
+    UI.ports.setVertexCount.send(this.vertexCount);
   },
   
   onLoadRoadLinks: function (data) {
@@ -116,7 +127,7 @@ module.exports = {
       this.stopGeometryLoader();
     }
     this.updatePainterContext();
-    UI.ports.vertexCount.send(this.vertexCount);
+    UI.ports.setVertexCount.send(this.vertexCount);
   },
 
 
@@ -282,7 +293,8 @@ module.exports = {
               width:  compute.spaceWidth(zoom),
               height: compute.spaceHeight(zoom)
             },
-            onDoubleClick: this.onDoubleClick
+            onDoubleClick: this.onDoubleClick,
+            onMouseMove: this.onMouseMove
           })));
   },
   
@@ -373,6 +385,10 @@ module.exports = {
     } else {
       this.setZoom(Math.min(this.state.zoom + 1, defs.maxZoom), duration);
     }
+  },
+  
+  onMouseMove: function (event) {
+    console.log("mouseMove", event.clientX, event.clientY);
   }
 };
 

@@ -71,6 +71,7 @@ function start(origin) {
           var toid = path[0];
           roadNodes.push({
               toid: toid,
+              vertexOffset: vertexCount,
               indexOffset: roadNodeIndexCount
             });
           roadNodeIndices[roadNodeIndexCount++] = vertexCount;
@@ -92,11 +93,11 @@ function start(origin) {
       .node("!.*", function (obj, path) {
           var toid = path[0];
           var pointCount = obj.ps.length / 2;
-          var indexCount = (pointCount - 1) * 2;
           roadLinks.push({
               toid: toid,
               length: obj.len,
-              indexCount: indexCount,
+              pointCount: pointCount,
+              vertexOffset: vertexCount,
               indexOffset: roadLinkIndexCount,
               negativeNode: obj.neg,
               positiveNode: obj.pos

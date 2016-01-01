@@ -13,18 +13,14 @@ require("./index.html");
 
 window.Elm = require("./Elm/UI");
 
-function init(storedModel) {
+function init() {
   var legacy = r.render(app(), document.getElementById("legacy"));
 
   window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
-      storedModel: storedModel,
-      vertexCount: 0,
-      maxVertexCount: defs.maxVertexCount
-    });
-  
-  UI.ports.model.subscribe(function (model) {
-      var state = JSON.stringify(model);
-      localStorage.setItem("elm-ui-state", state);
+      maxVertexCount: defs.maxVertexCount,
+      setVertexCount: 0,
+      addRoadNode: null,
+      setMousePosition: {x: 0, y: 0}
     });
   
   // UI.ports.left.subscribe(function (left) {
@@ -38,12 +34,4 @@ function init(storedModel) {
   //   });
 }
 
-// try {
-//   var storedState = localStorage.getItem("elm-ui-state");
-//   var storedModel = storedState ? JSON.parse(storedState) : null;
-//   init(storedModel);
-// } catch (e) {
-//   init(null);
-// }
-
-init(null);
+init();

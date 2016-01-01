@@ -1,75 +1,88 @@
 "use strict";
 
-var Bounds = require("./bounds");
 
+var maxItems = 1;
 
-var maxCount = 1;
-
-function Quadtree(size, startX, startY) {
+function Quadtree(left, top, size) {
+  this.left = left;
+  this.top = top;
   this.size = size;
-  this.bounds = new Bounds(startX, startY, startX + size, startY + size);
-  this.points = [];
+  this.items = [];
 }
 
 Quadtree.prototype = {
   split: function () {
-    var halfSize = Math.ceil(this.size / 2);
-    this.pivotX = this.bounds.startX + halfSize;
-    this.pivotY = this.bounds.startY + halfSize;
-    this.topLeft     = new Quadtree(halfSize, this.bounds.startX, this.bounds.startY);
-    this.bottomLeft  = new Quadtree(halfSize, this.bounds.startX, this.pivotY);
-    this.topRight    = new Quadtree(halfSize, this.pivotX, this.bounds.startY);
-    this.bottomRight = new Quadtree(halfSize, this.pivotX, this.pivotY);
-    var points = this.points;
-    delete this.points;
-    for (var i = 0; i < points.length; i++) {
-      this.insert(points[i]);
+    var halfSize = this.size / 2;
+    var midWidth = this.left + halfSize;
+    var midHeight = this.top + halfSize;
+    this.topLeft = new Quadtree(this.left, this.top, halfSize);
+    this.topRight = new Quadtree(midWidth, this.top, halfSize);
+    this.bottomLeft = new Quadtree(this.left, midHeight, halfSize);
+    this.bottomRight = new Quadtree(midWidth, midHeight, halfSize);
+    var items = this.items;
+    delete this.items;
+    for (var i = 0; i < items.length; i++) {
+      this.insert(items[i]);
     }
   },
 
-  insert: function (point) {
-    if (this.points) {
-      if (this.points.length < maxCount) {
-        this.points.push(point);
+  insert: function (item) {
+    if (this.items) {
+      if (this.items.length < maxItems) {
+        this.items.push(item);
       } else {
         this.split();
-        this.insert(point);
+        this.insert(item);
       }
     } else {
-      var target = (
-        point.x < this.pivotX ? (
-          point.y < this.pivotY ?
-            this.topLeft :
-            this.bottomLeft) : (
-          point.y < this.pivotY ?
-            this.topRight :
-            this.bottomRight));
-      target.insert(point);
+      if (this.topLeft.contains(item.p)) {
+        this.topLeft.insert(item);
+      } else if (this.topRight.contains(item.p)) {
+        this.topRight.insert(item);
+      } else if (this.bottomLeft.contains(item.p)) {
+        this.bottomLeft.insert(item);
+      } else if (this.bottomRight.contains(item.p)) {
+        this.bottomRight.insert(item);
+      }
     }
   },
 
-  select: function (bounds) {
-    var results = [];
-    if (bounds.intersect(this.bounds)) {
-      if (this.points) {
-        for (var i = 0; i < this.points.length; i++) {
-          var point = this.points[i];
-          if (bounds.contain(point)) {
-            results.push({
-                x: point.x,
-                y: point.y
-              });
+  select: function (rect) {
+    if (this.intersects(rect)) {
+      if (this.items) {
+        var results = [];
+        for (var i = 0; i < this.items.length; i++) {
+          if (rect.contains(this.items[i].p)) {
+            results.push(this.items[i]);
           }
         }
+        return results;
       } else {
-        results = (
-          this.topLeft.select(bounds).concat(
-            this.bottomLeft.select(bounds).concat(
-              this.topRight.select(bounds).concat(
-                this.bottomRight.select(bounds)))));
+        return (
+          this.topLeft.select(rect).concat(
+            this.topRight.select(rect).concat(
+              this.bottomLeft.select(rect).concat(
+                this.bottomRight.select(rect)))));
       }
+    } else {
+      return [];
     }
-    return results;
+  },
+
+  contains: function (p) {
+    return (
+      this.left <= p.x &&
+      p.x <= this.left + this.size &&
+      this.top <= p.y &&
+      p.y <= this.top + this.size);
+  },
+
+  intersects: function (rect) {
+    return (
+      this.left <= rect.right &&
+      rect.left <= this.left + this.size &&
+      this.top <= rect.bottom &&
+      rect.top <= this.top + this.size);
   }
 };
 
