@@ -17,10 +17,15 @@ Offline use
 
 Using the project without an Internet connection requires building the project on a local machine.
 
-Start by downloading the project source and data files:
+First, download the project source and data files:
 
 ```
 git clone https://github.com/mietek/sierra-charlie
+```
+
+The following instructions assume the project is located in the current working directory.
+
+```
 cd sierra-charlie
 ```
 
@@ -35,7 +40,7 @@ The project is developed on OS X, but may support other UNIX platforms.  On OS X
 brew install node purescript elm
 ```
 
-Use the [`npm`](https://www.npmjs.com/) tool, which is included with Node.js, to install project-level dependencies:
+Use the [`npm`](https://www.npmjs.com/) tool, included with Node.js, to install project-level dependencies.
 
 ```
 npm install
@@ -43,6 +48,8 @@ npm install
 
 
 ### Building the project
+
+The same `npm` tool is also used to build the project, and to simplify other project-related tasks.
 
 To build the project, give the following command:
 
@@ -73,7 +80,7 @@ npm run dev-build
 
 ### Building continuously
 
-For additional convenience, the source files of  project may be continuously monitored for changes by the local machine.  Changing any of the files will cause a build to be performed automatically.
+For additional convenience, the project source files may be continuously monitored for changes.  Changing any of the files on the local machine will cause a build to be performed automatically.
 
 If the build is successful, any project-related web browser windows will be automatically reloaded.  This is supported on OS X only, in Chrome, Firefox, and Safari, and requires installing the [`entr`](http://entrproject.org/) tool.  (See [_reload-firefox_](https://github.com/mietek/reload-firefox) for Firefox-specific instructions.)
 
@@ -96,13 +103,13 @@ CONFIG=webpack.config.js bin/start
 
 ### Compressing data
 
-The data used by the project is kept in Gzip-compressed [JSON](http://json.org/) files.  If any changes to the data are required, the [`pigz`](http://zlib.net/pigz/) tool may be used to recompress the resulting files.
+The data used by the project is kept in Gzip-compressed [JSON](http://json.org/) files.  If changing the data is required, the [`pigz`](http://zlib.net/pigz/) tool may be used to recompress the resulting files.
 
 ```
 brew install pigz
 ```
 
-During development, the data may be compressed with the default settings:
+During development, the data should be compressed with the default settings:
 
 ```
 pigz json/*.json
@@ -129,7 +136,7 @@ Any uploaded code should be built in production mode.  To upload the most recent
 npm run upload
 ```
 
-A separate command may be given to upload the data.
+The data files may be uploaded with a separate command.
 
 ```
 npm run upload-data

@@ -122,9 +122,9 @@ function start(origin) {
   }
   
   loadRoadNodes();
-  // for (var i = 1; i <= 5; i++) {
-  //   loadRoadLinks(i);
-  // }
+  for (var i = 1; i <= 5; i++) {
+    loadRoadLinks(i);
+  }
 }
 
 
