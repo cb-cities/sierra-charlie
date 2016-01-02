@@ -1,22 +1,19 @@
 "use strict";
 
-// window.React = require("react/addons");
-//
-// var r = require("react-wrapper");
-// var app = r.wrap(require("./app"));
-// var compute = require("./compute");
-// var defs = require("./defs");
-//
-// require("./index.appcache");
-// require("./index.css");
-// require("./index.html");
-//
-// window.Elm = require("./Elm/UI");
+window.React = require("react/addons");
+
+var r = require("react-wrapper");
+var app = r.wrap(require("./app"));
+var compute = require("./compute");
+var defs = require("./defs");
+
+require("./index.appcache");
+require("./index.css");
+require("./index.html");
+
+window.Elm = require("./Elm/UI");
 
 
-// var Prelude = require("Prelude");
-var omg = require("./purs/Test.purs");
-console.log(omg);
 
 
 function init() {
@@ -40,4 +37,4 @@ function init() {
   //   });
 }
 
-// init();
+init();

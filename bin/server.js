@@ -1,6 +1,7 @@
 "use strict";
 
 var express = require("express");
+var path = require("path");
 
 
 function endsWith(s, t) {
@@ -9,19 +10,21 @@ function endsWith(s, t) {
 
 
 var app = express();
+var dirPath = path.dirname(__dirname);
+var outPath = dirPath + "/out/";
 app.get("/", function (req, res) {
-    res.sendFile(__dirname + "out/index.html");
+    res.sendFile(outPath + "index.html");
   });
 app.get("/index.html", function (req, res) {
-    res.sendFile(__dirname + "out/index.html");
+    res.sendFile(outPath + "index.html");
   });
 app.get("/index.js", function (req, res) {
-    res.sendFile(__dirname + "out/index.js");
+    res.sendFile(outPath + "index.js");
   });
 app.get("/index.appcache", function (req, res) {
-    res.sendFile(__dirname + "out/index.appcache");
+    res.sendFile(outPath + "index.appcache");
   });
-app.use("/json", express.static("json", {
+app.use("/json", express.static(dirPath + "/json/", {
     maxAge: "1h",
     setHeaders: function (res, path, stat) {
       if (endsWith(path, ".json")) {

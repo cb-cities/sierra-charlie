@@ -29,7 +29,7 @@ function start(origin) {
   var lastPost = 0;
   
   function post(data, force) {
-    if (force || lastPost + 1000 < Date.now()) {
+    if (force || lastPost + 100 < Date.now()) {
       lastPost = Date.now();
       postMessage(data);
       return true;
