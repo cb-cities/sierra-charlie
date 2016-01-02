@@ -137,10 +137,10 @@ module.exports = {
     }
     this.updatePainterContext();
     UI.ports.setVertexCount.send(this.vertexCount);
-    var gl = this.painterContext.gl; // TODO
-    this.roadNodeTreeLines.clear();
-    this.roadNodeTree.extendLineset(this.roadNodeTreeLines);
-    this.roadNodeTreeLines.render(gl, gl.STATIC_DRAW);
+    // var gl = this.painterContext.gl; // TODO
+    // this.roadNodeTreeLines.clear();
+    // this.roadNodeTree.extendLineset(this.roadNodeTreeLines);
+    // this.roadNodeTreeLines.render(gl, gl.STATIC_DRAW);
   },
   
   onLoadRoadLinks: function (data) {
