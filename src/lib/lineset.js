@@ -27,15 +27,15 @@ Lineset.prototype = {
     }
   },
   
-  render: function (gl) {
+  render: function (gl, usage) {
     var vs = new Float32Array(this.vertexArr);
     this.vertexBuf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, vs, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, vs, usage);
     var is = new Uint16Array(this.indexArr);
     this.indexBuf = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, is, gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, is, usage);
   },
   
   draw: function (gl, vertexLoc) {

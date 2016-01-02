@@ -3,6 +3,7 @@
 var GeometryLoader = require("worker?inline!./geometry-loader");
 var Quadtree = require("./lib/quadtree");
 var Rect = require("./lib/rect");
+var Lineset = require("./lib/lineset");
 
 var r = require("react-wrapper");
 var compute = require("./compute");
@@ -56,36 +57,19 @@ module.exports = {
   
 
   // TODO: Refactor
-  initGrid: function () {
+  prepareGrid: function (gl) {
     var left = defs.firstTileX * defs.tileSize;
     var top = defs.firstTileY * defs.tileSize;
     var right = (defs.lastTileX + 1) * defs.tileSize;
     var bottom = (defs.lastTileY + 1) * defs.tileSize;
-    var vertices = [];
-    var indices = [];
-    for (var i = 0; i <= defs.tileXCount; i++) {
-      var v = vertices.length / 2;
-      var x = left + i * defs.tileSize;
-      vertices.push(x, top, x, bottom);
-      indices.push(v, v + 1);
+    this.gridLineset = new Lineset();
+    for (var x = left; x <= right; x += defs.tileSize) {
+      this.gridLineset.insert(x, top, x, bottom);
     }
-    for (var i = 0; i <= defs.tileYCount; i++) {
-      var v = vertices.length / 2;
-      var y = bottom - i * defs.tileSize;
-      vertices.push(left, y, right, y);
-      indices.push(v, v + 1);
+    for (var y = bottom; y >= top; y -= defs.tileSize) {
+      this.gridLineset.insert(left, y, right, y);
     }
-
-    this.gridIndexCount = indices.length;
-    this.gridVertices = new Float32Array(vertices);
-    this.gridIndices = new Uint16Array(indices);
-    var gl = this.painterContext.gl;
-    this.gridVertexBuf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.gridVertexBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, this.gridVertices, gl.STATIC_DRAW);
-    this.gridIndexBuf = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.gridIndexBuf);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.gridIndices, gl.STATIC_DRAW);
+    this.gridLineset.render(gl, gl.STATIC_DRAW);
   },
   
   
@@ -222,7 +206,7 @@ module.exports = {
       gl.enable(gl.BLEND);
       gl.clearColor(0, 0, 0, 0);
       gl.getExtension("OES_element_index_uint");
-      this.initGrid();
+      this.prepareGrid(gl);
     }
     var cx = this.painterContext;
     var gl = cx.gl;
@@ -282,13 +266,8 @@ module.exports = {
       gl.clear(gl.COLOR_BUFFER_BIT);
       
       gl.lineWidth(1);
-      gl.bindBuffer(gl.ARRAY_BUFFER, this.gridVertexBuf);
-      gl.enableVertexAttribArray(cx.positionLoc);
-      gl.vertexAttribPointer(cx.positionLoc, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.gridIndexBuf);
-      // gl.uniform4f(cx.colorLoc, 0.1 + 0.5 / zoomLevel, 0.1 + 0.5 / zoomLevel, 0.1 + 0.5 / zoomLevel, 1);
       gl.uniform4f(cx.colorLoc, 0.2, 0.2, 0.2, 1);
-      gl.drawElements(gl.LINES, this.gridIndexCount, gl.UNSIGNED_SHORT, 0);
+      this.gridLineset.draw(gl, cx.positionLoc);
 
       var roadNodeSize = 8 * cx.devicePixelRatio / zoomLevel * Math.cbrt(zoomLevel);
       var roadLinkSize = 2 * cx.devicePixelRatio / zoomLevel * Math.sqrt(zoomLevel);
