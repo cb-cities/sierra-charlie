@@ -138,6 +138,7 @@ module.exports = {
     this.updatePainterContext();
     UI.ports.setVertexCount.send(this.vertexCount);
     var gl = this.painterContext.gl; // TODO
+    this.roadNodeTreeLines.clear();
     this.roadNodeTree.extendLineset(this.roadNodeTreeLines);
     this.roadNodeTreeLines.render(gl, gl.STATIC_DRAW);
   },
@@ -463,7 +464,7 @@ module.exports = {
   
 
 
-  fromClientPoint: function(x, y) {
+  fromClientPoint: function(clientX, clientY) {
     var frame = r.domNode(this);
     var canvas = frame.firstChild;
     var left = this.getEasedState("left");
@@ -474,15 +475,20 @@ module.exports = {
     var translationX = (defs.firstTileX + left * defs.tileXCount) * defs.tileSize;
     var translationY = (defs.lastTileY + 1 - top * defs.tileYCount) * defs.tileSize;
     return {
-      x: (x - canvas.clientWidth / 2) * dilation + translationX,
-      y: ((canvas.clientHeight - y) - canvas.clientHeight / 2) * dilation + translationY
+      x: (clientX - canvas.clientWidth / 2) * dilation + translationX,
+      y: ((canvas.clientHeight - clientY) - canvas.clientHeight / 2) * dilation + translationY
     };
   },
   
-  fromClientRect: function (left, top, right, bottom) {
-    var topLeft = this.fromClientPoint(left, top);
-    var bottomRight = this.fromClientPoint(right, bottom);
-    return new Rect(topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)
+  fromClientRect: function (clientR) {
+    var bottomLeft = this.fromClientPoint(clientR.left, clientR.top);
+    var topRight = this.fromClientPoint(clientR.right, clientR.bottom);
+    return {
+      left: bottomLeft.x,
+      top: topRight.y,
+      right: topRight.x,
+      bottom: bottomLeft.y
+    };
   },
 
   onMouseMove: function (event) {
@@ -491,11 +497,12 @@ module.exports = {
     this.hoveredRoadNodes.clear();
     var items =
       this.roadNodeTree.select(
-        this.fromClientRect(
-          event.clientX - 6,
-          event.clientY - 6,
-          event.clientX + 6,
-          event.clientY + 6));
+        this.fromClientRect({
+            left: event.clientX - 6,
+            top: event.clientY - 6,
+            right: event.clientX + 6,
+            bottom: event.clientY + 6
+          }));
     for (var i = 0; i < items.length; i++) {
       this.hoveredRoadNodes.insert(items[i].roadNode.vertexOffset);
     }

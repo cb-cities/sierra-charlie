@@ -1,37 +1,28 @@
 "use strict";
 
 
-function Rect(left, top, right, bottom) {
-  this.left = left;
-  this.top = top;
-  this.right = right;
-  this.bottom = bottom;
-}
-
-Rect.prototype = {
-  width: function () {
-    return this.right - this.left;
+module.exports = {
+  width: function (r) {
+    return r.right - r.left;
   },
 
-  height: function () {
-    return this.bottom - this.top;
+  height: function (r) {
+    return r.bottom - r.top;
   },
 
-  contains: function (p) {
+  contains: function (r, p) {
     return (
-      this.left <= p.x &&
-      p.x <= this.right &&
-      this.top <= p.y &&
-      p.y <= this.bottom);
+      r.left <= p.x &&
+      p.x <= r.right &&
+      r.top <= p.y &&
+      p.y <= r.bottom);
   },
 
-  intersects: function (rect) {
+  intersects: function (r1, r2) {
     return (
-      this.left <= rect.right &&
-      rect.left <= this.right &&
-      this.top <= rect.bottom &&
-      rect.top <= this.bottom);
+      r1.left <= r2.right &&
+      r2.left <= r1.right &&
+      r1.top <= r2.bottom &&
+      r2.top <= r1.bottom);
   }
 };
-
-module.exports = Rect;

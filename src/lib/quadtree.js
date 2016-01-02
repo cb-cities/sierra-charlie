@@ -1,5 +1,7 @@
 "use strict";
 
+var rect = require("./rect");
+
 
 var maxItems = 16;
 
@@ -11,21 +13,6 @@ function Quadtree(left, top, size) {
 }
 
 Quadtree.prototype = {
-  split: function () {
-    var halfSize = this.size / 2;
-    var midWidth = this.left + halfSize;
-    var midHeight = this.top + halfSize;
-    this.topLeft = new Quadtree(this.left, this.top, halfSize);
-    this.topRight = new Quadtree(midWidth, this.top, halfSize);
-    this.bottomLeft = new Quadtree(this.left, midHeight, halfSize);
-    this.bottomRight = new Quadtree(midWidth, midHeight, halfSize);
-    var items = this.items;
-    delete this.items;
-    for (var i = 0; i < items.length; i++) {
-      this.insert(items[i]);
-    }
-  },
-
   insert: function (item) {
     if (this.items) {
       if (this.items.length < maxItems) {
@@ -46,21 +33,36 @@ Quadtree.prototype = {
       }
     }
   },
+  
+  split: function () {
+    var halfSize = this.size / 2;
+    var midWidth = this.left + halfSize;
+    var midHeight = this.top + halfSize;
+    this.topLeft = new Quadtree(this.left, this.top, halfSize);
+    this.topRight = new Quadtree(midWidth, this.top, halfSize);
+    this.bottomLeft = new Quadtree(this.left, midHeight, halfSize);
+    this.bottomRight = new Quadtree(midWidth, midHeight, halfSize);
+    var items = this.items;
+    delete this.items;
+    for (var i = 0; i < items.length; i++) {
+      this.insert(items[i]);
+    }
+  },
 
-  select: function (rect) {
+  select: function (r) {
     var results = [];
-    if (this.intersects(rect)) {
+    if (this.intersects(r)) {
       if (this.items) {
         for (var i = 0; i < this.items.length; i++) {
-          if (rect.contains(this.items[i].p)) {
+          if (rect.contains(r, this.items[i].p)) {
             results.push(this.items[i]);
           }
         }
       } else {
-        results.push.apply(results, this.topLeft.select(rect));
-        results.push.apply(results, this.topRight.select(rect));
-        results.push.apply(results, this.bottomLeft.select(rect));
-        results.push.apply(results, this.bottomRight.select(rect));
+        results.push.apply(results, this.topLeft.select(r));
+        results.push.apply(results, this.topRight.select(r));
+        results.push.apply(results, this.bottomLeft.select(r));
+        results.push.apply(results, this.bottomRight.select(r));
       }
     }
     return results;
@@ -94,12 +96,12 @@ Quadtree.prototype = {
       p.y <= this.top + this.size);
   },
 
-  intersects: function (rect) {
+  intersects: function (r) {
     return (
-      this.left <= rect.right &&
-      rect.left <= this.left + this.size &&
-      this.top <= rect.bottom &&
-      rect.top <= this.top + this.size);
+      this.left <= r.right &&
+      r.left <= this.left + this.size &&
+      this.top <= r.bottom &&
+      r.top <= this.top + this.size);
   },
   
   extendLineset: function (lineset) {
