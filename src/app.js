@@ -4,6 +4,7 @@ var GeometryLoader = require("worker?inline!./geometry-loader");
 var Quadtree = require("./lib/quadtree");
 var Rect = require("./lib/rect");
 var Lineset = require("./lib/lineset");
+var Indexset = require("./lib/indexset");
 
 var r = require("react-wrapper");
 var compute = require("./compute");
@@ -62,14 +63,14 @@ module.exports = {
     var top = defs.firstTileY * defs.tileSize;
     var right = (defs.lastTileX + 1) * defs.tileSize;
     var bottom = (defs.lastTileY + 1) * defs.tileSize;
-    this.gridLineset = new Lineset();
+    this.gridLines = new Lineset();
     for (var x = left; x <= right; x += defs.tileSize) {
-      this.gridLineset.insert(x, top, x, bottom);
+      this.gridLines.insert(x, top, x, bottom);
     }
     for (var y = bottom; y >= top; y -= defs.tileSize) {
-      this.gridLineset.insert(left, y, right, y);
+      this.gridLines.insert(left, y, right, y);
     }
-    this.gridLineset.render(gl, gl.STATIC_DRAW);
+    this.gridLines.render(gl, gl.STATIC_DRAW);
   },
   
   
@@ -84,8 +85,7 @@ module.exports = {
     this.roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
     this.roadLinkIndexCount = 0;
     
-    this.selectedNodes = [];
-    this.selectedLinks = [];
+    this.selectedRoadNodes = new Indexset();
     
     this.geometryLoader = new GeometryLoader();
     this.geometryLoader.addEventListener("message", this.onMessage);
@@ -267,7 +267,7 @@ module.exports = {
       
       gl.lineWidth(1);
       gl.uniform4f(cx.colorLoc, 0.2, 0.2, 0.2, 1);
-      this.gridLineset.draw(gl, cx.positionLoc);
+      this.gridLines.draw(gl, cx.positionLoc);
 
       var roadNodeSize = 8 * cx.devicePixelRatio / zoomLevel * Math.cbrt(zoomLevel);
       var roadLinkSize = 2 * cx.devicePixelRatio / zoomLevel * Math.sqrt(zoomLevel);
@@ -286,17 +286,14 @@ module.exports = {
       gl.drawElements(gl.POINTS, cx.roadNodeIndexCount, gl.UNSIGNED_INT, 0);
 
       gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
-      for (var i = 0; i < this.selectedNodes.length; i++) {
-        var roadNode = this.selectedNodes[i].roadNode;
-        gl.drawElements(gl.POINTS, 1, gl.UNSIGNED_INT, roadNode.indexOffset * 4);
-      }
+      this.selectedRoadNodes.draw(gl, gl.POINTS, gl.UNSIGNED_INT);
 
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cx.roadLinkIndexBuf);
-      gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-      for (var i = 0; i < this.selectedLinks.length; i++) {
-        var roadLink = this.selectedLinks[i];
-        gl.drawElements(gl.LINES, (roadLink.pointCount - 1) * 2, gl.UNSIGNED_INT, roadLink.indexOffset * 4);
-      }
+      // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cx.roadLinkIndexBuf);
+      // gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
+      // for (var i = 0; i < this.selectedLinks.length; i++) {
+      //   var roadLink = this.selectedLinks[i];
+      //   gl.drawElements(gl.LINES, (roadLink.pointCount - 1) * 2, gl.UNSIGNED_INT, roadLink.indexOffset * 4);
+      // }
     }
   },
 
@@ -451,31 +448,44 @@ module.exports = {
   
 
 
-  clientToWorld: function(clientX, clientY) {
+  fromClientPoint: function(x, y) {
     var frame = r.domNode(this);
     var canvas = frame.firstChild;
-  
     var left = this.getEasedState("left");
     var top = this.getEasedState("top");
     var zoom = this.getEasedState("zoom");
-  
     var zoomLevel = compute.zoomLevel(zoom);
     var dilation = defs.tileSize / defs.imageSize * zoomLevel; // TODO: Compare with drawing
     var translationX = (defs.firstTileX + left * defs.tileXCount) * defs.tileSize;
     var translationY = (defs.lastTileY + 1 - top * defs.tileYCount) * defs.tileSize;
-  
     return {
-      x: (clientX - canvas.clientWidth / 2) * dilation + translationX,
-      y: ((canvas.clientHeight - clientY) - canvas.clientHeight / 2) * dilation + translationY
+      x: (x - canvas.clientWidth / 2) * dilation + translationX,
+      y: ((canvas.clientHeight - y) - canvas.clientHeight / 2) * dilation + translationY
     };
+  },
+  
+  fromClientRect: function (left, top, right, bottom) {
+    var topLeft = this.fromClientPoint(left, top);
+    var bottomRight = this.fromClientPoint(right, bottom);
+    return new Rect(topLeft.x, bottomRight.y, bottomRight.x, topLeft.y)
   },
 
   onMouseMove: function (event) {
     // console.log("mouseMove", event.clientX, event.clientY);
     this.needsPainting = true;
-    
-    var p = this.clientToWorld(event.clientX, event.clientY);
-    this.selectedNodes = this.roadNodeTree.fnord(p);
+    this.selectedRoadNodes.clear();
+    var items =
+      this.roadNodeTree.select(
+        this.fromClientRect(
+          event.clientX - 6,
+          event.clientY - 6,
+          event.clientX + 6,
+          event.clientY + 6));
+    for (var i = 0; i < items.length; i++) {
+      this.selectedRoadNodes.insert(items[i].roadNode.vertexOffset);
+    }
+    var gl = this.painterContext.gl;
+    this.selectedRoadNodes.render(gl, gl.STREAM_DRAW);
   }
 };
 
