@@ -1,17 +1,23 @@
 "use strict";
 
-window.React = require("react/addons");
+// window.React = require("react/addons");
+//
+// var r = require("react-wrapper");
+// var app = r.wrap(require("./app"));
+// var compute = require("./compute");
+// var defs = require("./defs");
+//
+// require("./index.appcache");
+// require("./index.css");
+// require("./index.html");
+//
+// window.Elm = require("./Elm/UI");
 
-var r = require("react-wrapper");
-var app = r.wrap(require("./app"));
-var compute = require("./compute");
-var defs = require("./defs");
 
-require("./index.appcache");
-require("./index.css");
-require("./index.html");
+// var Prelude = require("Prelude");
+var omg = require("./Test.purs");
+console.log(omg);
 
-window.Elm = require("./Elm/UI");
 
 function init() {
   var map = r.render(app(), document.getElementById("map"));
@@ -34,4 +40,4 @@ function init() {
   //   });
 }
 
-init();
+// init();

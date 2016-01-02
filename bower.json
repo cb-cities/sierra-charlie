@@ -1,0 +1,6 @@
+{
+  "name": "sierra-charlie",
+  "devDependencies": {
+    "purescript-prelude": "~0.1.3"
+  }
+}

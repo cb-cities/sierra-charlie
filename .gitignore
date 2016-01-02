@@ -1,5 +1,8 @@
-dist
+.psci
+bower_components
 elm-stuff
+json
 node_modules
 npm-debug.log
-json
+out
+purescript_modules

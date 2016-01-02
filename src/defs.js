@@ -46,8 +46,8 @@ var _ = module.exports = {
 
   maxZoom: 7,
   
-  // maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
-  maxVertexCount: maxRoadNodeCount,
+  maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
+  // maxVertexCount: maxRoadNodeCount,
   
   maxRoadNodeCount: maxRoadNodeCount,
   maxRoadNodeIndexCount: maxRoadNodeCount,

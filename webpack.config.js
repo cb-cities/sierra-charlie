@@ -2,6 +2,7 @@
 
 var webpack = require("webpack");
 
+
 module.exports = {
   context: __dirname + "/src",
   
@@ -10,13 +11,17 @@ module.exports = {
   entry: "./index.js",
   
   output: {
-    path: __dirname + "/dist",
+    path: __dirname + "/out",
     filename: "index.js",
     publicPath: "/"
   },
   
   resolve: {
-    extensions: ["", ".js", ".elm"]
+    modulesDirectories: [
+      "node_modules",
+      "bower_components/purescript-prelude/src"
+    ],
+    extensions: ["", ".js", ".elm", ".purs"]
   },
   
   resolveLoader: {
@@ -44,6 +49,16 @@ module.exports = {
         test: /\.glsl$/,
         loader: 'raw',
         exclude: [/elm-stuff/, /node_modules/]
+      },
+      {
+        test: /\.purs$/,
+        loader:
+          "purs-loader?output=purescript_modules&" + [
+            "src[]=bower_components/purescript-*/src/**/*.purs",
+            "src[]=src/**/*.purs",
+            "ffi[]=bower_components/purescript-*/src/**/*.js",
+            "ffi[]=src/**/*Foreign.js"
+          ].join("&")
       }
     ],
     

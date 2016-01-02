@@ -8,16 +8,16 @@ function endsWith(s, t) {
 
 var app = express();
 app.get("/", function (req, res) {
-    res.sendFile(__dirname + "/dist/index.html");
+    res.sendFile(__dirname + "/out/index.html");
   });
 app.get("/index.appcache", function (req, res) {
-    res.sendFile(__dirname + "/dist/index.appcache");
+    res.sendFile(__dirname + "/out/index.appcache");
   });
 app.get("/index.html", function (req, res) {
-    res.sendFile(__dirname + "/dist/index.html");
+    res.sendFile(__dirname + "/out/index.html");
   });
 app.get("/index.js", function (req, res) {
-    res.sendFile(__dirname + "/dist/index.js");
+    res.sendFile(__dirname + "/out/index.js");
   });
 app.use("/json", express.static("json", {
     maxAge: "1h",
