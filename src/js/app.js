@@ -1,18 +1,19 @@
 "use strict";
 
-var GeometryLoader = require("worker?inline!./geometry-loader");
-var Quadtree = require("./lib/quadtree");
-var Rect = require("./lib/rect");
-var Lineset = require("./lib/lineset");
-var Indexset = require("./lib/indexset");
-
 var r = require("react-wrapper");
+
+var GeometryLoader = require("worker?inline!./geometry-loader");
+var Indexset = require("./indexset");
+var Lineset = require("./lineset");
+var Quadtree = require("./quadtree");
+var Rect = require("./rect");
 var compute = require("./compute");
 var defs = require("./defs");
 var easeStateMixin = require("./ease-state-mixin");
-var glUtils = require("./lib/gl-utils");
-var vertexShader = require("./shaders/vertex-shader.glsl");
-var fragmentShader = require("./shaders/fragment-shader.glsl");
+var glUtils = require("./gl-utils");
+
+var fragmentShader = require("../glsl/fragment-shader.glsl");
+var vertexShader = require("../glsl/vertex-shader.glsl");
 
 
 module.exports = {
