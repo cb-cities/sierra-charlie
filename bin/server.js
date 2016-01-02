@@ -2,22 +2,24 @@
 
 var express = require("express");
 
+
 function endsWith(s, t) {
   return s.indexOf(t, s.length - t.length) !== -1;
 }
 
+
 var app = express();
 app.get("/", function (req, res) {
-    res.sendFile(__dirname + "/out/index.html");
-  });
-app.get("/index.appcache", function (req, res) {
-    res.sendFile(__dirname + "/out/index.appcache");
+    res.sendFile(__dirname + "out/index.html");
   });
 app.get("/index.html", function (req, res) {
-    res.sendFile(__dirname + "/out/index.html");
+    res.sendFile(__dirname + "out/index.html");
   });
 app.get("/index.js", function (req, res) {
-    res.sendFile(__dirname + "/out/index.js");
+    res.sendFile(__dirname + "out/index.js");
+  });
+app.get("/index.appcache", function (req, res) {
+    res.sendFile(__dirname + "out/index.appcache");
   });
 app.use("/json", express.static("json", {
     maxAge: "1h",

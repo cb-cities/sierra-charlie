@@ -1,7 +1,7 @@
 .psci
 bower_components
 elm-stuff
-json
+json/*.json
 node_modules
 npm-debug.log
 out

@@ -15,7 +15,7 @@
 
 
 // var Prelude = require("Prelude");
-var omg = require("./Test.purs");
+var omg = require("./purs/Test.purs");
 console.log(omg);
 
 

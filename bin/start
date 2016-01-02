@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+
+export PATH=node_modules/.bin:${PATH}
+export CONFIG=${CONFIG:-webpack.dev.config.js}
+
+webpack --config=${CONFIG}
+
+find bin/server.js | entr -r node bin/server.js &
+find out/index.appcache out/index.html out/index.js | entr -p reload-browsers &
+
+while sleep 1; do
+	find -L bower.json bower_components elm-stuff elm-package.json json node_modules src package.json ${CONFIG} |
+		entr -cdp webpack --config=${CONFIG} ||
+		status=$?
+	if (( status == 130 )); then
+		kill -INT $$
+	fi
+done
