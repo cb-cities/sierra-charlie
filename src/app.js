@@ -80,13 +80,15 @@ module.exports = {
     this.roadNodes = {};
     this.roadNodeIndices = new Uint32Array(defs.maxRoadNodeIndexCount);
     this.roadNodeIndexCount = 0;
-    this.roadNodeTree = new Quadtree(0, 0, 1048576);
+    this.roadNodeTree = new Quadtree(465464, 112964, 131072); // TODO
     this.roadLinks = {};
     this.roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
     this.roadLinkIndexCount = 0;
     
     this.hoveredRoadNodes = new Indexset(); // TODO
     this.hoveredRoadLinks = new Indexset();
+    
+    this.roadNodeTreeLines = new Lineset(); // TODO
     
     this.geometryLoader = new GeometryLoader();
     this.geometryLoader.addEventListener("message", this.onMessage);
@@ -135,6 +137,9 @@ module.exports = {
     }
     this.updatePainterContext();
     UI.ports.setVertexCount.send(this.vertexCount);
+    var gl = this.painterContext.gl; // TODO
+    this.roadNodeTree.extendLineset(this.roadNodeTreeLines);
+    this.roadNodeTreeLines.render(gl, gl.STATIC_DRAW);
   },
   
   onLoadRoadLinks: function (data) {
@@ -153,7 +158,7 @@ module.exports = {
       //   };
       // }
       // if (Math.random() < 0.1) {
-      //   this.hoveredRoadLinks.insertSubarray(this.roadLinkIndices, roadLink.indexOffset, (roadLink.pointCount - 1) * 2);
+      //   this.hoveredRoadLinks.insertFromArray(this.roadLinkIndices, roadLink.indexOffset, (roadLink.pointCount - 1) * 2);
       // }
     }
     // var gl = this.painterContext.gl; // TODO
@@ -299,6 +304,11 @@ module.exports = {
       gl.drawElements(gl.POINTS, cx.roadNodeIndexCount, gl.UNSIGNED_INT, 0);
       gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
       this.hoveredRoadNodes.draw(gl, gl.POINTS);
+      
+      // Draw road node tree
+      gl.lineWidth(1);
+      gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
+      this.roadNodeTreeLines.draw(gl, cx.positionLoc);
     }
   },
 

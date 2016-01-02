@@ -17,11 +17,11 @@ Indexset.prototype = {
     this.indexArr.push(index);
   },
   
-  insertMany: function (indices) {
+  insertIndices: function (indices) {
     this.indexArr.push.apply(this.indexArr, indices);
   },
   
-  insertSubarray: function (arr, baseIndex, count) {
+  insertFromArray: function (arr, baseIndex, count) {
     for (var i = 0; i < count; i++) {
       this.indexArr.push(arr[baseIndex + i]);
     }

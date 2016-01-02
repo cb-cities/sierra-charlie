@@ -1,7 +1,7 @@
 "use strict";
 
 
-var maxItems = 1;
+var maxItems = 16;
 
 function Quadtree(left, top, size) {
   this.left = left;
@@ -100,7 +100,37 @@ Quadtree.prototype = {
       rect.left <= this.left + this.size &&
       this.top <= rect.bottom &&
       rect.top <= this.top + this.size);
+  },
+  
+  extendLineset: function (lineset) {
+    if (this.items) {
+      lineset.extend([
+          this.left, this.top,
+          this.left + this.size, this.top,
+          this.left, this.top + this.size,
+          this.left + this.size, this.top + this.size
+        ],
+        this.items.length === 0 ?
+          emptyLeafIndices :
+          leafIndices);
+    } else {
+      this.topLeft.extendLineset(lineset);
+      this.topRight.extendLineset(lineset);
+      this.bottomLeft.extendLineset(lineset);
+      this.bottomRight.extendLineset(lineset);
+    }
   }
 };
+
+var leafIndices = [
+  0, 1,
+  1, 3,
+  3, 2,
+  2, 0
+];
+var emptyLeafIndices = leafIndices.concat([
+  0, 3,
+  1, 2
+]);
 
 module.exports = Quadtree;

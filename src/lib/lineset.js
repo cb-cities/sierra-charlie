@@ -1,7 +1,7 @@
 "use strict";
 
 
-// NOTE: Uses 16-bit indices
+// NOTE: Uses 32-bit indices
 
 function Lineset() {
   this.vertexArr = [];
@@ -22,15 +22,11 @@ Lineset.prototype = {
     this.indexArr.push(index, index + 1);
   },
   
-  insertMany: function () {
+  extend: function (vertices, indices) {
     var baseIndex = this.vertexArr.length / 2;
-    this.vertexArr.push.apply(this.vertexArr, arguments);
-    for (var i = 0; i < arguments.length; i++) {
-      if (i > 0 && i < arguments.length - 1) {
-        this.indexArr.push(baseIndex + i, baseIndex + i);
-      } else {
-        this.indexArr.push(baseIndex + i);
-      }
+    this.vertexArr.push.apply(this.vertexArr, vertices);
+    for (var i = 0; i < indices.length; i++) {
+      this.indexArr.push(baseIndex + indices[i]);
     }
   },
   
@@ -52,15 +48,17 @@ Lineset.prototype = {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertexArr), usage);;
     this.indexBuf = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indexArr), usage);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indexArr), usage);
   },
   
   draw: function (gl, vertexLoc) {
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
-    gl.enableVertexAttribArray(vertexLoc);
-    gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
-    gl.drawElements(gl.LINES, this.indexArr.length, gl.UNSIGNED_SHORT, 0);
+    if (this.vertexBuf) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
+      gl.enableVertexAttribArray(vertexLoc);
+      gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
+      gl.drawElements(gl.LINES, this.indexArr.length, gl.UNSIGNED_INT, 0);
+    }
   }
 };
 

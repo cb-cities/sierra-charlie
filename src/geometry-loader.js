@@ -29,7 +29,7 @@ function start(origin) {
   var lastPost = 0;
   
   function post(data, force) {
-    if (force || lastPost + 100 < Date.now()) {
+    if (force || lastPost + 1000 < Date.now()) {
       lastPost = Date.now();
       postMessage(data);
       return true;
@@ -122,9 +122,9 @@ function start(origin) {
   }
   
   loadRoadNodes();
-  for (var i = 1; i <= 5; i++) {
-    loadRoadLinks(i);
-  }
+  // for (var i = 1; i <= 5; i++) {
+  //   loadRoadLinks(i);
+  // }
 }
 
 
