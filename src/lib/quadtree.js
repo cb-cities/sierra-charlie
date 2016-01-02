@@ -48,21 +48,38 @@ Quadtree.prototype = {
   },
 
   select: function (rect) {
+    var results = [];
     if (this.intersects(rect)) {
       if (this.items) {
-        var results = [];
         for (var i = 0; i < this.items.length; i++) {
           if (rect.contains(this.items[i].p)) {
             results.push(this.items[i]);
           }
         }
-        return results;
       } else {
-        return (
-          this.topLeft.select(rect).concat(
-            this.topRight.select(rect).concat(
-              this.bottomLeft.select(rect).concat(
-                this.bottomRight.select(rect)))));
+        results.push.apply(results, this.topLeft.select(rect));
+        results.push.apply(results, this.topRight.select(rect));
+        results.push.apply(results, this.bottomLeft.select(rect));
+        results.push.apply(results, this.bottomRight.select(rect));
+      }
+    }
+    return results;
+  },
+  
+  fnord: function (p) {
+    if (this.contains(p)) {
+      if (this.items) {
+        return this.items;
+      } else {
+        if (this.topLeft.contains(p)) {
+          return this.topLeft.fnord(p);
+        } else if (this.topRight.contains(p)) {
+          return this.topRight.fnord(p);
+        } else if (this.bottomLeft.contains(p)) {
+          return this.bottomLeft.fnord(p);
+        } else if (this.bottomRight.contains(p)) {
+          return this.bottomRight.fnord(p);
+        }
       }
     } else {
       return [];

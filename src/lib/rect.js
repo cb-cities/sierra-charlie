@@ -8,7 +8,7 @@ function Rect(left, top, right, bottom) {
   this.bottom = bottom;
 }
 
-Bounds.prototype = {
+Rect.prototype = {
   width: function () {
     return this.right - this.left;
   },
