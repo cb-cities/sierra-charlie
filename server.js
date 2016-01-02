@@ -8,10 +8,16 @@ function endsWith(s, t) {
 
 var app = express();
 app.get("/", function (req, res) {
-    res.sendFile(__dirname + "/index.html");
+    res.sendFile(__dirname + "/dist/index.html");
   });
-app.get("/bundle.js", function (req, res) {
-    res.sendFile(__dirname + "/bundle.js");
+app.get("/index.appcache", function (req, res) {
+    res.sendFile(__dirname + "/dist/index.appcache");
+  });
+app.get("/index.html", function (req, res) {
+    res.sendFile(__dirname + "/dist/index.html");
+  });
+app.get("/index.js", function (req, res) {
+    res.sendFile(__dirname + "/dist/index.js");
   });
 app.use("/json", express.static("json", {
     maxAge: "1h",
@@ -24,9 +30,6 @@ app.use("/json", express.static("json", {
       }
     }
   }));
-app.get("/index.appcache", function (req, res) {
-    res.sendFile(__dirname + "/index.appcache");
-  });
 app.listen(3000, "0.0.0.0", function (err) {
     console.log(err ? err : "Listening at http://0.0.0.0:3000");
   });

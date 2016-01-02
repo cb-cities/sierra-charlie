@@ -1,6 +1,4 @@
-bundle.js
-*.worker.js
+dist
 node_modules
 npm-debug.log
 json
-json-original

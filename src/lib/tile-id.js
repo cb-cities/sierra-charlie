@@ -1,6 +1,6 @@
 "use strict";
 
-var defs = require("./defs");
+var defs = require("../defs");
 
 
 var _ = module.exports = {

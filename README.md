@@ -43,7 +43,7 @@ npm start
 Upload to Amazon S3:
 
 ```
-s3cmd put index.html index.appcache bundle.js \
+s3cmd put dist/index.appcache dist/index.html dist/index.js \
     s3://sierracharlie.mietek.io \
     --acl-public
 s3cmd sync json \

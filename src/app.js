@@ -1,25 +1,17 @@
 "use strict";
 
+var GeometryLoader = require("./geometry-loader");
+var Painter = require("./painter");
+var Renderer = require("./renderer");
+
 var r = require("react-wrapper");
 var defs = require("./defs");
-var clockPainterMixin = require("./clock-painter-mixin");
 var easeStateMixin = require("./ease-state-mixin");
-var loaderMixin = require("./loader-mixin");
-var painterMixin = require("./painter-mixin");
-var rendererMixin = require("./renderer-mixin");
-var timeInspectorMixin = require("./time-inspector-mixin");
-var spaceInspectorMixin = require("./space-inspector-mixin");
 
 
 module.exports = {
   mixins: [
-    easeStateMixin,
-    loaderMixin,
-    painterMixin,
-    clockPainterMixin,
-    timeInspectorMixin,
-    spaceInspectorMixin,
-    rendererMixin
+    easeStateMixin
   ],
 
   getInitialState: function () {
@@ -28,9 +20,6 @@ module.exports = {
       attentionTop: 0.4768826844262295,
       rawTimeValue: 10 + 9 / 60,
       zoomPower: 4,
-      showClock: true,
-      showSpaceInspector: true,
-      showTimeInspector: true,
       renderNotVisibleImages: process.env.NODE_ENV === "production"
     };
   },
@@ -41,7 +30,7 @@ module.exports = {
         this.pendingScrollX = false;
       }.bind(this));
   },
-
+ 
   easeAttentionTop: function (attentionTop, duration) {
     this.pendingScrollY = true;
     this.easeState("attentionTop", attentionTop, duration, function () {
@@ -64,7 +53,73 @@ module.exports = {
   },
 
 
+  _updateLoader: function () {
+    this._geometryLoader.update({
+        attentionLocalX: this.attentionLocalX,
+        attentionLocalY: this.attentionLocalY
+      });
+  },
+
+  _updateRenderer: function () {
+    this._renderer.update({
+        renderNotVisibleImages: this.state.renderNotVisibleImages,
+        floorTimeValue:         this.floorTimeValue,
+        floorZoomPower:         this.floorZoomPower,
+        attentionLocalX:        this.attentionLocalX,
+        attentionLocalY:        this.attentionLocalY,
+        firstVisibleLocalX:     this.firstVisibleLocalX,
+        lastVisibleLocalX:      this.lastVisibleLocalX,
+        firstVisibleLocalY:     this.firstVisibleLocalY,
+        lastVisibleLocalY:      this.lastVisibleLocalY
+      });
+  },
+  
+  _updatePainter: function () {
+    this._painter.update({
+        canvas:             this.canvas,
+        clientWidth:        this.state.clientWidth,
+        clientHeight:       this.state.clientHeight,
+        invertColor:        this.state.invertColor,
+        floorTimeValue:     this.floorTimeValue,
+        roundZoomPower:     this.roundZoomPower,
+        easedZoomPower:     this.easedZoomPower,
+        easedZoomLevel:     this.easedZoomLevel,
+        groupCount:         this.groupCount,
+        groupSize:          this.groupSize,
+        scrollLeft:         this.scrollLeft,
+        scrollTop:          this.scrollTop,
+        firstVisibleLocalX: this.firstVisibleLocalX,
+        lastVisibleLocalX:  this.lastVisibleLocalX,
+        firstVisibleLocalY: this.firstVisibleLocalY,
+        lastVisibleLocalY:  this.lastVisibleLocalY,
+        firstVisibleGroupX: this.firstVisibleGroupX,
+        lastVisibleGroupX:  this.lastVisibleGroupX,
+        firstVisibleGroupY: this.firstVisibleGroupY,
+        lastVisibleGroupY:  this.lastVisibleGroupY
+      });
+  },
+
+  onTileLoad: function (tileId, tileData) {
+    this._updateRenderer();
+    this._updatePainter();
+  },
+  
+  onImageRender: function (imageId) {
+    this._updatePainter();
+  },
+
   componentDidMount: function () {
+    this._geometryLoader = new GeometryLoader({
+        onTileLoad: this.onTileLoad
+      });
+    this._renderer = new Renderer({
+        getLoadedTile: this._geometryLoader.getLoadedTile.bind(this._geometryLoader),
+        onImageRender: this.onImageRender
+      });
+    this._painter = new Painter({
+        getRenderedGroup: this._renderer.getRenderedGroup.bind(this._renderer)
+      });
+    
     this.node = r.domNode(this);
     this.canvas = this.node.firstChild;
     this.node.addEventListener("scroll", this.onScroll);
@@ -74,9 +129,9 @@ module.exports = {
     this.computeDerivedState();
     this.exportScrollPosition();
     this.exportBackgroundColor();
-    this.requestLoadingTiles();
-    this.requestRenderingImages();
-    this.requestPainting();
+    this._updateLoader();
+    this._updateRenderer();
+    this._updatePainter();
   },
 
   componentWillUnmount: function () {
@@ -89,9 +144,9 @@ module.exports = {
     this.computeDerivedState();
     this.exportScrollPosition();
     this.exportBackgroundColor(prevState);
-    this.requestLoadingTiles();
-    this.requestRenderingImages();
-    this.requestPainting();
+    this._updateLoader();
+    this._updateRenderer();
+    this._updatePainter();
   },
 
   onScroll: function (event) {
@@ -119,11 +174,22 @@ module.exports = {
       });
   },
 
+  // TODO: Refactor
   computeTimeValue: function (rawTimeValue) {
     return (
       rawTimeValue >= 0 ?
         Math.round((rawTimeValue * 3600) % (24 * 3600)) / 3600 :
         24 - Math.round((-rawTimeValue * 3600) % (24 * 3600)) / 3600);
+  },
+
+  computeTimeSlice: function (timeValue) {
+    return (
+      (timeValue >=  8 && timeValue < 10) ? 1 :
+      (timeValue >= 10 && timeValue < 13) ? 2 :
+      (timeValue >= 13 && timeValue < 16) ? 3 :
+      (timeValue >= 16 && timeValue < 19) ? 4 :
+      (timeValue >= 19 && timeValue < 21) ? 5 :
+      0);
   },
 
   computeDerivedState: function () {
@@ -132,9 +198,7 @@ module.exports = {
     this.easedTimeValue     = this.computeTimeValue(this.getEasedState("rawTimeValue"));
     this.easedZoomPower     = this.getEasedState("zoomPower");
     this.floorTimeValue = Math.floor(this.easedTimeValue);
-    this.ceilTimeValue  = (
-      this.floorTimeValue === this.easedTimeValue ? this.easedTimeValue :
-        (this.floorTimeValue + 1) % 24);
+    this.timeSlice      = this.computeTimeSlice(this.floorTimeValue);
     this.floorZoomPower = Math.floor(this.easedZoomPower);
     this.roundZoomPower = Math.round(this.easedZoomPower);
     this.ceilZoomPower  = Math.ceil(this.easedZoomPower);
@@ -223,26 +287,12 @@ module.exports = {
       //     });
       //   break;
       case 70: // f
-        this.forceRenderingImagesFromScratch();
-        break;
-      case 75: // k
-        this.setState({
-            showClock: !this.state.showClock
-          });
+        this._renderer.reset();
+        this._updateRenderer();
         break;
       case 82: // r
         this.setState({
             renderNotVisibleImages: !this.state.renderNotVisibleImages
-          });
-        break;
-      case 83: // s
-        this.setState({
-            showSpaceInspector: !this.state.showSpaceInspector
-          });
-        break;
-      case 84: // t
-        this.setState({
-            showTimeInspector: !this.state.showTimeInspector
           });
         break;
       default:

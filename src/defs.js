@@ -29,10 +29,7 @@ var _ = module.exports = {
   width:  tileXCount * imageSize,
   height: tileYCount * imageSize,
 
-  maxTimeValue: 23,
   maxZoomPower: 7,
-
-  clockSize: 72,
 
   tileToLocalX: function (tx) {
     return tx - firstTileX;
@@ -40,6 +37,22 @@ var _ = module.exports = {
 
   tileToLocalY: function (ty) {
     return lastTileY - ty;
+  },
+
+  tileToNationalGridX: function (tx) {
+    return tx * tileSize;
+  },
+
+  tileToNationalGridY: function (ty) {
+    return ty * tileSize;
+  },
+
+  nationalGridToTileX: function (ngx) {
+    return Math.floor(ngx / tileSize);
+  },
+
+  nationalGridToTileY: function (ngy) {
+    return Math.floor(ngy / tileSize);
   },
 
   localToTileX: function (lx) {
@@ -51,11 +64,11 @@ var _ = module.exports = {
   },
 
   localToNationalGridX: function (x) {
-    return _.localToTileX(x) * 1000;
+    return _.tileToNationalGridX(_.localToTileX(x));
   },
 
   localToNationalGridY: function (y) {
-    return _.localToTileY(y) * 1000;
+    return _.tileToNationalGridY(_.localToTileY(y));
   },
 
   clampLocalX: function (lx) {

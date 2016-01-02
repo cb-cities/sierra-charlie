@@ -15,8 +15,8 @@ BoundedSpiral.prototype = {
     this.lastX  = lastX;
     this.firstY = firstY;
     this.lastY  = lastY;
-    this.maxCountX = this.lastX - this.firstX + 1;
-    this.maxCountY = this.lastY - this.firstY + 1;
+    this.maxCountX = lastX - firstX + 1;
+    this.maxCountY = lastY - firstY + 1;
     this.maxCount  = this.maxCountX * this.maxCountY;
   },
 

@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v7 - 2015-11-23 21:00:00
+# v8 - 2015-12-28 18:00:00
 
 CACHE:
 json/tile-group-49-14.json.gz
@@ -67,4 +67,4 @@ json/tile-group-57-19.json.gz
 json/tile-group-57-20.json.gz
 
 NETWORK:
-bundle.js
+index.js
