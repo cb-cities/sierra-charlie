@@ -1,6 +1,8 @@
 "use strict";
 
 
+// NOTE: Uses 32-bit indices
+
 function Indexset() {
   this.indexArr = [];
   this.indexBuf = null;
@@ -15,11 +17,11 @@ Indexset.prototype = {
     this.indexArr.push(index);
   },
   
-  insertMany: function (indices) {
+  insertList: function (indices) {
     this.indexArr.push.apply(this.indexArr, indices);
   },
   
-  copyMany: function (arr, baseIndex, count) {
+  insertSubarray: function (arr, baseIndex, count) {
     for (var i = baseIndex; i < baseIndex + count; i++) {
       this.indexArr.push(arr[i]);
     }
@@ -31,9 +33,9 @@ Indexset.prototype = {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indexArr), usage);
   },
   
-  draw: function (gl, mode, type) {
+  draw: function (gl, mode) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
-    gl.drawElements(mode, this.indexArr.length, type, 0);
+    gl.drawElements(mode, this.indexArr.length, gl.UNSIGNED_INT, 0);
   }
 };
 

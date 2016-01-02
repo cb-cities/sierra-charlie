@@ -85,7 +85,8 @@ module.exports = {
     this.roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
     this.roadLinkIndexCount = 0;
     
-    this.selectedRoadNodes = new Indexset();
+    this.hoveredRoadNodes = new Indexset(); // TODO
+    this.hoveredRoadLinks = new Indexset();
     
     this.geometryLoader = new GeometryLoader();
     this.geometryLoader.addEventListener("message", this.onMessage);
@@ -114,6 +115,8 @@ module.exports = {
   onLoadRoadNodes: function (data) {
     this.vertices.set(data.vertices, this.vertexCount * 2);
     this.vertexCount += data.vertices.length / 2;
+    this.roadNodeIndices.set(data.roadNodeIndices, this.roadNodeIndexCount);
+    this.roadNodeIndexCount += data.roadNodeIndices.length;
     for (var i = 0; i < data.roadNodes.length; i++) {
       var roadNode = data.roadNodes[i];
       this.roadNodes[roadNode.toid] = roadNode;
@@ -127,8 +130,6 @@ module.exports = {
           roadNode: roadNode
         });
     }
-    this.roadNodeIndices.set(data.roadNodeIndices, this.roadNodeIndexCount);
-    this.roadNodeIndexCount += data.roadNodeIndices.length;
     if (this.vertexCount === defs.maxVertexCount) {
       this.stopGeometryLoader();
     }
@@ -139,19 +140,24 @@ module.exports = {
   onLoadRoadLinks: function (data) {
     this.vertices.set(data.vertices, this.vertexCount * 2);
     this.vertexCount += data.vertices.length / 2;
+    this.roadLinkIndices.set(data.roadLinkIndices, this.roadLinkIndexCount);
+    this.roadLinkIndexCount += data.roadLinkIndices.length;
     for (var i = 0; i < data.roadLinks.length; i++) {
       var roadLink = data.roadLinks[i];
       this.roadLinks[roadLink.toid] = roadLink;
-      for (var j = 0; j < roadLink.pointCount; j++) {
-        var k = roadLink.vertexOffset + j;
-        var p = {
-          x: this.vertices[2 * k],
-          y: this.vertices[2 * k + 1]
-        };
-      }
+      // for (var j = 0; j < roadLink.pointCount; j++) {
+      //   var k = roadLink.vertexOffset + j;
+      //   var p = {
+      //     x: this.vertices[2 * k],
+      //     y: this.vertices[2 * k + 1]
+      //   };
+      // }
+      // if (Math.random() < 0.1) {
+      //   this.hoveredRoadLinks.insertSubarray(this.roadLinkIndices, roadLink.indexOffset, (roadLink.pointCount - 1) * 2);
+      // }
     }
-    this.roadLinkIndices.set(data.roadLinkIndices, this.roadLinkIndexCount);
-    this.roadLinkIndexCount += data.roadLinkIndices.length;
+    // var gl = this.painterContext.gl; // TODO
+    // this.hoveredRoadLinks.render(gl, gl.STATIC_DRAW);
     if (this.vertexCount === defs.maxVertexCount) {
       this.stopGeometryLoader();
     }
@@ -254,7 +260,7 @@ module.exports = {
       var zoomLevel = compute.zoomLevel(zoom);
       
       var gl = cx.gl;
-      gl.uniform2f(cx.resolutionLoc, canvas.clientWidth, canvas.clientHeight);
+      gl.uniform2f(cx.resolutionLoc, canvas.clientWidth, canvas.clientHeight); // TODO
       
       var dilation = defs.tileSize / defs.imageSize * zoomLevel / 2;
       gl.uniform2f(cx.dilationLoc, dilation, dilation);
@@ -265,35 +271,34 @@ module.exports = {
       
       gl.clear(gl.COLOR_BUFFER_BIT);
       
+      // Draw grid
       gl.lineWidth(1);
       gl.uniform4f(cx.colorLoc, 0.2, 0.2, 0.2, 1);
       this.gridLines.draw(gl, cx.positionLoc);
 
-      var roadNodeSize = 8 * cx.devicePixelRatio / zoomLevel * Math.cbrt(zoomLevel);
-      var roadLinkSize = 2 * cx.devicePixelRatio / zoomLevel * Math.sqrt(zoomLevel);
-      var roadNodeAlpha = Math.min(roadNodeSize, 1);
-      var roadLinkAlpha = Math.min(roadLinkSize, 1);
-      gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
-      gl.lineWidth(roadLinkSize);
       gl.bindBuffer(gl.ARRAY_BUFFER, cx.vertexBuf);
       gl.enableVertexAttribArray(cx.positionLoc);
       gl.vertexAttribPointer(cx.positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+      // Draw road links
+      var roadLinkSize = 2 * cx.devicePixelRatio / zoomLevel * Math.sqrt(zoomLevel);
+      var roadLinkAlpha = Math.min(roadLinkSize, 1);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cx.roadLinkIndexBuf);
+      gl.lineWidth(roadLinkSize);
       gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
       gl.drawElements(gl.LINES, cx.roadLinkIndexCount, gl.UNSIGNED_INT, 0);
+      gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
+      this.hoveredRoadLinks.draw(gl, gl.LINES);
+
+      // Draw road nodes
+      var roadNodeSize = 8 * cx.devicePixelRatio / zoomLevel * Math.cbrt(zoomLevel);
+      var roadNodeAlpha = Math.min(roadNodeSize, 1);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cx.roadNodeIndexBuf);
+      gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
       gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
       gl.drawElements(gl.POINTS, cx.roadNodeIndexCount, gl.UNSIGNED_INT, 0);
-
       gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
-      this.selectedRoadNodes.draw(gl, gl.POINTS, gl.UNSIGNED_INT);
-
-      // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cx.roadLinkIndexBuf);
-      // gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-      // for (var i = 0; i < this.selectedLinks.length; i++) {
-      //   var roadLink = this.selectedLinks[i];
-      //   gl.drawElements(gl.LINES, (roadLink.pointCount - 1) * 2, gl.UNSIGNED_INT, roadLink.indexOffset * 4);
-      // }
+      this.hoveredRoadNodes.draw(gl, gl.POINTS);
     }
   },
 
@@ -473,7 +478,7 @@ module.exports = {
   onMouseMove: function (event) {
     // console.log("mouseMove", event.clientX, event.clientY);
     this.needsPainting = true;
-    this.selectedRoadNodes.clear();
+    this.hoveredRoadNodes.clear();
     var items =
       this.roadNodeTree.select(
         this.fromClientRect(
@@ -482,10 +487,10 @@ module.exports = {
           event.clientX + 6,
           event.clientY + 6));
     for (var i = 0; i < items.length; i++) {
-      this.selectedRoadNodes.insert(items[i].roadNode.vertexOffset);
+      this.hoveredRoadNodes.insert(items[i].roadNode.vertexOffset);
     }
     var gl = this.painterContext.gl;
-    this.selectedRoadNodes.render(gl, gl.STREAM_DRAW);
+    this.hoveredRoadNodes.render(gl, gl.STREAM_DRAW);
   }
 };
 

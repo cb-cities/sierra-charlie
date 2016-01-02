@@ -1,6 +1,8 @@
 "use strict";
 
 
+// NOTE: Uses 16-bit indices
+
 function Lineset() {
   this.vertexArr = [];
   this.indexArr = [];
@@ -20,7 +22,7 @@ Lineset.prototype = {
     this.indexArr.push(index, index + 1);
   },
   
-  insertMany: function (ps) {
+  insertList: function (ps) {
     var baseIndex = this.vertexArr.length / 2;
     for (var i = 0; i < ps.length; i++) {
       this.vertexArr.push(ps[i].x, ps[i].y)
