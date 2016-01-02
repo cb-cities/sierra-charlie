@@ -3,17 +3,16 @@
 window.React = require("react/addons");
 
 var r = require("react-wrapper");
-var app = r.wrap(require("./app"));
-var compute = require("./compute");
-var defs = require("./defs");
+
+window.Elm = require("./elm/UI");
+
+var app = r.wrap(require("./js/app"));
+var compute = require("./js/compute");
+var defs = require("./js/defs");
 
 require("./index.appcache");
 require("./index.css");
 require("./index.html");
-
-window.Elm = require("./Elm/UI");
-
-
 
 
 function init() {
