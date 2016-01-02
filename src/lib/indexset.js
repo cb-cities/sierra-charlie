@@ -17,13 +17,13 @@ Indexset.prototype = {
     this.indexArr.push(index);
   },
   
-  insertList: function (indices) {
+  insertMany: function (indices) {
     this.indexArr.push.apply(this.indexArr, indices);
   },
   
   insertSubarray: function (arr, baseIndex, count) {
-    for (var i = baseIndex; i < baseIndex + count; i++) {
-      this.indexArr.push(arr[i]);
+    for (var i = 0; i < count; i++) {
+      this.indexArr.push(arr[baseIndex + i]);
     }
   },
   

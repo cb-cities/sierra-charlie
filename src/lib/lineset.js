@@ -22,7 +22,19 @@ Lineset.prototype = {
     this.indexArr.push(index, index + 1);
   },
   
-  insertList: function (ps) {
+  insertMany: function () {
+    var baseIndex = this.vertexArr.length / 2;
+    this.vertexArr.push.apply(this.vertexArr, arguments);
+    for (var i = 0; i < arguments.length; i++) {
+      if (i > 0 && i < arguments.length - 1) {
+        this.indexArr.push(baseIndex + i, baseIndex + i);
+      } else {
+        this.indexArr.push(baseIndex + i);
+      }
+    }
+  },
+  
+  insertPoints: function (ps) {
     var baseIndex = this.vertexArr.length / 2;
     for (var i = 0; i < ps.length; i++) {
       this.vertexArr.push(ps[i].x, ps[i].y)
