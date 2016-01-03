@@ -4,7 +4,7 @@ var polyline = require("./polyline");
 var rect = require("./rect");
 
 
-var maxItems = 1;
+var maxItems = 16;
 
 function Polyquadtree(left, top, size) {
   this.left = left;
@@ -39,7 +39,7 @@ Polyquadtree.prototype = {
       }
     }
   },
-  
+
   split: function () {
     var halfSize = this.size / 2;
     var midWidth = this.left + halfSize;
@@ -54,7 +54,7 @@ Polyquadtree.prototype = {
       this.insert(items[i]);
     }
   },
-  
+
   select: function (r) {
     var results = [];
     if (this.intersects(r)) {
