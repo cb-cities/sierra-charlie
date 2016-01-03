@@ -13,6 +13,8 @@ var easeStateMixin = require("./ease-state-mixin");
 var glUtils = require("./gl-utils");
 var polyline = require("./polyline");
 var vector = require("./vector");
+var stats = require("./stats");
+var rect = require("./rect");
 
 var fragmentShader = require("../glsl/fragment-shader.glsl");
 var vertexShader = require("../glsl/vertex-shader.glsl");
@@ -87,8 +89,8 @@ module.exports = {
     this.roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
     this.roadLinkIndexCount = 0;
 
-    this.roadNodeTree = new Quadtree(465464, 112964, 131072); // TODO
-    this.roadLinkTree = new Polyquadtree(465464, 112964, 131072);
+    this.roadNodeTree = new Quadtree(465464, 112964, 131072, this.getRoadNodePoint); // TODO
+    this.roadLinkTree = new Polyquadtree(465464, 112964, 131072, this.getRoadLinkBounds);
 
     this.hoveredRoadNodes = new Indexset(); // TODO
     this.hoveredRoadLinks = new Indexset();
@@ -102,6 +104,30 @@ module.exports = {
         message: "start",
         origin: location.origin
       });
+  },
+
+  getRoadNodePoint: function (roadNode) {
+    return {
+      x: this.vertices[roadNode.vertexOffset * 2],
+      y: this.vertices[roadNode.vertexOffset * 2 + 1]
+    };
+  },
+
+  getRoadLinkBounds: function (roadLink) {
+    var result = {
+      left: Infinity,
+      top: Infinity,
+      right: -Infinity,
+      bottom: -Infinity
+    };
+    for (var i = 0; i < roadLink.pointCount; i++) {
+      var k = roadLink.vertexOffset + i;
+      result = rect.stretch(result, {
+          x: this.vertices[2 * k],
+          y: this.vertices[2 * k + 1]
+        });
+    }
+    return result;
   },
 
   stopGeometryLoader: function () {
@@ -128,10 +154,7 @@ module.exports = {
     for (var i = 0; i < data.roadNodes.length; i++) {
       var roadNode = data.roadNodes[i];
       this.roadNodes[roadNode.toid] = roadNode;
-      this.roadNodeTree.insert({
-          p: roadNode.p,
-          roadNode: roadNode
-        });
+      this.roadNodeTree.insert(roadNode);
     }
     if (this.vertexCount === defs.maxVertexCount) {
       this.stopGeometryLoader();
@@ -143,6 +166,11 @@ module.exports = {
     // this.roadNodeTreeLines.clear();
     // this.roadNodeTree.extendLineset(this.roadNodeTreeLines);
     // this.roadNodeTreeLines.render(gl, gl.STATIC_DRAW);
+
+    // var s = this.roadNodeTree.extendStats({itemCounts: [], nodeSizes: []});
+    // console.log("RN item counts\n", stats.dump(s.itemCounts));
+    // console.log("RN node sizes\n", stats.dump(s.nodeSizes));
+    // console.log("RN tree size: ", s.nodeSizes.length);
   },
 
   onLoadRoadLinks: function (data) {
@@ -153,10 +181,7 @@ module.exports = {
     for (var i = 0; i < data.roadLinks.length; i++) {
       var roadLink = data.roadLinks[i];
       this.roadLinks[roadLink.toid] = roadLink;
-      this.roadLinkTree.insert({
-          bounds: roadLink.bounds,
-          roadLink: roadLink
-        });
+      this.roadLinkTree.insert(roadLink);
     }
     if (this.vertexCount === defs.maxVertexCount) {
       this.stopGeometryLoader();
@@ -168,6 +193,11 @@ module.exports = {
     // this.roadLinkTreeLines.clear();
     // this.roadLinkTree.extendLineset(this.roadLinkTreeLines);
     // this.roadLinkTreeLines.render(gl, gl.STATIC_DRAW);
+
+    // var s = this.roadLinkTree.extendStats({itemCounts: [], nodeSizes: []});
+    // console.log("RL item counts\n", stats.dump(s.itemCounts));
+    // console.log("RL node sizes\n", stats.dump(s.nodeSizes));
+    // console.log("RL tree size: ", s.nodeSizes.length);
   },
 
 
@@ -494,7 +524,7 @@ module.exports = {
   onMouseMove: function (event) {
     // console.log("mouseMove", event.clientX, event.clientY);
     this.needsPainting = true;
-    
+
     var cursor =
       this.fromClientRect(
         vector.bounds(6, {
@@ -505,15 +535,15 @@ module.exports = {
     var roadNodeItems = this.roadNodeTree.select(cursor);
     this.hoveredRoadNodes.clear();
     for (var i = 0; i < roadNodeItems.length; i++) {
-      this.hoveredRoadNodes.insert(roadNodeItems[i].roadNode.vertexOffset);
+      this.hoveredRoadNodes.insert(roadNodeItems[i].vertexOffset);
     }
-    
+
     var roadLinkItems = this.roadLinkTree.select(cursor);
     this.hoveredRoadLinks.clear();
     for (var i = 0; i < roadLinkItems.length; i++) {
-      this.hoveredRoadLinks.insertFromArray(this.roadLinkIndices, roadLinkItems[i].roadLink.indexOffset, (roadLinkItems[i].roadLink.pointCount - 1) * 2);
+      this.hoveredRoadLinks.insertFromArray(this.roadLinkIndices, roadLinkItems[i].indexOffset, (roadLinkItems[i].pointCount - 1) * 2);
     }
-    
+
     var gl = this.painterContext.gl;
     this.hoveredRoadNodes.render(gl, gl.STREAM_DRAW);
     this.hoveredRoadLinks.render(gl, gl.STREAM_DRAW);

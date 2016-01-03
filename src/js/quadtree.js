@@ -5,10 +5,11 @@ var rect = require("./rect");
 
 var maxItems = 16;
 
-function Quadtree(left, top, size) {
+function Quadtree(left, top, size, getPoint) {
   this.left = left;
   this.top = top;
   this.size = size;
+  this.getPoint = getPoint;
   this.items = [];
 }
 
@@ -22,13 +23,13 @@ Quadtree.prototype = {
         this.insert(newItem);
       }
     } else {
-      if (this.topLeft.contains(newItem.p)) {
+      if (this.topLeft.contains(this.getPoint(newItem))) {
         this.topLeft.insert(newItem);
-      } else if (this.topRight.contains(newItem.p)) {
+      } else if (this.topRight.contains(this.getPoint(newItem))) {
         this.topRight.insert(newItem);
-      } else if (this.bottomLeft.contains(newItem.p)) {
+      } else if (this.bottomLeft.contains(this.getPoint(newItem))) {
         this.bottomLeft.insert(newItem);
-      } else if (this.bottomRight.contains(newItem.p)) {
+      } else if (this.bottomRight.contains(this.getPoint(newItem))) {
         this.bottomRight.insert(newItem);
       }
     }
@@ -38,10 +39,10 @@ Quadtree.prototype = {
     var halfSize = this.size / 2;
     var midWidth = this.left + halfSize;
     var midHeight = this.top + halfSize;
-    this.topLeft = new Quadtree(this.left, this.top, halfSize);
-    this.topRight = new Quadtree(midWidth, this.top, halfSize);
-    this.bottomLeft = new Quadtree(this.left, midHeight, halfSize);
-    this.bottomRight = new Quadtree(midWidth, midHeight, halfSize);
+    this.topLeft = new Quadtree(this.left, this.top, halfSize, this.getPoint);
+    this.topRight = new Quadtree(midWidth, this.top, halfSize, this.getPoint);
+    this.bottomLeft = new Quadtree(this.left, midHeight, halfSize, this.getPoint);
+    this.bottomRight = new Quadtree(midWidth, midHeight, halfSize, this.getPoint);
     var items = this.items;
     delete this.items;
     for (var i = 0; i < items.length; i++) {
@@ -54,7 +55,7 @@ Quadtree.prototype = {
     if (this.intersects(r)) {
       if (this.items) {
         for (var i = 0; i < this.items.length; i++) {
-          if (rect.contains(r, this.items[i].p)) {
+          if (rect.contains(r, this.getPoint(this.items[i]))) {
             results.push(this.items[i]);
           }
         }
@@ -121,6 +122,19 @@ Quadtree.prototype = {
       this.bottomLeft.extendLineset(lineset);
       this.bottomRight.extendLineset(lineset);
     }
+  },
+
+  extendStats: function (stats) {
+    if (this.items) {
+      stats.itemCounts.push(this.items.length);
+    } else {
+      stats.nodeSizes.push(this.size);
+      this.topLeft.extendStats(stats);
+      this.topRight.extendStats(stats);
+      this.bottomLeft.extendStats(stats);
+      this.bottomRight.extendStats(stats);
+    }
+    return stats;
   }
 };
 

@@ -30,7 +30,7 @@ function start(origin) {
   var lastPost = 0;
 
   function post(data, force) {
-    if (force || lastPost + 1000 < Date.now()) {
+    if (force || lastPost + 100 < Date.now()) {
       lastPost = Date.now();
       postMessage(data);
       return true;
@@ -76,7 +76,6 @@ function start(origin) {
           };
           roadNodes.push({
               toid: toid,
-              p: p,
               vertexOffset: vertexCount,
               indexOffset: roadNodeIndexCount
             });
@@ -109,10 +108,8 @@ function start(origin) {
           roadLinks.push({
               toid: toid,
               ps: ps,
-              length: parseFloat(obj.len),
               negativeNode: obj.neg,
               positiveNode: obj.pos,
-              bounds: polyline.bounds(0, ps),
               pointCount: pointCount,
               vertexOffset: vertexCount,
               indexOffset: roadLinkIndexCount
