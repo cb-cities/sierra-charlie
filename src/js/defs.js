@@ -45,13 +45,13 @@ var _ = module.exports = {
   maxHeight: tileYCount * imageSize,
 
   maxZoom: 7,
-  
+
   maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
   // maxVertexCount: maxRoadNodeCount,
-  
+
   maxRoadNodeCount: maxRoadNodeCount,
   maxRoadNodeIndexCount: maxRoadNodeCount,
-  
+
   maxRoadLinkCount: maxRoadLinkCount,
   maxRoadLinkPointCount: maxRoadLinkPointCount,
   maxRoadLinkIndexCount: maxRoadLinkIndexCount,

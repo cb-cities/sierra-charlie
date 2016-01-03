@@ -5,17 +5,17 @@ var webpack = require("webpack");
 
 module.exports = {
   context: __dirname + "/src",
-  
+
   devtool: "eval",
-  
+
   entry: "./index.js",
-  
+
   output: {
     path: __dirname + "/out",
     filename: "index.js",
     publicPath: "/"
   },
-  
+
   resolve: {
     modulesDirectories: [
       "node_modules",
@@ -23,11 +23,11 @@ module.exports = {
     ],
     extensions: ["", ".js", ".elm", ".purs"]
   },
-  
+
   resolveLoader: {
     root: __dirname + "/node_modules"
   },
-  
+
   module: {
     loaders: [
       {
@@ -61,10 +61,10 @@ module.exports = {
           ].join("&")
       }
     ],
-    
+
     noParse: [/\.elm$/, /proj4\.js$/]
   },
-  
+
   plugins: [
     new webpack.optimize.OccurenceOrderPlugin()
   ]

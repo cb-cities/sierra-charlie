@@ -24,7 +24,7 @@ function init() {
       addRoadNode: null,
       setMousePosition: {x: 0, y: 0}
     });
-  
+
   // UI.ports.left.subscribe(function (left) {
   //     map.setLeft(left, 500);
   //   });

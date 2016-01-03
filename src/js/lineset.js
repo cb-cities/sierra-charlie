@@ -15,22 +15,14 @@ Lineset.prototype = {
     this.vertexArr = [];
     this.indexArr = [];
   },
-  
-  insert: function (x1, y1, x2, y2) {
+
+  insertLine: function (x1, y1, x2, y2) {
     var index = this.vertexArr.length / 2;
     this.vertexArr.push(x1, y1, x2, y2);
     this.indexArr.push(index, index + 1);
   },
-  
-  extend: function (vertices, indices) {
-    var baseIndex = this.vertexArr.length / 2;
-    this.vertexArr.push.apply(this.vertexArr, vertices);
-    for (var i = 0; i < indices.length; i++) {
-      this.indexArr.push(baseIndex + indices[i]);
-    }
-  },
-  
-  insertPoints: function (ps) {
+
+  insertPolyline: function (ps) {
     var baseIndex = this.vertexArr.length / 2;
     for (var i = 0; i < ps.length; i++) {
       this.vertexArr.push(ps[i].x, ps[i].y)
@@ -41,7 +33,15 @@ Lineset.prototype = {
       }
     }
   },
-  
+
+  extend: function (vertices, indices) {
+    var baseIndex = this.vertexArr.length / 2;
+    this.vertexArr.push.apply(this.vertexArr, vertices);
+    for (var i = 0; i < indices.length; i++) {
+      this.indexArr.push(baseIndex + indices[i]);
+    }
+  },
+
   render: function (gl, usage) {
     this.vertexBuf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
@@ -50,7 +50,7 @@ Lineset.prototype = {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indexArr), usage);
   },
-  
+
   draw: function (gl, vertexLoc) {
     if (this.vertexBuf) {
       gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);

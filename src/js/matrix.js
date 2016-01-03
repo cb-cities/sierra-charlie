@@ -2,14 +2,14 @@
 
 
 module.exports = {
-  projection: function (w, h) {
+  projection: function (width, height) {
     return [
-      2 / w, 0, 0,
-      0, -2 / h, 0,
+      2 / width, 0, 0,
+      0, -2 / height, 0,
       -1, 1, 1,
     ];
   },
-  
+
   translation: function (x, y) {
     return [
       1, 0, 0,
@@ -17,15 +17,15 @@ module.exports = {
       x, y, 1,
     ];
   },
-  
-  dilation: function (s, t) {
+
+  dilation: function (scale1, scale2) {
     return [
-      s, 0, 0,
-      0, t, 0,
+      scale1, 0, 0,
+      0, scale2, 0,
       0, 0, 1,
     ];
   },
-  
+
   multiply: function (a, b) {
     var a00 = a[0 * 3 + 0];
     var a01 = a[0 * 3 + 1];

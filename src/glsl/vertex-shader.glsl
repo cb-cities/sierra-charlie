@@ -13,13 +13,13 @@ void main() {
   //   y ranges from 0 to 61000
   //   one tile is 1000 units
   vec2 translated = a_position - u_translation;
-  
+
   vec2 dilated = translated / u_dilation / u_resolution;
-  
+
   vec2 pixelFit = vec2(1.0 / (u_resolution.x * 2.0), 1.0 / (u_resolution.y * 2.0));
-  
+
   vec2 pixelFitted = dilated + pixelFit;
-  
+
   gl_Position = vec4(pixelFitted, 0, 1);
 
   gl_PointSize = u_pointSize;
