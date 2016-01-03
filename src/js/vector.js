@@ -2,33 +2,34 @@
 
 
 var _ = module.exports = {
-  add: function (v, w) {
+  add: function (v1, v2) {
     return {
-      x: v.x + w.x,
-      y: v.y + w.y
+      x: v1.x + v2.x,
+      y: v1.y + v2.y
     };
   },
 
-  subtract: function (v, w) {
+  subtract: function (v1, v2) {
     return {
-      x: v.x - w.x,
-      y: v.y - w.y
+      x: v1.x - v2.x,
+      y: v1.y - v2.y
     };
   },
 
-  dot: function (v, w) {
-    return v.x * w.x + v.y * w.y;
+  dot: function (v1, v2) {
+    return v1.x * v2.x + v1.y * v2.y;
   },
 
-  // NOTE: http://mathworld.wolfram.com/PerpDotProduct.html
-  perpDot: function (v, w) {
-    return v.x * w.y - v.y * w.x;
+  // perpendicular dot product
+  // http://mathworld.wolfram.com/PerpDotProduct.html
+  perpDot: function (v1, v2) {
+    return v1.x * v2.y - v1.y * v2.x;
   },
 
-  multiply: function (a, v) {
+  dilate: function (scale, v) {
     return {
-      x: a * v.x,
-      y: a * v.y
+      x: scale * v.x,
+      y: scale * v.y
     };
   },
 
@@ -36,24 +37,20 @@ var _ = module.exports = {
     return Math.sqrt(v.x * v.x + v.y * v.y);
   },
 
-  project: function (v, w) {
-    return _.dot(v, w) / _.len(w);
+  project: function (v1, v2) {
+    return _.dot(v1, v2) / _.length(v2);
   },
 
-  distance: function (v, w) {
-    return _.len(_.sub(v, w));
+  distance: function (v1, v2) {
+    return _.length(_.subtract(v1, v2));
   },
 
-  bounds: function (v, d) {
+  bounds: function (margin, v) {
     return {
-      p1: {
-        x: v.x - d,
-        y: v.y - d
-      },
-      p2: {
-        x: v.x + d,
-        y: v.y + d
-      }
+      left: v.x - margin,
+      top: v.y - margin,
+      right: v.x + margin,
+      bottom: v.y + margin
     };
   }
 };

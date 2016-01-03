@@ -1,5 +1,5 @@
 module Common.Zipper where
-  
+
 import Maybe exposing (andThen)
 
 import Common.List exposing (break)

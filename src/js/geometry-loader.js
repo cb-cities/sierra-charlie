@@ -2,6 +2,7 @@
 
 var oboe = require("oboe");
 var defs = require("./defs");
+var polyline = require("./polyline");
 
 
 function sliceVertices(array, offset, count) {
@@ -27,7 +28,7 @@ function start(origin) {
   var roadLinkIndexCount = 0;
   var roadLinkIndexOffset = 0;
   var lastPost = 0;
-  
+
   function post(data, force) {
     if (force || lastPost + 100 < Date.now()) {
       lastPost = Date.now();
@@ -36,7 +37,7 @@ function start(origin) {
     }
     return false;
   }
-  
+
   function postRoadNodes(force) {
     var data = {
       message: "loadRoadNodes",
@@ -50,7 +51,7 @@ function start(origin) {
       roadNodeIndexOffset = roadNodeIndexCount;
     }
   }
-  
+
   function postRoadLinks(force) {
     var data = {
       message: "loadRoadLinks",
@@ -64,7 +65,7 @@ function start(origin) {
       roadLinkIndexOffset = roadLinkIndexCount;
     }
   }
-  
+
   function loadRoadNodes(cb) {
     oboe(origin + "/json/roadnodes.json.gz")
       .node("!.*", function (p, path) {
@@ -120,7 +121,7 @@ function start(origin) {
           }
         });
   }
-  
+
   loadRoadNodes();
   for (var i = 1; i <= 5; i++) {
     loadRoadLinks(i);

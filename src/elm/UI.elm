@@ -63,7 +63,7 @@ noEffect model =
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
-    case action of 
+    case action of
       Idle ->
         noEffect model
       SetZoom newZoom ->

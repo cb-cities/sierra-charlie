@@ -33,7 +33,7 @@ Quadtree.prototype = {
       }
     }
   },
-  
+
   split: function () {
     var halfSize = this.size / 2;
     var midWidth = this.left + halfSize;
@@ -67,7 +67,7 @@ Quadtree.prototype = {
     }
     return results;
   },
-  
+
   fnord: function (p) {
     if (this.contains(p)) {
       if (this.items) {
@@ -103,7 +103,7 @@ Quadtree.prototype = {
       this.top <= r.bottom &&
       r.top <= this.top + this.size);
   },
-  
+
   extendLineset: function (lineset) {
     if (this.items) {
       lineset.extend([

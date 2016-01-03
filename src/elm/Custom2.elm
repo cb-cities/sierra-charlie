@@ -13,7 +13,7 @@ type alias Area =
   { center : Point
   , radius : Float
   }
-  
+
 
 type alias TOID =
     String
@@ -46,7 +46,7 @@ type alias Label =
   { link  : RoadLink
   , value : Float
   }
-  
+
 type alias LabelingPhase =
   { startTime : Time
   , endTime   : Time
@@ -121,7 +121,7 @@ type alias Route =
   , endNode   : RoadNode
   , steps     : List RouteStep
   }
-  
+
 type alias ImportedLabeling =
   { setup         : ImportSetup
   , foreignRoutes : List ForeignRoute

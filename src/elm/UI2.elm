@@ -3,7 +3,7 @@ module UI2 where
 import Html exposing (Html, button, div, li, span, text, ul)
 import Html.Attributes exposing (style)
 import StartApp.Simple as StartApp
- 
+
 import Common.Html.Events exposing (onClick)
 import Common.Zipper exposing (..) -- TODO
 import Custom exposing (..) -- TODO
@@ -34,7 +34,7 @@ model =
   { geometries = []
   , ui = ui
   }
-  
+
 
 ui : UI
 ui =
@@ -82,7 +82,7 @@ ui =
               [ Branch "Simulation 1" Regular []
               , Branch "New simulation…" Regular []
               ]
-          ]  
+          ]
       )
       []
 
@@ -93,7 +93,7 @@ type Action =
 
 update : Action -> Model -> Model
 update action model =
-  case action of 
+  case action of
     Go steps ->
       let
         updateUI = followSteps steps
@@ -129,11 +129,11 @@ viewSubtree address steps subtree =
 viewTree : Address -> Steps -> Tree a b -> Html
 viewTree address steps tree =
     let
-      someStyle = 
+      someStyle =
         case steps of
           [] -> selectedStyle
           _ -> regularStyle
-    in  
+    in
       case tree of
         Leaf key value ->
           li [someStyle, onClick address (Go steps)]
@@ -215,7 +215,7 @@ italicStyle =
     style
       [ ("font-style", "italic")
       ]
-      
+
 
 noStyle : Html.Attribute
 noStyle =
