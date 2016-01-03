@@ -35,7 +35,7 @@ module.exports = {
     };
   },
 
-  stretch: function (p, r) {
+  stretch: function (r, p) {
     return {
       left: Math.min(r.left, p.x),
       top: Math.min(r.top, p.y),

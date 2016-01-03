@@ -6,35 +6,35 @@ var rect = require("./rect");
 
 var maxItems = 16;
 
-function Polyquadtree(left, top, size) {
+function Polyquadtree(left, top, size, getBounds) {
   this.left = left;
   this.top = top;
   this.size = size;
+  this.getBounds = getBounds;
   this.items = [];
 }
 
 Polyquadtree.prototype = {
   insert: function (newItem) {
+    var newBounds = this.getBounds(newItem);
     if (this.items) {
-      if (this.items.length < maxItems || this.items.some(function (item) {
-          return rect.intersects(newItem.bounds, item.bounds);
-        })) {
+      if (this.items.length < maxItems || this.intersectsSomeItem(newBounds)) {
         this.items.push(newItem);
       } else {
         this.split();
         this.insert(newItem);
       }
     } else {
-      if (this.topLeft.intersects(newItem.bounds)) {
+      if (this.topLeft.intersects(newBounds)) {
         this.topLeft.insert(newItem);
       }
-      if (this.topRight.intersects(newItem.bounds)) {
+      if (this.topRight.intersects(newBounds)) {
         this.topRight.insert(newItem);
       }
-      if (this.bottomLeft.intersects(newItem.bounds)) {
+      if (this.bottomLeft.intersects(newBounds)) {
         this.bottomLeft.insert(newItem);
       }
-      if (this.bottomRight.intersects(newItem.bounds)) {
+      if (this.bottomRight.intersects(newBounds)) {
         this.bottomRight.insert(newItem);
       }
     }
@@ -44,10 +44,10 @@ Polyquadtree.prototype = {
     var halfSize = this.size / 2;
     var midWidth = this.left + halfSize;
     var midHeight = this.top + halfSize;
-    this.topLeft = new Polyquadtree(this.left, this.top, halfSize);
-    this.topRight = new Polyquadtree(midWidth, this.top, halfSize);
-    this.bottomLeft = new Polyquadtree(this.left, midHeight, halfSize);
-    this.bottomRight = new Polyquadtree(midWidth, midHeight, halfSize);
+    this.topLeft = new Polyquadtree(this.left, this.top, halfSize, this.getBounds);
+    this.topRight = new Polyquadtree(midWidth, this.top, halfSize, this.getBounds);
+    this.bottomLeft = new Polyquadtree(this.left, midHeight, halfSize, this.getBounds);
+    this.bottomRight = new Polyquadtree(midWidth, midHeight, halfSize, this.getBounds);
     var items = this.items;
     delete this.items;
     for (var i = 0; i < items.length; i++) {
@@ -60,7 +60,7 @@ Polyquadtree.prototype = {
     if (this.intersects(r)) {
       if (this.items) {
         for (var i = 0; i < this.items.length; i++) {
-          if (rect.intersects(r, this.items[i].bounds)) {
+          if (rect.intersects(r, this.getBounds(this.items[i]))) {
             results.push(this.items[i]);
           }
         }
@@ -72,6 +72,15 @@ Polyquadtree.prototype = {
       }
     }
     return results;
+  },
+
+  intersectsSomeItem: function (r) {
+    for (var i = 0; i < this.items.length; i++) {
+      if (rect.intersects(r, this.getBounds(this.items[i]))) {
+        return true;
+      }
+    }
+    return false;
   },
 
   intersects: function (r) {
@@ -99,6 +108,19 @@ Polyquadtree.prototype = {
       this.bottomLeft.extendLineset(lineset);
       this.bottomRight.extendLineset(lineset);
     }
+  },
+
+  extendStats: function (stats) {
+    if (this.items) {
+      stats.itemCounts.push(this.items.length);
+    } else {
+      stats.nodeSizes.push(this.size);
+      this.topLeft.extendStats(stats);
+      this.topRight.extendStats(stats);
+      this.bottomLeft.extendStats(stats);
+      this.bottomRight.extendStats(stats);
+    }
+    return stats;
   }
 };
 
