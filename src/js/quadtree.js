@@ -13,23 +13,23 @@ function Quadtree(left, top, size) {
 }
 
 Quadtree.prototype = {
-  insert: function (item) {
+  insert: function (newItem) {
     if (this.items) {
       if (this.items.length < maxItems) {
-        this.items.push(item);
+        this.items.push(newItem);
       } else {
         this.split();
-        this.insert(item);
+        this.insert(newItem);
       }
     } else {
-      if (this.topLeft.contains(item.p)) {
-        this.topLeft.insert(item);
-      } else if (this.topRight.contains(item.p)) {
-        this.topRight.insert(item);
-      } else if (this.bottomLeft.contains(item.p)) {
-        this.bottomLeft.insert(item);
-      } else if (this.bottomRight.contains(item.p)) {
-        this.bottomRight.insert(item);
+      if (this.topLeft.contains(newItem.p)) {
+        this.topLeft.insert(newItem);
+      } else if (this.topRight.contains(newItem.p)) {
+        this.topRight.insert(newItem);
+      } else if (this.bottomLeft.contains(newItem.p)) {
+        this.bottomLeft.insert(newItem);
+      } else if (this.bottomRight.contains(newItem.p)) {
+        this.bottomRight.insert(newItem);
       }
     }
   },

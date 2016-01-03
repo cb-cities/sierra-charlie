@@ -15,9 +15,9 @@ var _ = module.exports = {
     }
     return result;
   },
-  
+
   intersects: function (ps1, ps2) {
-    if (!rect.intersects(_.bounds(0, ps1), _.bounds(0, ps2))) { // TODO: Profile this
+    if (!rect.intersects(_.bounds(0, ps1), _.bounds(0, ps2))) {
       return false;
     } else {
       for (var i = 0; i < ps1.length - 1; i++) {
@@ -38,13 +38,13 @@ var _ = module.exports = {
       return false;
     }
   },
-  
+
   bounds: function (margin, ps) {
     var result = {
-      left: 0,
-      top: 0,
-      right: 0,
-      bottom: 0
+      left: Infinity,
+      top: Infinity,
+      right: -Infinity,
+      bottom: -Infinity
     };
     for (var i = 0; i < ps.length - 1; i++) {
       result = rect.union(result, segment.bounds(margin, {

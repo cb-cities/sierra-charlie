@@ -13,12 +13,12 @@ Indexset.prototype = {
     this.indexArr = [];
   },
 
-  insert: function (index) {
-    this.indexArr.push(index);
+  insert: function (newIndex) {
+    this.indexArr.push(newIndex);
   },
 
-  insertIndices: function (indices) {
-    this.indexArr.push.apply(this.indexArr, indices);
+  insertIndices: function (newIndices) {
+    this.indexArr.push.apply(this.indexArr, newIndices);
   },
 
   insertFromArray: function (arr, baseIndex, count) {

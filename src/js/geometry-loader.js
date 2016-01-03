@@ -28,16 +28,16 @@ function start(origin) {
   var roadLinkIndexCount = 0;
   var roadLinkIndexOffset = 0;
   var lastPost = 0;
-
+  
   function post(data, force) {
-    if (force || lastPost + 100 < Date.now()) {
+    if (force || lastPost + 1000 < Date.now()) {
       lastPost = Date.now();
       postMessage(data);
       return true;
     }
     return false;
   }
-
+  
   function postRoadNodes(force) {
     var data = {
       message: "loadRoadNodes",
@@ -51,7 +51,7 @@ function start(origin) {
       roadNodeIndexOffset = roadNodeIndexCount;
     }
   }
-
+  
   function postRoadLinks(force) {
     var data = {
       message: "loadRoadLinks",
@@ -65,18 +65,23 @@ function start(origin) {
       roadLinkIndexOffset = roadLinkIndexCount;
     }
   }
-
+  
   function loadRoadNodes(cb) {
     oboe(origin + "/json/roadnodes.json.gz")
-      .node("!.*", function (p, path) {
+      .node("!.*", function (arr, path) {
           var toid = path[0];
+          var p = {
+            x: parseFloat(arr[0]),
+            y: parseFloat(arr[1])
+          };
           roadNodes.push({
               toid: toid,
+              p: p,
               vertexOffset: vertexCount,
               indexOffset: roadNodeIndexCount
             });
           roadNodeIndices[roadNodeIndexCount++] = vertexCount;
-          vertices.set(p, vertexCount * 2);
+          vertices.set([p.x, p.y], vertexCount * 2);
           vertexCount++;
           postRoadNodes();
           return oboe.drop;
@@ -94,14 +99,23 @@ function start(origin) {
       .node("!.*", function (obj, path) {
           var toid = path[0];
           var pointCount = obj.ps.length / 2;
+          var ps = [];
+          for (var i = 0; i < pointCount; i++) {
+            ps.push({
+                x: parseFloat(obj.ps[2 * i]),
+                y: parseFloat(obj.ps[2 * i + 1])
+              });
+          }
           roadLinks.push({
               toid: toid,
-              length: obj.len,
+              ps: ps,
+              length: parseFloat(obj.len),
+              negativeNode: obj.neg,
+              positiveNode: obj.pos,
+              bounds: polyline.bounds(0, ps),
               pointCount: pointCount,
               vertexOffset: vertexCount,
-              indexOffset: roadLinkIndexCount,
-              negativeNode: obj.neg,
-              positiveNode: obj.pos
+              indexOffset: roadLinkIndexCount
             });
           for (var i = 0; i < pointCount; i++) {
             roadLinkIndices[roadLinkIndexCount++] = vertexCount + i;
@@ -121,7 +135,7 @@ function start(origin) {
           }
         });
   }
-
+  
   loadRoadNodes();
   for (var i = 1; i <= 5; i++) {
     loadRoadLinks(i);

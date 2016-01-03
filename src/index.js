@@ -21,7 +21,6 @@ function init() {
   window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
       maxVertexCount: defs.maxVertexCount,
       setVertexCount: 0,
-      addRoadNode: null,
       setMousePosition: {x: 0, y: 0}
     });
 
