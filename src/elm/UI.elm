@@ -52,7 +52,6 @@ type Action =
   | IncreaseZoom
   | DecreaseZoom
   | SetVertexCount Int
-  | AddRoadNode (Item String)
   | SetMousePosition Point
 
 
@@ -77,9 +76,6 @@ update action model =
           |> noEffect
       SetVertexCount newCount ->
         {model | vertexCount = max 0 newCount}
-          |> noEffect
-      AddRoadNode newItem ->
-        {model | roadNodes = Quadtree.insert newItem model.roadNodes}
           |> noEffect
       SetMousePosition newPosition ->
         {model | mousePosition = newPosition}
@@ -157,7 +153,6 @@ init =
 
 
 port setVertexCount : Signal Int
-port addRoadNode : Signal (Maybe (Item String))
 port setMousePosition : Signal Point
 
 
@@ -169,7 +164,6 @@ app =
       , view = view
       , inputs =
           [ Signal.map SetVertexCount setVertexCount
-          , Signal.map (maybe Idle AddRoadNode) addRoadNode
           , Signal.map SetMousePosition setMousePosition
           ]
       }
