@@ -24,8 +24,6 @@ function Controller() {
   window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
   this.hoveredRoadNodeIndices = new Indexset();
   this.hoveredRoadLinkIndices = new Indexset();
-  // this.roadNodeTreeLines = new Lineset(); // TODO
-  // this.roadLinkTreeLines = new Lineset();
   var frame = document.getElementById("map-frame");
   frame.addEventListener("scroll", this.onFrameScrolled.bind(this));
   var canvas = document.getElementById("map-canvas");
@@ -133,16 +131,6 @@ Controller.prototype = {
     }
     App.updateDrawingContext(); // TODO
     UI.ports.setLoadingProgress.send(this.geometry.getLoadingProgress());
-
-    // var gl = App.drawingContext.gl; // TODO
-    // this.roadNodeTreeLines.clear();
-    // this.roadNodeTree.extendLineset(this.roadNodeTreeLines);
-    // this.roadNodeTreeLines.render(gl, gl.STATIC_DRAW);
-
-    // var s = this.roadNodeTree.extendStats({itemCounts: [], nodeSizes: []});
-    // console.log("RN item counts\n", stats.dump(s.itemCounts));
-    // console.log("RN node sizes\n", stats.dump(s.nodeSizes));
-    // console.log("RN tree size: ", s.nodeSizes.length);
   },
 
   onRoadLinksLoaded: function (roadLinks) {
@@ -151,16 +139,6 @@ Controller.prototype = {
     }
     App.updateDrawingContext(); // TODO
     UI.ports.setLoadingProgress.send(this.geometry.getLoadingProgress());
-
-    // var gl = App.drawingContext.gl; // TODO
-    // this.roadLinkTreeLines.clear();
-    // this.roadLinkTree.extendLineset(this.roadLinkTreeLines);
-    // this.roadLinkTreeLines.render(gl, gl.STATIC_DRAW);
-
-    // var s = this.roadLinkTree.extendStats({itemCounts: [], nodeSizes: []});
-    // console.log("RL item counts\n", stats.dump(s.itemCounts));
-    // console.log("RL node sizes\n", stats.dump(s.nodeSizes));
-    // console.log("RL tree size: ", s.nodeSizes.length);
   },
 
   onFrameScrolled: function (event) {

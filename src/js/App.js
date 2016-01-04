@@ -265,12 +265,6 @@ module.exports = {
         Geometry.drawRoadNodes(gl); // TODO
         gl.uniform4f(cx.colorLoc, 1, 0, 0, roadNodeAlpha);
         this.hoveredRoadNodeIndices.draw(gl, gl.POINTS); // TODO
-
-        // gl.lineWidth(1);
-        // gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
-        // this.roadNodeTreeLines.draw(gl, cx.positionLoc);
-        // gl.uniform4f(cx.colorLoc, 0, 1, 0, 1);
-        // this.roadLinkTreeLines.draw(gl, cx.positionLoc);
       }
     }
   }
