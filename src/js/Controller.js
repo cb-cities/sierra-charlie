@@ -1,28 +1,26 @@
 "use strict";
 
 var Geometry = require("./Geometry");
+var Grid = require("./Grid");
 var Indexset = require("./Indexset");
 var Polyquadtree = require("./Polyquadtree");
 var Quadtree = require("./Quadtree");
 
 var compute = require("./compute");
+var defs = require("./defs");
 var vector = require("./vector");
 
 
-function Controller(props) {
-  this.props = props;
+function Controller() {
   this.lastClientX = 0;
   this.lastClientY = 0;
   window.Geometry = this.geometry = new Geometry({ // TODO
-      maxVertexCount: this.props.maxVertexCount,
-      maxRoadNodeIndexCount: this.props.maxRoadNodeIndexCount,
-      maxRoadLinkIndexCount: this.props.maxRoadLinkIndexCount,
-      origin: window.location.origin,
       onRoadNodesLoaded: this.onRoadNodesLoaded.bind(this),
       onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this)
     });
-  window.RoadNodeTree = this.roadNodeTree = new Quadtree(this.props.treeLeft, this.props.treeTop, this.props.treeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
-  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(this.props.treeLeft, this.props.treeTop, this.props.treeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
+  window.Grid = this.grid = new Grid(); // TODO
+  window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.treeLeft, defs.treeTop, defs.treeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
+  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.treeLeft, defs.treeTop, defs.treeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
   this.hoveredRoadNodeIndices = new Indexset();
   this.hoveredRoadLinkIndices = new Indexset();
   // this.roadNodeTreeLines = new Lineset(); // TODO
@@ -30,16 +28,26 @@ function Controller(props) {
 }
 
 Controller.prototype = {
+  getClientWidth: function () {
+    var canvas = document.getElementById("map-canvas");
+    return canvas.clientWidth;
+  },
+
+  getClientHeight: function () {
+    var canvas = document.getElementById("map-canvas");
+    return canvas.clientHeight;
+  },
+  
   projectPointToWorld: function (clientX, clientY) {
-    var clientWidth = App.getClientWidth();
-    var clientHeight = App.getClientHeight();
+    var clientWidth = this.getClientWidth();
+    var clientHeight = this.getClientHeight();
     var left = App.getLeft();
     var top = App.getTop();
     var zoom = App.getZoom();
     var zoomLevel = compute.zoomLevel(zoom);
-    var dilation = this.props.tileSize / this.props.imageSize * zoomLevel; // TODO: Compare with drawing
-    var translationX = (this.props.firstTileX + left * this.props.tileXCount) * this.props.tileSize;
-    var translationY = (this.props.lastTileY + 1 - top * this.props.tileYCount) * this.props.tileSize;
+    var dilation = defs.tileSize / defs.imageSize * zoomLevel; // TODO: Compare with drawing
+    var translationX = defs.firstTileX + left * defs.tileXCount * defs.tileSize;
+    var translationY = defs.lastTileY + defs.tileSize - top * defs.tileYCount * defs.tileSize;
     return {
       x: (clientX - clientWidth / 2) * dilation + translationX,
       y: ((clientHeight - clientY) - clientHeight / 2) * dilation + translationY
@@ -75,10 +83,10 @@ Controller.prototype = {
       var indices = this.geometry.getRoadLinkIndices(roadLinks[i]);
       this.hoveredRoadLinkIndices.insertMany(indices);
     }
-    var gl = App.painterContext.gl; // TODO
+    var gl = App.drawingContext.gl; // TODO
     this.hoveredRoadNodeIndices.render(gl, gl.STREAM_DRAW);
     this.hoveredRoadLinkIndices.render(gl, gl.STREAM_DRAW);
-    App.needsPainting = true; // TODO
+    App.isDrawingNeeded = true; // TODO
     App.hoveredRoadNodeIndices = this.hoveredRoadNodeIndices; // OMG
     App.hoveredRoadLinkIndices = this.hoveredRoadLinkIndices; // OMG
   },
@@ -87,10 +95,10 @@ Controller.prototype = {
     for (var i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
     }
-    App.updatePainterContext(); // TODO
+    App.updateDrawingContext(); // TODO
     UI.ports.setVertexCount.send(this.geometry.vertexCount); // TODO
-    
-    // var gl = this.painterContext.gl; // TODO
+
+    // var gl = App.drawingContext.gl; // TODO
     // this.roadNodeTreeLines.clear();
     // this.roadNodeTree.extendLineset(this.roadNodeTreeLines);
     // this.roadNodeTreeLines.render(gl, gl.STATIC_DRAW);
@@ -105,10 +113,10 @@ Controller.prototype = {
     for (var i = 0; i < roadLinks.length; i++) {
       this.roadLinkTree.insert(roadLinks[i]);
     }
-    App.updatePainterContext(); // TODO
+    App.updateDrawingContext(); // TODO
     UI.ports.setVertexCount.send(this.geometry.vertexCount); // TODO
-    
-    // var gl = this.painterContext.gl; // TODO
+
+    // var gl = App.drawingContext.gl; // TODO
     // this.roadLinkTreeLines.clear();
     // this.roadLinkTree.extendLineset(this.roadLinkTreeLines);
     // this.roadLinkTreeLines.render(gl, gl.STATIC_DRAW);
@@ -119,7 +127,7 @@ Controller.prototype = {
     // console.log("RL tree size: ", s.nodeSizes.length);
   },
 
-  onScroll: function (event) {
+  onFrameScrolled: function (event) {
     if (!(App.isScrolling())) {
       var frame = document.getElementById("map-frame");
       var zoom = App.getZoom();
@@ -129,45 +137,45 @@ Controller.prototype = {
     }
     this.updateHover(this.lastClientX, this.lastClientY);
   },
-  
-  onContextLost: function (event) {
+
+  onCanvasContextLost: function (event) {
     event.preventDefault();
-    // cancelAnimationFrame(this.painterReceipt); // TODO
-    // this.painterContext = null;
-    // this.painterReceipt = null;
+    // cancelAnimationFrame(this.isAnimationFrameRequested); // TODO
+    // this.isAnimationFrameRequested = null;
+    // this.drawingContext = null;
   },
 
-  onContextRestored: function () {
-    // this.startPainter(); // TODO
+  onCanvasContextRestored: function () {
+    // this.startDrawing(); // TODO
   },
 
-  onMouseMove: function (event) {
+  onMouseMoved: function (event) {
     // console.log("mouseMove", event.clientX, event.clientY);
     this.updateHover(event.clientX, event.clientY);
     this.lastClientX = event.clientX;
     this.lastClientY = event.clientY;
   },
 
-  onDoubleClick: function (event) {
+  onMouseDoubleClicked: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var clientWidth = App.getClientWidth();
-    var clientHeight = App.getClientHeight();
+    var clientWidth = this.getClientWidth();
+    var clientHeight = this.getClientHeight();
     var left = App.getStaticLeft();
     var top = App.getStaticTop();
     var zoom = App.getStaticZoom();
     var newLeft = compute.leftFromEventClientX(event.clientX, clientWidth, left, zoom);
     var newTop = compute.topFromEventClientY(event.clientY, clientHeight, top, zoom);
-    var newZoom = event.altKey ? Math.min(zoom + 1, this.props.maxZoom) : Math.max(0, zoom - 1);
+    var newZoom = event.altKey ? Math.min(zoom + 1, defs.maxZoom) : Math.max(0, zoom - 1);
     var duration = event.shiftKey ? 2500 : 500;
     App.setLeft(newLeft, duration);
     App.setTop(newTop, duration);
     App.setZoom(newZoom, duration);
   },
 
-  onKeyDown: function (event) {
+  onKeyPressed: function (event) {
     // console.log("keyDown", event.keyCode);
-    var clientWidth = App.getClientWidth();
-    var clientHeight = App.getClientHeight();
+    var clientWidth = this.getClientWidth();
+    var clientHeight = this.getClientHeight();
     var left = App.getStaticLeft();
     var top = App.getStaticTop();
     var rawTime = App.getStaticRawTime();
@@ -211,15 +219,19 @@ Controller.prototype = {
         App.setZoom(newZoom, duration);
         break;
       case 189: // minus
-        var newZoom = Math.min(Math.round((zoom * 10) + zoomDelta) / 10, this.props.maxZoom);
+        var newZoom = Math.min(Math.round((zoom * 10) + zoomDelta) / 10, defs.maxZoom);
         App.setZoom(newZoom, duration);
         break;
       default: // 1-8
         if (event.keyCode >= 49 && event.keyCode <= 57) {
-          var newZoom = Math.max(0, Math.min(event.keyCode - 49, this.props.maxZoom));
+          var newZoom = Math.max(0, Math.min(event.keyCode - 49, defs.maxZoom));
           App.setZoom(newZoom, duration);
         }
     }
+  },
+
+  onWindowResized: function () {
+    App.isDrawingNeeded = true; // TODO
   }
 };
 

@@ -1,19 +1,21 @@
 "use strict";
 
 var Lineset = require("./lineset");
+var defs = require("./defs");
 
 
-function Grid(props) {
-  this.props = props;
-  var left = this.props.firstTileX * this.props.tileSize;
-  var top = this.props.firstTileY * this.props.tileSize;
-  var right = (this.props.lastTileX + 1) * this.props.tileSize;
-  var bottom = (this.props.lastTileY + 1) * this.props.tileSize;
+function Grid() {
+  var left = defs.firstTileX;
+  var top = defs.firstTileY;
+  var right = left + defs.tileXCount * defs.tileSize;
+  var bottom = top + defs.tileYCount * defs.tileSize;
   this.gridLines = new Lineset();
-  for (var x = left; x <= right; x += this.props.tileSize) {
+  for (var i = 0; i <= defs.tileXCount; i++) {
+    var x = defs.firstTileX + i * defs.tileSize;
     this.gridLines.insertLine(x, top, x, bottom);
   }
-  for (var y = bottom; y >= top; y -= this.props.tileSize) {
+  for (var i = 0; i <= defs.tileYCount; i++) {
+    var y = defs.firstTileY + i * defs.tileSize;
     this.gridLines.insertLine(left, y, right, y);
   }
 }
@@ -23,9 +25,7 @@ Grid.prototype = {
     this.gridLines.render(gl, gl.STATIC_DRAW);
   },
 
-  draw: function (gl, positionLoc, colorLoc) {
-    gl.lineWidth(1);
-    gl.uniform4f(colorLoc, 0.2, 0.2, 0.2, 1);
+  draw: function (gl, positionLoc) {
     this.gridLines.draw(gl, positionLoc);
   }
 };

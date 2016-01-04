@@ -107,26 +107,16 @@ module.exports = {
     return this.getEasedState("rawTime");
   },
 
-  getClientWidth: function () { // TODO
-    var canvas = document.getElementById("map-canvas");
-    return canvas.clientWidth;
-  },
-
-  getClientHeight: function () { // TODO
-    var canvas = document.getElementById("map-canvas");
-    return canvas.clientHeight;
-  },
-
   componentDidMount: function () {
     this.updateFrameSpace();
-    this.startPainter();
+    this.startDrawing();
   },
 
   componentDidUpdate: function () {
     this.updateFrameSpace();
-    this.needsPainting = true;
+    this.isDrawingNeeded = true;
   },
-  
+
   updateFrameSpace: function () {
     var left = this.getLeft();
     var top = this.getTop();
@@ -165,37 +155,14 @@ module.exports = {
 
 
 
-
-
-
-
-
-
-
-  // TODO: Refactor
-  prepareGrid: function (gl) {
-    var left = defs.firstTileX * defs.tileSize;
-    var top = defs.firstTileY * defs.tileSize;
-    var right = (defs.lastTileX + 1) * defs.tileSize;
-    var bottom = (defs.lastTileY + 1) * defs.tileSize;
-    this.gridLines = new Lineset();
-    for (var x = left; x <= right; x += defs.tileSize) {
-      this.gridLines.insertLine(x, top, x, bottom);
-    }
-    for (var y = bottom; y >= top; y -= defs.tileSize) {
-      this.gridLines.insertLine(left, y, right, y);
-    }
-    this.gridLines.render(gl, gl.STATIC_DRAW);
+  startDrawing: function () {
+    this.isAnimationFrameRequested = requestAnimationFrame(this.onAnimationFrameReceived);
+    this.updateDrawingContext();
   },
 
-  startPainter: function () {
-    this.painterReceipt = requestAnimationFrame(this.onPaint);
-    this.updatePainterContext();
-  },
-
-  updatePainterContext: function () {
-    if (!this.painterContext) {
-      this.needsPainting = true;
+  updateDrawingContext: function () {
+    if (!this.drawingContext) {
+      this.isDrawingNeeded = true;
       var canvas = document.getElementById("map-canvas");
       var gl = canvas.getContext("webgl", {
           alpha: false
@@ -208,12 +175,9 @@ module.exports = {
       var translationLoc = gl.getUniformLocation(program, "u_translation");
       var pointSizeLoc = gl.getUniformLocation(program, "u_pointSize");
       var colorLoc = gl.getUniformLocation(program, "u_color");
-      this.painterContext = {
+      this.drawingContext = {
         gl: gl,
         program: program,
-        vertexCount: 0,
-        roadNodeIndexCount: 0,
-        roadLinkIndexCount: 0,
         devicePixelRatio: window.devicePixelRatio,
         positionLoc: positionLoc,
         resolutionLoc: resolutionLoc,
@@ -226,41 +190,37 @@ module.exports = {
       gl.enable(gl.BLEND);
       gl.clearColor(0, 0, 0, 0);
       gl.getExtension("OES_element_index_uint");
-      this.prepareGrid(gl);
+      Grid.render(gl); // TODO
     }
-    var cx = this.painterContext;
+    var cx = this.drawingContext;
     var gl = cx.gl;
-    if (cx.vertexCount !== Geometry.vertexCount) { // TODO
-      this.needsPainting = true;
-      cx.vertexCount = Geometry.vertexCount;
-      cx.roadNodeIndexCount = Geometry.roadNodeIndexCount;
-      cx.roadLinkIndexCount = Geometry.roadLinkIndexCount;
-      Geometry.render(gl); // OMG TODO
+    if (Geometry.render(gl)) { // OMG TODO
+      this.isDrawingNeeded = true;
     }
     if (cx.devicePixelRatio !== window.devicePixelRatio) { // TODO
-      this.needsPainting = true;
+      this.isDrawingNeeded = true;
       cx.devicePixelRatio = window.devicePixelRatio;
     }
   },
 
-  onPaint: function () {
-    if (!this.painterContext) {
+  onAnimationFrameReceived: function () {
+    if (!this.drawingContext) {
       return;
     }
-    this.painterReceipt = requestAnimationFrame(this.onPaint);
-    var cx = this.painterContext;
+    this.isAnimationFrameRequested = requestAnimationFrame(this.onAnimationFrameReceived);
+    var cx = this.drawingContext;
     var gl = cx.gl;
     var canvas = document.getElementById("map-canvas");
     var width = cx.devicePixelRatio * canvas.clientWidth;
     var height = cx.devicePixelRatio * canvas.clientHeight;
     if (canvas.width !== width || canvas.height !== height) {
-      this.needsPainting = true;
+      this.isDrawingNeeded = true;
       canvas.width = width;
       canvas.height = height;
       gl.viewport(0, 0, width, height);
     }
-    if (this.needsPainting) {
-      this.needsPainting = false;
+    if (this.isDrawingNeeded) {
+      this.isDrawingNeeded = false;
       var left = this.getLeft();
       var top = this.getTop();
       var zoom = this.getZoom();
@@ -273,8 +233,8 @@ module.exports = {
       var dilation = defs.tileSize / defs.imageSize * zoomLevel / 2;
       gl.uniform2f(cx.dilationLoc, dilation, dilation);
 
-      var translationX = (defs.firstTileX + left * defs.tileXCount) * defs.tileSize;
-      var translationY = (defs.lastTileY + 1 - top * defs.tileYCount) * defs.tileSize;
+      var translationX = defs.firstTileX + left * defs.tileXCount * defs.tileSize;
+      var translationY = defs.lastTileY + defs.tileSize - top * defs.tileYCount * defs.tileSize;
       gl.uniform2f(cx.translationLoc, translationX, translationY);
 
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -282,9 +242,9 @@ module.exports = {
       // Draw grid
       gl.lineWidth(1);
       gl.uniform4f(cx.colorLoc, 0.2, 0.2, 0.2, 1);
-      this.gridLines.draw(gl, cx.positionLoc);
+      Grid.draw(gl, cx.positionLoc); // TODO
 
-      if (Geometry.bindVertexBuffer(gl)) {
+      if (Geometry.bindVertexBuffer(gl)) { // TODO
         gl.enableVertexAttribArray(cx.positionLoc);
         gl.vertexAttribPointer(cx.positionLoc, 2, gl.FLOAT, false, 0, 0);
 
@@ -293,8 +253,8 @@ module.exports = {
         var roadLinkAlpha = Math.min(roadLinkSize, 1);
         gl.lineWidth(roadLinkSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
-        Geometry.drawRoadLinks(gl);
-        gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
+        Geometry.drawRoadLinks(gl); // TODO
+        gl.uniform4f(cx.colorLoc, 1, 1, 1, roadLinkAlpha);
         this.hoveredRoadLinkIndices.draw(gl, gl.LINES); // TODO
 
         // Draw road nodes
@@ -302,8 +262,8 @@ module.exports = {
         var roadNodeAlpha = Math.min(roadNodeSize, 1);
         gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
-        Geometry.drawRoadNodes(gl);
-        gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
+        Geometry.drawRoadNodes(gl); // TODO
+        gl.uniform4f(cx.colorLoc, 1, 1, 1, roadNodeAlpha);
         this.hoveredRoadNodeIndices.draw(gl, gl.POINTS); // TODO
 
         // gl.lineWidth(1);

@@ -1,34 +1,36 @@
 "use strict";
 
 var GeometryLoader = require("worker?inline!./GeometryLoader");
+var defs = require("./defs");
 var rect = require("./rect");
 
 
 function Geometry(props) {
   this.props = props;
-  this.vertexArr = new Float32Array(this.props.maxVertexCount * 2);
+  this.isRenderingNeeded = false;
+  this.vertexArr = new Float32Array(defs.maxVertexCount * 2);
   this.vertexCount = 0;
   this.roadNodes = {};
-  this.roadNodeIndexArr = new Uint32Array(this.props.maxRoadNodeIndexCount);
+  this.roadNodeIndexArr = new Uint32Array(defs.maxRoadNodeIndexCount);
   this.roadNodeIndexCount = 0;
   this.roadLinks = {};
-  this.roadLinkIndexArr = new Uint32Array(this.props.maxRoadLinkIndexCount);
+  this.roadLinkIndexArr = new Uint32Array(defs.maxRoadLinkIndexCount);
   this.roadLinkIndexCount = 0;
   this.loader = new GeometryLoader();
   this.loader.addEventListener("message", this.onMessage.bind(this));
   this.loader.postMessage({
       message: "startLoading",
-      origin: this.props.origin
+      origin: window.location.origin
     });
 }
 
 Geometry.prototype = {
   isLoadingFinished: function () {
-    return this.vertexCount === this.props.maxVertexCount;
+    return this.vertexCount === defs.maxVertexCount;
   },
-  
+
   getLoadingProgress: function () {
-    return this.vertexCount / this.props.maxVertexCount * 100;
+    return this.vertexCount / defs.maxVertexCount * 100;
   },
 
   getRoadNodePoint: function (roadNode) {
@@ -74,7 +76,7 @@ Geometry.prototype = {
     }
     return result;
   },
-  
+
   onMessage: function (event) {
     switch (event.data.message) {
       case "roadNodesLoaded":
@@ -87,6 +89,7 @@ Geometry.prototype = {
   },
 
   onRoadNodesLoaded: function (data) {
+    this.isRenderingNeeded = true;
     this.vertexArr.set(data.vertices, this.vertexCount * 2);
     this.vertexCount += data.vertices.length / 2;
     this.roadNodeIndexArr.set(data.roadNodeIndices, this.roadNodeIndexCount);
@@ -104,6 +107,7 @@ Geometry.prototype = {
   },
 
   onRoadLinksLoaded: function (data) {
+    this.isRenderingNeeded = true;
     this.vertexArr.set(data.vertices, this.vertexCount * 2);
     this.vertexCount += data.vertices.length / 2;
     this.roadLinkIndexArr.set(data.roadLinkIndices, this.roadLinkIndexCount);
@@ -121,16 +125,22 @@ Geometry.prototype = {
   },
 
   render: function (gl) {
-    var usage = this.isLoadingFinished ? gl.STATIC_DRAW : gl.STREAM_DRAW;
-    this.vertexBuf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, this.vertexArr, usage);
-    this.roadNodeIndexBuf = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexBuf);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexArr, usage);
-    this.roadLinkIndexBuf = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexBuf);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexArr, usage);
+    if (this.isRenderingNeeded) {
+      var usage = this.isLoadingFinished ? gl.STATIC_DRAW : gl.STREAM_DRAW;
+      this.isRenderingNeeded = false;
+      this.vertexBuf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, this.vertexArr, usage);
+      this.roadNodeIndexBuf = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexBuf);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexArr, usage);
+      this.roadLinkIndexBuf = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexBuf);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexArr, usage);
+      return true;
+    } else {
+      return false;
+    }
   },
 
   bindVertexBuffer: function (gl) {
@@ -145,15 +155,11 @@ Geometry.prototype = {
   drawRoadNodes: function (gl) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexBuf);
     gl.drawElements(gl.POINTS, this.roadNodeIndexCount, gl.UNSIGNED_INT, 0);
-    // gl.uniform4f(colorLoc, 1, 0, 0, 1);
-    // this.hoveredRoadNodes.draw(gl, gl.POINTS); // TODO
   },
 
   drawRoadLinks: function (gl) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexBuf);
     gl.drawElements(gl.LINES, this.roadLinkIndexCount, gl.UNSIGNED_INT, 0);
-    // gl.uniform4f(colorLoc, 1, 0, 0, 1);
-    // this.hoveredRoadLinks.draw(gl, gl.LINES); // TODO
   }
 }
 

@@ -3,13 +3,13 @@
 var tileSize  = 1000;
 var imageSize = 1024;
 
-var firstTileX = 489;
-var firstTileY = 148;
-var lastTileX  = 573;
-var lastTileY  = 209;
+var firstTileX = 489000;
+var firstTileY = 148000;
+var lastTileX  = 573000;
+var lastTileY  = 209000;
 
-var tileXCount = lastTileX - firstTileX + 1;
-var tileYCount = lastTileY - firstTileY + 1;
+var tileXCount = (lastTileX - firstTileX) / tileSize + 1;
+var tileYCount = (lastTileY - firstTileY) / tileSize + 1;
 
 var maxRoadNodeCount = 343724;
 var maxRoadLinkCount = 423541;
@@ -38,6 +38,10 @@ var _ = module.exports = {
 
   tileXCount: tileXCount,
   tileYCount: tileYCount,
+
+  treeLeft: 465464, // TODO
+  treeTop: 112964, // TODO
+  treeSize: 131072, // TODO
 
   maxTileCount: tileXCount * tileYCount,
 
