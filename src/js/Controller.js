@@ -178,10 +178,10 @@ Controller.prototype = {
     var centerX = App.getStaticCenterX();
     var centerY = App.getStaticCenterY();
     var zoom = App.getStaticZoom();
-    var newCenterX = compute.fromClientX(event.clientX, clientWidth, centerX, zoom);
-    var newCenterY = compute.fromClientY(event.clientY, clientHeight, centerY, zoom);
-    var newZoom = event.altKey ? Math.min(zoom + 1, defs.maxZoom) : Math.max(0, zoom - 1);
     var duration = event.shiftKey ? 2500 : 500;
+    var newCenterX = compute.clampX(compute.fromClientX(event.clientX, clientWidth, centerX, zoom));
+    var newCenterY = compute.clampY(compute.fromClientY(event.clientY, clientHeight, centerY, zoom));
+    var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
     App.setCenterX(newCenterX, duration);
     App.setCenterY(newCenterY, duration);
     App.setZoom(newZoom, duration);

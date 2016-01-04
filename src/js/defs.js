@@ -27,7 +27,6 @@ var maxZoom = 7;
 var _ = module.exports = {
   tileSize: tileSize,
   baseClientTileSize: baseClientTileSize,
-  baseClientTileRatio: tileSize / baseClientTileSize,
 
   firstTileX: firstTileX,
   firstTileY: firstTileY,

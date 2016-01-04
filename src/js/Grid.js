@@ -26,8 +26,8 @@ Grid.prototype = {
     this.gridLines.render(gl, gl.STATIC_DRAW);
   },
 
-  draw: function (gl, positionLoc) {
-    this.gridLines.draw(gl, positionLoc);
+  draw: function (gl, vertexLoc) {
+    this.gridLines.draw(gl, vertexLoc);
   }
 };
 
