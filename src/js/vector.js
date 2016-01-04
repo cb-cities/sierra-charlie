@@ -20,9 +20,7 @@ var _ = module.exports = {
     return v1.x * v2.x + v1.y * v2.y;
   },
 
-  // perpendicular dot product
-  // http://mathworld.wolfram.com/PerpDotProduct.html
-  perpDot: function (v1, v2) {
+  perpDot: function (v1, v2) { // perpendicular dot product
     return v1.x * v2.y - v1.y * v2.x;
   },
 

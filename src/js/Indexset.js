@@ -1,8 +1,6 @@
 "use strict";
 
 
-// NOTE: Uses 32-bit indices
-
 function Indexset() {
   this.indexArr = [];
   this.indexBuf = null;
@@ -13,18 +11,12 @@ Indexset.prototype = {
     this.indexArr = [];
   },
 
-  insert: function (newIndex) {
+  insertPoint: function (newIndex) {
     this.indexArr.push(newIndex);
   },
 
-  insertMany: function (newIndices) {
+  insertLine: function (newIndices) {
     this.indexArr.push.apply(this.indexArr, newIndices);
-  },
-
-  insertFromArray: function (arr, baseIndex, count) {
-    for (var i = 0; i < count; i++) {
-      this.indexArr.push(arr[baseIndex + i]);
-    }
   },
 
   render: function (gl, usage) {

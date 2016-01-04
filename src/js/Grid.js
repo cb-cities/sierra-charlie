@@ -7,14 +7,14 @@ var defs = require("./defs");
 function Grid() {
   var left = defs.firstTileX;
   var top = defs.firstTileY;
-  var right = left + defs.tileXCount * defs.tileSize;
-  var bottom = top + defs.tileYCount * defs.tileSize;
+  var right = left + defs.spaceWidth;
+  var bottom = top + defs.spaceHeight;
   this.gridLines = new Lineset();
-  for (var i = 0; i <= defs.tileXCount; i++) {
+  for (var i = 0; i <= defs.tileCountX; i++) {
     var x = defs.firstTileX + i * defs.tileSize;
     this.gridLines.insertLine(x, top, x, bottom);
   }
-  for (var i = 0; i <= defs.tileYCount; i++) {
+  for (var i = 0; i <= defs.tileCountY; i++) {
     var y = defs.firstTileY + i * defs.tileSize;
     this.gridLines.insertLine(left, y, right, y);
   }

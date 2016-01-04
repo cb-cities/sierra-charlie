@@ -3,52 +3,44 @@
 
 var _ = module.exports = {
   minimum: function (arr) {
-    var m = Infinity;
+    var min = Infinity;
     for (var i = 0; i < arr.length; i++) {
-      if (arr[i] < m) {
-        m = arr[i];
+      if (arr[i] < min) {
+        min = arr[i];
       }
     }
-    return m;
+    return min;
   },
 
   maximum: function (arr) {
-    var m = -Infinity;
+    var max = -Infinity;
     for (var i = 0; i < arr.length; i++) {
-      if (arr[i] > m) {
-        m = arr[i];
+      if (arr[i] > max) {
+        max = arr[i];
       }
     }
-    return m;
+    return max;
   },
 
   average: function (arr) {
-    var s = 0;
+    var sum = 0;
     for (var i = 0; i < arr.length; i++) {
-      s += arr[i];
+      sum += arr[i];
     }
-    return s / arr.length;
+    return sum / arr.length;
   },
 
   variance: function (arr) {
-    var a = _.average(arr);
-    var s = 0;
+    var avg = _.average(arr);
+    var sum = 0;
     for (var i = 0; i < arr.length; i++) {
-      var d = a - arr[i];
-      s += d * d;
+      var diff = avg - arr[i];
+      sum += diff * diff;
     }
-    return s / arr.length;
+    return sum / arr.length;
   },
 
   standardDeviation: function (arr) {
     return Math.sqrt(_.variance(arr));
-  },
-
-  dump: function (arr) {
-    return (
-      "min: " + _.minimum(arr).toFixed(2) +
-      "\nmax: " + _.maximum(arr).toFixed(2) +
-      "\navg: " + _.average(arr).toFixed(2) +
-      "\nstd: " + _.standardDeviation(arr).toFixed(2));
   }
 };

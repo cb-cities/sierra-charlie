@@ -1,8 +1,6 @@
 "use strict";
 
 
-// NOTE: Uses 32-bit indices
-
 function Lineset() {
   this.vertexArr = [];
   this.indexArr = [];
