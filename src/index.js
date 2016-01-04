@@ -17,6 +17,9 @@ require("./index.html");
 
 
 function init() {
+  var frame = document.getElementById("map-frame");
+  var canvas = document.getElementById("map-canvas");
+  var space = document.getElementById("map-space");
   var controller = new Controller({
       tileSize: defs.tileSize,
       imageSize: defs.imageSize,
@@ -27,30 +30,29 @@ function init() {
       treeLeft: 465464, // TODO
       treeTop: 112964, // TODO
       treeSize: 131072, // TODO
-      maxZoom: defs.maxZoom
+      maxVertexCount: defs.maxVertexCount,
+      maxRoadNodeIndexCount: defs.maxRoadNodeIndexCount,
+      maxRoadLinkIndexCount: defs.maxRoadLinkIndexCount,
+      maxZoom: defs.maxZoom,
+      origin: window.location.origin
     });
-
+  frame.addEventListener("scroll", controller.onScroll.bind(controller));
+  canvas.addEventListener("webglcontextlost", controller.onContextLost.bind(controller));
+  canvas.addEventListener("webglcontextrestored", controller.onContextRestored.bind(controller));
+  space.addEventListener("mousemove", controller.onMouseMove.bind(controller));
+  space.addEventListener("dblclick", controller.onDoubleClick.bind(controller));
   window.addEventListener("keydown", controller.onKeyDown.bind(controller));
   window.addEventListener("resize", function () {
-      App.needsPainting = true;
+      App.needsPainting = true; // TODO
     });
   window.addEventListener("orientationchange", function () {
       console.log("device orientation changed");
-      App.needsPainting = true;
+      App.needsPainting = true; // TODO
     });
   window.matchMedia("screen and (min-resolution: 2dppx)").addListener(function () {
       console.log("device pixel ratio changed to", window.devicePixelRatio);
-      App.needsPainting = true;
+      App.needsPainting = true; // TODO
     });
-
-  var frame = document.getElementById("map-frame");
-  frame.addEventListener("scroll", controller.onScroll.bind(controller));
-
-  var canvas = document.getElementById("map-canvas");
-
-  var space = document.getElementById("map-space");
-  space.addEventListener("dblclick", controller.onDoubleClick.bind(controller));
-  space.addEventListener("mousemove", controller.onMouseMove.bind(controller));
 
   window.App = r.render(App({
     }),
