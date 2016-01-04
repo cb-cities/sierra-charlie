@@ -84,12 +84,12 @@ body {
 
 #ui-status-left {
   position: absolute;
-  left: 0;
+  left: 2px;
   bottom: 0;
 }
 
 #ui-status-right {
   position: absolute;
-  right: 0;
+  right: 2px;
   bottom: 0;
 }

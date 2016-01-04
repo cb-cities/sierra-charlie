@@ -41,10 +41,12 @@ Lineset.prototype = {
   },
 
   render: function (gl, usage) {
-    this.vertexBuf = gl.createBuffer();
+    if (!this.vertexBuf) { // TODO
+      this.vertexBuf = gl.createBuffer();
+      this.indexBuf = gl.createBuffer();
+    }
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertexArr), usage);
-    this.indexBuf = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indexArr), usage);
   },

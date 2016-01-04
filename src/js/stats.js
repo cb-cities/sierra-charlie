@@ -42,5 +42,14 @@ var _ = module.exports = {
 
   standardDeviation: function (arr) {
     return Math.sqrt(_.variance(arr));
+  },
+
+  dump: function (arr) {
+    return {
+      min: _.minimum(arr),
+      max: _.maximum(arr),
+      avg: _.average(arr),
+      std: _.standardDeviation(arr)
+    };
   }
 };

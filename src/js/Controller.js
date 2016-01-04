@@ -49,39 +49,14 @@ Controller.prototype = {
     return canvas.clientHeight;
   },
 
-  fromClientPoint: function (x, y) {
-    var width = this.getClientWidth();
-    var height = this.getClientHeight();
-    var left = App.getLeft();
-    var top = App.getTop();
+  findClosestFeature: function (clientP) {
+    var clientWidth = this.getClientWidth();
+    var clientHeight = this.getClientHeight();
+    var centerX = App.getCenterX();
+    var centerY = App.getCenterY();
     var zoom = App.getZoom();
-    var zoomLevel = compute.zoomLevel(zoom);
-    var dilation = defs.clientTileRatio * zoomLevel; // TODO: Compare with drawing
-    var translationX = defs.firstTileX + left * defs.spaceWidth;
-    var translationY = defs.lastTileY + defs.tileSize - top * defs.spaceHeight;
-    return {
-      x: (x - width / 2) * dilation + translationX,
-      y: ((height - y) - height / 2) * dilation + translationY
-    };
-  },
-
-  fromClientRect: function (r) {
-    var bottomLeft = this.fromClientPoint(r.left, r.top);
-    var topRight = this.fromClientPoint(r.right, r.bottom);
-    return {
-      left: bottomLeft.x,
-      top: topRight.y,
-      right: topRight.x,
-      bottom: bottomLeft.y
-    };
-  },
-
-  findClosestFeature: function (x, y) {
-    var cursorP = this.fromClientPoint(x, y);
-    var cursorR = this.fromClientRect(vector.bounds(16, {
-        x: x,
-        y: y
-      }));
+    var cursorP = compute.fromClientPoint(clientP, clientWidth, clientHeight, centerX, centerY, zoom);
+    var cursorR = compute.fromClientRect(vector.bounds(16, clientP), clientWidth, clientHeight, centerX, centerY, zoom)
     var roadNodes = this.roadNodeTree.select(cursorR);
     var closestRoadNodeDistance = Infinity;
     var closestRoadNode = null;
@@ -108,26 +83,26 @@ Controller.prototype = {
       return {
         key: "roadNode",
         roadNode: closestRoadNode,
-        cursorP: cursorP,
-        cursorR: cursorR
+        cursorP: cursorP
       };
     } else if (closestRoadLink) {
       return {
         key: "roadLink",
         roadLink: closestRoadLink,
-        cursorP: cursorP,
-        cursorR: cursorR
+        cursorP: cursorP
       };
     } else {
       return {
-        cursorP: cursorP,
-        cursorR: cursorR
+        cursorP: cursorP
       };
     }
   },
 
-  updateHover: function (x, y) {
-    var result = this.findClosestFeature(x, y);
+  updateHover: function (clientX, clientY) {
+    var result = this.findClosestFeature({
+        x: clientX,
+        y: clientY
+      });
     this.hoveredRoadNodeIndices.clear();
     this.hoveredRoadLinkIndices.clear();
     if (result.key === "roadNode") {
@@ -144,8 +119,8 @@ Controller.prototype = {
     UI.ports.setHoveredLocation.send(result.cursorP);
 
     var gl = App.drawingContext.gl; // TODO
-    this.hoveredRoadNodeIndices.render(gl, gl.STREAM_DRAW);
-    this.hoveredRoadLinkIndices.render(gl, gl.STREAM_DRAW);
+    this.hoveredRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+    this.hoveredRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
     App.isDrawingNeeded = true; // TODO
     App.hoveredRoadNodeIndices = this.hoveredRoadNodeIndices; // OMG
     App.hoveredRoadLinkIndices = this.hoveredRoadLinkIndices; // OMG
@@ -171,9 +146,9 @@ Controller.prototype = {
     if (!(App.isScrolling())) {
       var frame = document.getElementById("map-frame");
       var zoom = App.getZoom();
-      var newLeft = compute.leftFromClientScrollLeft(frame.scrollLeft, zoom);
-      var newTop = compute.topFromClientScrollTop(frame.scrollTop, zoom);
-      App.setStaticLeftTop(newLeft, newTop);
+      var newCenterX = compute.centerXFromScrollLeft(frame.scrollLeft, zoom);
+      var newCenterY = compute.centerYFromScrollTop(frame.scrollTop, zoom);
+      App.setStaticCenter(newCenterX, newCenterY);
     }
     this.updateHover(this.prevClientX, this.prevClientY);
   },
@@ -198,53 +173,53 @@ Controller.prototype = {
 
   onMouseDoubleClicked: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var width = this.getClientWidth();
-    var height = this.getClientHeight();
-    var left = App.getStaticLeft();
-    var top = App.getStaticTop();
+    var clientWidth = this.getClientWidth();
+    var clientHeight = this.getClientHeight();
+    var centerX = App.getStaticCenterX();
+    var centerY = App.getStaticCenterY();
     var zoom = App.getStaticZoom();
-    var newLeft = compute.leftFromClientX(event.clientX, width, left, zoom);
-    var newTop = compute.topFromClientY(event.clientY, height, top, zoom);
+    var newCenterX = compute.fromClientX(event.clientX, clientWidth, centerX, zoom);
+    var newCenterY = compute.fromClientY(event.clientY, clientHeight, centerY, zoom);
     var newZoom = event.altKey ? Math.min(zoom + 1, defs.maxZoom) : Math.max(0, zoom - 1);
     var duration = event.shiftKey ? 2500 : 500;
-    App.setLeft(newLeft, duration);
-    App.setTop(newTop, duration);
+    App.setCenterX(newCenterX, duration);
+    App.setCenterY(newCenterY, duration);
     App.setZoom(newZoom, duration);
   },
 
   onKeyPressed: function (event) {
     // console.log("keyDown", event.keyCode);
-    var width = this.getClientWidth();
-    var height = this.getClientHeight();
-    var left = App.getStaticLeft();
-    var top = App.getStaticTop();
+    var clientWidth = this.getClientWidth();
+    var clientHeight = this.getClientHeight();
+    var centerX = App.getStaticCenterX();
+    var centerY = App.getStaticCenterY();
     var rawTime = App.getStaticRawTime();
     var zoom = App.getStaticZoom();
-    var pageWidth = compute.clientPageWidth(width, zoom);
-    var pageHeight = compute.clientPageHeight(height, zoom);
+    var pageWidth = compute.visibleWidth(clientWidth, zoom);
+    var pageHeight = compute.visibleHeight(clientHeight, zoom);
     var duration = event.shiftKey ? 2500 : 500;
     // var timeDelta = (event.ctrlKey || event.altKey) ? 60 : 3600;
-    var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10;
+    var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10; // TODO
     switch (event.keyCode) {
       case 37: // left
       case 36: // home
-        var newLeft = Math.max(0, left - pageWidth / (event.keyCode === 36 ? 1 : 10));
-        App.setLeft(newLeft, duration);
+        var scale = event.keyCode === 36 ? 1 : 10;
+        App.setCenterX(compute.clampX(centerX - pageWidth / scale), duration);
         break;
       case 39: // right
       case 35: // end
-        var newLeft = Math.min(left + pageWidth / (event.keyCode === 35 ? 1 : 10), 1);
-        App.setLeft(newLeft, duration);
+        var scale = event.keyCode === 35 ? 1 : 10;
+        App.setCenterX(compute.clampX(centerX + pageWidth / scale), duration);
         break;
       case 38: // up
       case 33: // page up
-        var newTop = Math.max(0, top - pageHeight / (event.keyCode === 33 ? 1 : 10));
-        App.setTop(newTop, duration);
+        var scale = event.keyCode === 33 ? 1 : 10;
+        App.setCenterY(compute.clampY(centerY + pageHeight / scale), duration);
         break;
       case 40: // down
       case 34: // page down
-        var newTop = Math.min(top + pageHeight / (event.keyCode === 34 ? 1 : 10), 1);
-        App.setTop(newTop, duration);
+        var scale = event.keyCode === 34 ? 1 : 10;
+        App.setCenterY(compute.clampY(centerY - pageHeight / scale), duration);
         break;
       // case 219: // left bracket
       //   var newRawTime = Math.round((rawTime * 3600) - timeDelta) / 3600;
@@ -255,16 +230,16 @@ Controller.prototype = {
       //   App.setRawTime(newRawTime, duration);
       //   break;
       case 187: // plus
-        var newZoom = Math.max(0, (Math.round((zoom * 10) - zoomDelta) / 10));
+        var newZoom = compute.clampZoom(Math.round((zoom * 10) - zoomDelta) / 10);
         App.setZoom(newZoom, duration);
         break;
       case 189: // minus
-        var newZoom = Math.min(Math.round((zoom * 10) + zoomDelta) / 10, defs.maxZoom);
+        var newZoom = compute.clampZoom(Math.round((zoom * 10) + zoomDelta) / 10);
         App.setZoom(newZoom, duration);
         break;
       default: // 1-8
         if (event.keyCode >= 49 && event.keyCode <= 57) {
-          var newZoom = Math.max(0, Math.min(event.keyCode - 49, defs.maxZoom));
+          var newZoom = compute.clampZoom(event.keyCode - 49);
           App.setZoom(newZoom, duration);
         }
     }
