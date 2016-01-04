@@ -29,8 +29,8 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      left: 0.4897637424698795,
-      top: 0.4768826844262295,
+      left: 0.4897637424698795, // 41625
+      top: 0.4768826844262295, // 29563
       zoom: 5,
       rawTime: 10 + 9 / 60
     };
