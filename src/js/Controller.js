@@ -19,8 +19,8 @@ function Controller() {
       onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this)
     });
   window.Grid = this.grid = new Grid(); // TODO
-  window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.treeLeft, defs.treeTop, defs.treeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
-  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.treeLeft, defs.treeTop, defs.treeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
+  window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
+  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
   this.hoveredRoadNodeIndices = new Indexset();
   this.hoveredRoadLinkIndices = new Indexset();
   // this.roadNodeTreeLines = new Lineset(); // TODO
@@ -38,25 +38,25 @@ Controller.prototype = {
     return canvas.clientHeight;
   },
   
-  projectPointToWorld: function (clientX, clientY) {
-    var clientWidth = this.getClientWidth();
-    var clientHeight = this.getClientHeight();
+  fromClientPoint: function (x, y) {
+    var width = this.getClientWidth();
+    var height = this.getClientHeight();
     var left = App.getLeft();
     var top = App.getTop();
     var zoom = App.getZoom();
     var zoomLevel = compute.zoomLevel(zoom);
-    var dilation = defs.tileSize / defs.imageSize * zoomLevel; // TODO: Compare with drawing
-    var translationX = defs.firstTileX + left * defs.tileXCount * defs.tileSize;
-    var translationY = defs.lastTileY + defs.tileSize - top * defs.tileYCount * defs.tileSize;
+    var dilation = defs.clientTileRatio * zoomLevel; // TODO: Compare with drawing
+    var translationX = defs.firstTileX + left * defs.spaceWidth;
+    var translationY = defs.lastTileY + defs.tileSize - top * defs.spaceHeight;
     return {
-      x: (clientX - clientWidth / 2) * dilation + translationX,
-      y: ((clientHeight - clientY) - clientHeight / 2) * dilation + translationY
+      x: (x - width / 2) * dilation + translationX,
+      y: ((height - y) - height / 2) * dilation + translationY
     };
   },
 
-  projectRectToWorld: function (clientR) {
-    var bottomLeft = this.projectPointToWorld(clientR.left, clientR.top);
-    var topRight = this.projectPointToWorld(clientR.right, clientR.bottom);
+  fromClientRect: function (r) {
+    var bottomLeft = this.fromClientPoint(r.left, r.top);
+    var topRight = this.fromClientPoint(r.right, r.bottom);
     return {
       left: bottomLeft.x,
       top: topRight.y,
@@ -65,23 +65,23 @@ Controller.prototype = {
     };
   },
 
-  updateHover: function (clientX, clientY) {
+  updateHover: function (x, y) {
     var mouse =
-      this.projectRectToWorld(vector.bounds(16, {
-          x: clientX,
-          y: clientY
+      this.fromClientRect(vector.bounds(16, {
+          x: x,
+          y: y
         }))
     var roadNodes = this.roadNodeTree.select(mouse);
     this.hoveredRoadNodeIndices.clear();
     for (var i = 0; i < roadNodes.length; i++) {
       var index = this.geometry.getRoadNodeIndex(roadNodes[i]);
-      this.hoveredRoadNodeIndices.insert(index);
+      this.hoveredRoadNodeIndices.insertPoint(index);
     }
     var roadLinks = this.roadLinkTree.select(mouse);
     this.hoveredRoadLinkIndices.clear();
     for (var i = 0; i < roadLinks.length; i++) {
       var indices = this.geometry.getRoadLinkIndices(roadLinks[i]);
-      this.hoveredRoadLinkIndices.insertMany(indices);
+      this.hoveredRoadLinkIndices.insertLine(indices);
     }
     var gl = App.drawingContext.gl; // TODO
     this.hoveredRoadNodeIndices.render(gl, gl.STREAM_DRAW);
@@ -131,8 +131,8 @@ Controller.prototype = {
     if (!(App.isScrolling())) {
       var frame = document.getElementById("map-frame");
       var zoom = App.getZoom();
-      var newLeft = compute.leftFromFrameScrollLeft(frame.scrollLeft, zoom);
-      var newTop = compute.topFromFrameScrollTop(frame.scrollTop, zoom);
+      var newLeft = compute.leftFromClientScrollLeft(frame.scrollLeft, zoom);
+      var newTop = compute.topFromClientScrollTop(frame.scrollTop, zoom);
       App.setStaticLeftTop(newLeft, newTop);
     }
     this.updateHover(this.lastClientX, this.lastClientY);
@@ -158,13 +158,13 @@ Controller.prototype = {
 
   onMouseDoubleClicked: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var clientWidth = this.getClientWidth();
-    var clientHeight = this.getClientHeight();
+    var width = this.getClientWidth();
+    var height = this.getClientHeight();
     var left = App.getStaticLeft();
     var top = App.getStaticTop();
     var zoom = App.getStaticZoom();
-    var newLeft = compute.leftFromEventClientX(event.clientX, clientWidth, left, zoom);
-    var newTop = compute.topFromEventClientY(event.clientY, clientHeight, top, zoom);
+    var newLeft = compute.leftFromClientX(event.clientX, width, left, zoom);
+    var newTop = compute.topFromClientY(event.clientY, height, top, zoom);
     var newZoom = event.altKey ? Math.min(zoom + 1, defs.maxZoom) : Math.max(0, zoom - 1);
     var duration = event.shiftKey ? 2500 : 500;
     App.setLeft(newLeft, duration);
@@ -174,14 +174,14 @@ Controller.prototype = {
 
   onKeyPressed: function (event) {
     // console.log("keyDown", event.keyCode);
-    var clientWidth = this.getClientWidth();
-    var clientHeight = this.getClientHeight();
+    var width = this.getClientWidth();
+    var height = this.getClientHeight();
     var left = App.getStaticLeft();
     var top = App.getStaticTop();
     var rawTime = App.getStaticRawTime();
     var zoom = App.getStaticZoom();
-    var pageWidth = compute.pageWidth(clientWidth, zoom);
-    var pageHeight = compute.pageHeight(clientHeight, zoom);
+    var pageWidth = compute.clientPageWidth(width, zoom);
+    var pageHeight = compute.clientPageHeight(height, zoom);
     var duration = event.shiftKey ? 2500 : 500;
     // var timeDelta = (event.ctrlKey || event.altKey) ? 60 : 3600;
     var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10;

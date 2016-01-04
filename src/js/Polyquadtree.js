@@ -4,21 +4,21 @@ var polyline = require("./polyline");
 var rect = require("./rect");
 
 
-var maxItems = 16;
+var softMaxItemCount = 16;
 
-function Polyquadtree(left, top, size, getBounds) {
+function Polyquadtree(left, top, size, getItemBounds) {
   this.left = left;
   this.top = top;
   this.size = size;
-  this.getBounds = getBounds;
+  this.getItemBounds = getItemBounds;
   this.items = [];
 }
 
 Polyquadtree.prototype = {
   insert: function (newItem) {
-    var newBounds = this.getBounds(newItem);
+    var newBounds = this.getItemBounds(newItem);
     if (this.items) {
-      if (this.items.length < maxItems || this.intersectsSomeItem(newBounds)) {
+      if (this.items.length < softMaxItemCount || this.someItemIntersects(newBounds)) {
         this.items.push(newItem);
       } else {
         this.split();
@@ -40,14 +40,23 @@ Polyquadtree.prototype = {
     }
   },
 
+  someItemIntersects: function (r) {
+    for (var i = 0; i < this.items.length; i++) {
+      if (rect.intersects(r, this.getItemBounds(this.items[i]))) {
+        return true;
+      }
+    }
+    return false;
+  },
+
   split: function () {
     var halfSize = this.size / 2;
     var midWidth = this.left + halfSize;
     var midHeight = this.top + halfSize;
-    this.topLeft = new Polyquadtree(this.left, this.top, halfSize, this.getBounds);
-    this.topRight = new Polyquadtree(midWidth, this.top, halfSize, this.getBounds);
-    this.bottomLeft = new Polyquadtree(this.left, midHeight, halfSize, this.getBounds);
-    this.bottomRight = new Polyquadtree(midWidth, midHeight, halfSize, this.getBounds);
+    this.topLeft = new Polyquadtree(this.left, this.top, halfSize, this.getItemBounds);
+    this.topRight = new Polyquadtree(midWidth, this.top, halfSize, this.getItemBounds);
+    this.bottomLeft = new Polyquadtree(this.left, midHeight, halfSize, this.getItemBounds);
+    this.bottomRight = new Polyquadtree(midWidth, midHeight, halfSize, this.getItemBounds);
     var items = this.items;
     delete this.items;
     for (var i = 0; i < items.length; i++) {
@@ -60,7 +69,7 @@ Polyquadtree.prototype = {
     if (this.intersects(r)) {
       if (this.items) {
         for (var i = 0; i < this.items.length; i++) {
-          if (rect.intersects(r, this.getBounds(this.items[i]))) {
+          if (rect.intersects(r, this.getItemBounds(this.items[i]))) {
             results.push(this.items[i]);
           }
         }
@@ -74,65 +83,13 @@ Polyquadtree.prototype = {
     return results;
   },
 
-  intersectsSomeItem: function (r) {
-    for (var i = 0; i < this.items.length; i++) {
-      if (rect.intersects(r, this.getBounds(this.items[i]))) {
-        return true;
-      }
-    }
-    return false;
-  },
-
   intersects: function (r) {
     return (
       this.left <= r.right &&
       r.left <= this.left + this.size &&
       this.top <= r.bottom &&
       r.top <= this.top + this.size);
-  },
-
-  extendLineset: function (lineset) {
-    if (this.items) {
-      lineset.extend([
-          this.left, this.top,
-          this.left + this.size, this.top,
-          this.left, this.top + this.size,
-          this.left + this.size, this.top + this.size
-        ],
-        this.items.length === 0 ?
-          emptyLeafIndices :
-          leafIndices);
-    } else {
-      this.topLeft.extendLineset(lineset);
-      this.topRight.extendLineset(lineset);
-      this.bottomLeft.extendLineset(lineset);
-      this.bottomRight.extendLineset(lineset);
-    }
-  },
-
-  extendStats: function (stats) {
-    if (this.items) {
-      stats.itemCounts.push(this.items.length);
-    } else {
-      stats.nodeSizes.push(this.size);
-      this.topLeft.extendStats(stats);
-      this.topRight.extendStats(stats);
-      this.bottomLeft.extendStats(stats);
-      this.bottomRight.extendStats(stats);
-    }
-    return stats;
   }
 };
-
-var leafIndices = [
-  0, 1,
-  1, 3,
-  3, 2,
-  2, 0
-];
-var emptyLeafIndices = leafIndices.concat([
-  0, 3,
-  1, 2
-]);
 
 module.exports = Polyquadtree;
