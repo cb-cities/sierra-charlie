@@ -68,7 +68,7 @@ Quadtree.prototype = {
     }
     return results;
   },
-  
+
   contains: function (p) {
     return (
       this.left <= p.x &&

@@ -7,6 +7,7 @@ var r = require("react-wrapper");
 window.Elm = require("./elm/UI");
 
 var App = r.wrap(require("./js/App"));
+var Controller = require("./js/Controller");
 var compute = require("./js/compute");
 var defs = require("./js/defs");
 
@@ -16,7 +17,22 @@ require("./index.html");
 
 
 function init() {
-  r.render(App(), document.getElementById("app"));
+  var controller = new Controller({
+      maxZoom: defs.maxZoom
+    });
+
+  addEventListener("keydown", controller.onKeyDown.bind(controller));
+
+  var frame = document.getElementById("map-frame");
+
+  var canvas = document.getElementById("map-canvas");
+
+  var space = document.getElementById("map-space");
+  space.addEventListener("dblclick", controller.onDoubleClick.bind(controller));
+
+  window.App = r.render(App({
+    }),
+    document.getElementById("app"));
 
   window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
       maxVertexCount: defs.maxVertexCount,
