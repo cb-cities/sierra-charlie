@@ -1,15 +1,21 @@
 module UI where
 
 import Effects exposing (Effects, Never)
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, span, text)
 import Html.Attributes exposing (id, style)
 import Signal exposing (Address)
 import StartApp exposing (App)
 import Task exposing (Task)
 
 
+type alias Point =
+  { x : Float
+  , y : Float
+  }
+
 type alias Model =
   { loadingProgress : Float
+  , hoveredLocation : Point
   , hoveredToid : Maybe String
   , selectedToid : Maybe String
   }
@@ -18,6 +24,7 @@ type alias Model =
 defaultModel : Model
 defaultModel =
   { loadingProgress = 0
+  , hoveredLocation = {x = 0, y = 0}
   , hoveredToid = Nothing
   , selectedToid = Nothing
   }
@@ -26,6 +33,7 @@ defaultModel =
 type Action =
     Idle
   | SetLoadingProgress Float
+  | SetHoveredLocation Point
   | SetHoveredToid (Maybe String)
   | SetSelectedToid (Maybe String)
 
@@ -42,6 +50,9 @@ update action model =
         noEffect model
       SetLoadingProgress newProgress ->
         {model | loadingProgress = max 0 newProgress}
+          |> noEffect
+      SetHoveredLocation newLocation ->
+        {model | hoveredLocation = newLocation}
           |> noEffect
       SetHoveredToid newToid ->
         {model | hoveredToid = newToid}
@@ -71,14 +82,21 @@ view address model =
       , div
           [ id "ui-status-area"
           ]
-          [ div []
-              [ case model.hoveredToid of
-                  Nothing ->
-                    text ""
-                  Just toid ->
-                    text toid
+          [ span [id "ui-status-left"]
+              [ let
+                  location =
+                    toString (round model.hoveredLocation.x) ++ " " ++
+                    toString (round model.hoveredLocation.y)
+                  toid =
+                    case model.hoveredToid of
+                      Nothing ->
+                        ""
+                      Just toid ->
+                        toid
+                in
+                  text (location ++ " " ++ toid)
               ]
-          , div []
+          , span [id "ui-status-right"]
               [ case model.selectedToid of
                   Nothing ->
                     text ""
@@ -95,6 +113,7 @@ init =
 
 
 port setLoadingProgress : Signal Float
+port setHoveredLocation : Signal Point
 port setHoveredToid : Signal (Maybe String)
 port setSelectedToid : Signal (Maybe String)
 
@@ -107,6 +126,7 @@ app =
       , view = view
       , inputs =
           [ Signal.map SetLoadingProgress setLoadingProgress
+          , Signal.map SetHoveredLocation setHoveredLocation
           , Signal.map SetHoveredToid setHoveredToid
           , Signal.map SetSelectedToid setSelectedToid
           ]

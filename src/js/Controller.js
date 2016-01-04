@@ -75,7 +75,7 @@ Controller.prototype = {
       bottom: bottomLeft.y
     };
   },
-  
+
   findClosestFeature: function (x, y) {
     var cursorP = this.fromClientPoint(x, y);
     var cursorR = this.fromClientRect(vector.bounds(16, {
@@ -107,15 +107,22 @@ Controller.prototype = {
     if (closestRoadNode && closestRoadNodeDistance <= closestRoadLinkDistance + 4) {
       return {
         key: "roadNode",
-        roadNode: closestRoadNode
+        roadNode: closestRoadNode,
+        cursorP: cursorP,
+        cursorR: cursorR
       };
     } else if (closestRoadLink) {
       return {
         key: "roadLink",
-        roadLink: closestRoadLink
+        roadLink: closestRoadLink,
+        cursorP: cursorP,
+        cursorR: cursorR
       };
     } else {
-      return {};
+      return {
+        cursorP: cursorP,
+        cursorR: cursorR
+      };
     }
   },
 
@@ -134,6 +141,7 @@ Controller.prototype = {
     } else {
       UI.ports.setHoveredToid.send(null);
     }
+    UI.ports.setHoveredLocation.send(result.cursorP);
 
     var gl = App.drawingContext.gl; // TODO
     this.hoveredRoadNodeIndices.render(gl, gl.STREAM_DRAW);
