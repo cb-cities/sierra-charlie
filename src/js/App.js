@@ -9,10 +9,10 @@ var compute = require("./compute");
 
 
 var GeometryLoader = require("worker?inline!./geometry-loader");
-var Indexset = require("./indexset");
+var Indexset = require("./Indexset");
 var Lineset = require("./lineset");
-var Quadtree = require("./quadtree");
-var Polyquadtree = require("./polyquadtree");
+var Quadtree = require("./Quadtree");
+var Polyquadtree = require("./Polyquadtree");
 var defs = require("./defs");
 var glUtils = require("./gl-utils");
 var polyline = require("./polyline");
@@ -44,7 +44,6 @@ module.exports = {
     canvas.addEventListener("webglcontextlost", this.onLoseContext);
     canvas.addEventListener("webglcontextrestored", this.onRestoreContext);
 
-    space.addEventListener("mousemove", this.onMouseMove);
     addEventListener("resize", this.onResize);
 
     this.startGeometryLoader();
@@ -220,12 +219,6 @@ module.exports = {
     this.roadLinkIndices = new Uint32Array(defs.maxRoadLinkIndexCount);
     this.roadLinkIndexCount = 0;
 
-    this.roadNodeTree = new Quadtree(465464, 112964, 131072, this.getRoadNodePoint); // TODO
-    this.roadLinkTree = new Polyquadtree(465464, 112964, 131072, this.getRoadLinkBounds);
-
-    this.hoveredRoadNodes = new Indexset(); // TODO
-    this.hoveredRoadLinks = new Indexset();
-
     // this.roadNodeTreeLines = new Lineset(); // TODO
     // this.roadLinkTreeLines = new Lineset();
 
@@ -245,12 +238,7 @@ module.exports = {
   },
 
   getRoadLinkBounds: function (roadLink) {
-    var result = {
-      left: Infinity,
-      top: Infinity,
-      right: -Infinity,
-      bottom: -Infinity
-    };
+    var result = rect.invalid;
     for (var i = 0; i < roadLink.pointCount; i++) {
       var k = roadLink.vertexOffset + i;
       result = rect.stretch(result, {
@@ -259,6 +247,19 @@ module.exports = {
         });
     }
     return result;
+  },
+
+  getRoadNodeIndex: function (roadNode) {
+    return roadNode.vertexOffset;
+  },
+
+  getRoadLinkIndices: function (roadLink) {
+    var results = [];
+    var indexCount = (roadLink.pointCount - 1) * 2;
+    for (var i = 0; i < indexCount; i++) {
+      results.push(this.roadLinkIndices[roadLink.indexOffset + i]);
+    }
+    return results;
   },
 
   stopGeometryLoader: function () {
@@ -285,7 +286,7 @@ module.exports = {
     for (var i = 0; i < data.roadNodes.length; i++) {
       var roadNode = data.roadNodes[i];
       this.roadNodes[roadNode.toid] = roadNode;
-      this.roadNodeTree.insert(roadNode);
+      window.RoadNodeTree.insert(roadNode); // OMG TODO
     }
     if (this.vertexCount === defs.maxVertexCount) {
       this.stopGeometryLoader();
@@ -312,7 +313,7 @@ module.exports = {
     for (var i = 0; i < data.roadLinks.length; i++) {
       var roadLink = data.roadLinks[i];
       this.roadLinks[roadLink.toid] = roadLink;
-      this.roadLinkTree.insert(roadLink);
+      window.RoadLinkTree.insert(roadLink); // OMG TODO
     }
     if (this.vertexCount === defs.maxVertexCount) {
       this.stopGeometryLoader();
@@ -452,7 +453,7 @@ module.exports = {
       gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
       gl.drawElements(gl.LINES, cx.roadLinkIndexCount, gl.UNSIGNED_INT, 0);
       gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
-      this.hoveredRoadLinks.draw(gl, gl.LINES);
+      this.hoveredRoadLinkIndices.draw(gl, gl.LINES); // TODO
 
       // Draw road nodes
       var roadNodeSize = 8 * cx.devicePixelRatio / zoomLevel * Math.cbrt(zoomLevel);
@@ -462,7 +463,7 @@ module.exports = {
       gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
       gl.drawElements(gl.POINTS, cx.roadNodeIndexCount, gl.UNSIGNED_INT, 0);
       gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
-      this.hoveredRoadNodes.draw(gl, gl.POINTS);
+      this.hoveredRoadNodeIndices.draw(gl, gl.POINTS); // TODO
 
       // gl.lineWidth(1);
       // gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
@@ -501,62 +502,6 @@ module.exports = {
 
   onResize: function () {
     this.needsPainting = true;
-  },
-
-
-
-  fromClientPoint: function(clientX, clientY) {
-    var canvas = document.getElementById("map-canvas");
-    var left = this.getEasedState("left");
-    var top = this.getEasedState("top");
-    var zoom = this.getEasedState("zoom");
-    var zoomLevel = compute.zoomLevel(zoom);
-    var dilation = defs.tileSize / defs.imageSize * zoomLevel; // TODO: Compare with drawing
-    var translationX = (defs.firstTileX + left * defs.tileXCount) * defs.tileSize;
-    var translationY = (defs.lastTileY + 1 - top * defs.tileYCount) * defs.tileSize;
-    return {
-      x: (clientX - canvas.clientWidth / 2) * dilation + translationX,
-      y: ((canvas.clientHeight - clientY) - canvas.clientHeight / 2) * dilation + translationY
-    };
-  },
-
-  fromClientRect: function (clientR) {
-    var bottomLeft = this.fromClientPoint(clientR.left, clientR.top);
-    var topRight = this.fromClientPoint(clientR.right, clientR.bottom);
-    return {
-      left: bottomLeft.x,
-      top: topRight.y,
-      right: topRight.x,
-      bottom: bottomLeft.y
-    };
-  },
-
-  onMouseMove: function (event) {
-    // console.log("mouseMove", event.clientX, event.clientY);
-    this.needsPainting = true;
-
-    var cursor =
-      this.fromClientRect(
-        vector.bounds(6, {
-            x: event.clientX,
-            y: event.clientY
-          }));
-
-    var roadNodeItems = this.roadNodeTree.select(cursor);
-    this.hoveredRoadNodes.clear();
-    for (var i = 0; i < roadNodeItems.length; i++) {
-      this.hoveredRoadNodes.insert(roadNodeItems[i].vertexOffset);
-    }
-
-    var roadLinkItems = this.roadLinkTree.select(cursor);
-    this.hoveredRoadLinks.clear();
-    for (var i = 0; i < roadLinkItems.length; i++) {
-      this.hoveredRoadLinks.insertFromArray(this.roadLinkIndices, roadLinkItems[i].indexOffset, (roadLinkItems[i].pointCount - 1) * 2);
-    }
-
-    var gl = this.painterContext.gl;
-    this.hoveredRoadNodes.render(gl, gl.STREAM_DRAW);
-    this.hoveredRoadLinks.render(gl, gl.STREAM_DRAW);
   }
 };
 
