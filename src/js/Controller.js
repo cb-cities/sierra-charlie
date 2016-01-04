@@ -8,6 +8,7 @@ var Quadtree = require("./Quadtree");
 
 var compute = require("./compute");
 var defs = require("./defs");
+var polyline = require("./polyline");
 var vector = require("./vector");
 
 
@@ -78,23 +79,46 @@ Controller.prototype = {
   },
 
   updateHover: function (x, y) {
-    var mouse =
-      this.fromClientRect(vector.bounds(16, {
-          x: x,
-          y: y
-        }))
-    var roadNodes = this.roadNodeTree.select(mouse);
-    this.hoveredRoadNodeIndices.clear();
+    var cursorP = this.fromClientPoint(x, y);
+    var cursorR = this.fromClientRect(vector.bounds(16, {
+        x: x,
+        y: y
+      }));
+
+    var roadNodes = this.roadNodeTree.select(cursorR);
+    var closestRoadNodeDistance = Infinity;
+    var closestRoadNode = null;
     for (var i = 0; i < roadNodes.length; i++) {
-      var index = this.geometry.getRoadNodeIndex(roadNodes[i]);
-      this.hoveredRoadNodeIndices.insertPoint(index);
+      var p = this.geometry.getRoadNodePoint(roadNodes[i])
+      var distance = vector.distance(cursorP, p);
+      if (distance < closestRoadNodeDistance) {
+        closestRoadNodeDistance = distance;
+        closestRoadNode = roadNodes[i];
+      }
     }
-    var roadLinks = this.roadLinkTree.select(mouse);
-    this.hoveredRoadLinkIndices.clear();
+
+    var roadLinks = this.roadLinkTree.select(cursorR);
+    var closestRoadLinkDistance = Infinity;
+    var closestRoadLink = null;
     for (var i = 0; i < roadLinks.length; i++) {
-      var indices = this.geometry.getRoadLinkIndices(roadLinks[i]);
+      var ps = this.geometry.getRoadLinkPoints(roadLinks[i]);
+      var distance = polyline.distance(cursorP, ps);
+      if (distance < closestRoadLinkDistance) {
+        closestRoadLinkDistance = distance;
+        closestRoadLink = roadLinks[i];
+      }
+    }
+
+    this.hoveredRoadNodeIndices.clear();
+    this.hoveredRoadLinkIndices.clear();
+    if (closestRoadNode && closestRoadNodeDistance <= closestRoadLinkDistance + 4) {
+      var index = this.geometry.getRoadNodeIndex(closestRoadNode);
+      this.hoveredRoadNodeIndices.insertPoint(index);
+    } else if (closestRoadLink) {
+      var indices = this.geometry.getRoadLinkIndices(closestRoadLink);
       this.hoveredRoadLinkIndices.insertLine(indices);
     }
+
     var gl = App.drawingContext.gl; // TODO
     this.hoveredRoadNodeIndices.render(gl, gl.STREAM_DRAW);
     this.hoveredRoadLinkIndices.render(gl, gl.STREAM_DRAW);
