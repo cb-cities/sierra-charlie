@@ -2,6 +2,13 @@
 
 
 module.exports = {
+  invalid: {
+    left: Infinity,
+    top: Infinity,
+    right: -Infinity,
+    bottom: -Infinity
+  },
+  
   width: function (r) {
     return r.right - r.left;
   },
