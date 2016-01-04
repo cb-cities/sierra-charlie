@@ -75,14 +75,13 @@ Controller.prototype = {
       bottom: bottomLeft.y
     };
   },
-
-  updateHover: function (x, y) {
+  
+  findClosestFeature: function (x, y) {
     var cursorP = this.fromClientPoint(x, y);
     var cursorR = this.fromClientRect(vector.bounds(16, {
         x: x,
         y: y
       }));
-
     var roadNodes = this.roadNodeTree.select(cursorR);
     var closestRoadNodeDistance = Infinity;
     var closestRoadNode = null;
@@ -94,7 +93,6 @@ Controller.prototype = {
         closestRoadNode = roadNodes[i];
       }
     }
-
     var roadLinks = this.roadLinkTree.select(cursorR);
     var closestRoadLinkDistance = Infinity;
     var closestRoadLink = null;
@@ -106,15 +104,35 @@ Controller.prototype = {
         closestRoadLink = roadLinks[i];
       }
     }
+    if (closestRoadNode && closestRoadNodeDistance <= closestRoadLinkDistance + 4) {
+      return {
+        key: "roadNode",
+        roadNode: closestRoadNode
+      };
+    } else if (closestRoadLink) {
+      return {
+        key: "roadLink",
+        roadLink: closestRoadLink
+      };
+    } else {
+      return {};
+    }
+  },
 
+  updateHover: function (x, y) {
+    var result = this.findClosestFeature(x, y);
     this.hoveredRoadNodeIndices.clear();
     this.hoveredRoadLinkIndices.clear();
-    if (closestRoadNode && closestRoadNodeDistance <= closestRoadLinkDistance + 4) {
-      var index = this.geometry.getRoadNodeIndex(closestRoadNode);
+    if (result.key === "roadNode") {
+      var index = this.geometry.getRoadNodeIndex(result.roadNode);
       this.hoveredRoadNodeIndices.insertPoint(index);
-    } else if (closestRoadLink) {
-      var indices = this.geometry.getRoadLinkIndices(closestRoadLink);
+      UI.ports.setHoveredToid.send(result.roadNode.toid);
+    } else if (result.key === "roadLink") {
+      var indices = this.geometry.getRoadLinkIndices(result.roadLink);
       this.hoveredRoadLinkIndices.insertLine(indices);
+      UI.ports.setHoveredToid.send(result.roadLink.toid);
+    } else {
+      UI.ports.setHoveredToid.send(null);
     }
 
     var gl = App.drawingContext.gl; // TODO
