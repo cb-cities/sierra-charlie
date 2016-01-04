@@ -16,6 +16,20 @@ var _ = module.exports = {
     return result;
   },
 
+  distance: function (v, ps) {
+    var result = Infinity;
+    for (var i = 0; i < ps.length - 1; i++) {
+      var d = segment.distance(v, {
+          p1: ps[i],
+          p2: ps[i + 1]
+        });
+      if (d < result) {
+        result = d;
+      }
+    }
+    return result;
+  },
+
   intersects: function (ps1, ps2) {
     if (!rect.intersects(_.bounds(0, ps1), _.bounds(0, ps2))) {
       return false;

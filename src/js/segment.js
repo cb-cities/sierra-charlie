@@ -10,14 +10,14 @@ var _ = module.exports = {
 
   project: function (v, s) {
     var w = vector.subtract(s.p2, s.p1);
-    var length = vector.length(w);
+    var len = vector.length(w);
     var scale =
       Math.max(0,
         Math.min(
           vector.project(
             vector.subtract(v, s.p1),
             w),
-          l)) / l;
+          len)) / len;
     return vector.add(vector.dilate(scale, w), s.p1);
   },
 
