@@ -51,10 +51,10 @@ Lineset.prototype = {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indexArr), usage);
   },
 
-  draw: function (gl, positionLoc) {
+  draw: function (gl, vertexLoc) {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
-    gl.enableVertexAttribArray(positionLoc);
-    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vertexLoc);
+    gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
     gl.drawElements(gl.LINES, this.indexArr.length, gl.UNSIGNED_INT, 0);
   }

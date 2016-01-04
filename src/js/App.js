@@ -169,20 +169,20 @@ module.exports = {
         });
       var program = glUtils.createProgram(gl, vertexShader, fragmentShader);
       gl.useProgram(program);
-      var positionLoc = gl.getAttribLocation(program, "a_position");
-      var resolutionLoc = gl.getUniformLocation(program, "u_resolution");
-      var dilationLoc = gl.getUniformLocation(program, "u_dilation");
-      var translationLoc = gl.getUniformLocation(program, "u_translation");
-      var pointSizeLoc = gl.getUniformLocation(program, "u_pointSize");
-      var colorLoc = gl.getUniformLocation(program, "u_color");
+      var vertexLoc = gl.getAttribLocation(program, "vertex");
+      var clientSizeLoc = gl.getUniformLocation(program, "clientSize");
+      var scaleRatioLoc = gl.getUniformLocation(program, "scaleRatio");
+      var centerLoc = gl.getUniformLocation(program, "center");
+      var pointSizeLoc = gl.getUniformLocation(program, "pointSize");
+      var colorLoc = gl.getUniformLocation(program, "color");
       this.drawingContext = {
         gl: gl,
         program: program,
         pixelRatio: devicePixelRatio,
-        positionLoc: positionLoc,
-        resolutionLoc: resolutionLoc,
-        dilationLoc: dilationLoc,
-        translationLoc: translationLoc,
+        vertexLoc: vertexLoc,
+        clientSizeLoc: clientSizeLoc,
+        scaleRatioLoc: scaleRatioLoc,
+        centerLoc: centerLoc,
         pointSizeLoc: pointSizeLoc,
         colorLoc: colorLoc
       };
@@ -210,9 +210,11 @@ module.exports = {
     this.isAnimationFrameRequested = requestAnimationFrame(this.onAnimationFrameReceived);
     var cx = this.drawingContext;
     var gl = cx.gl;
-    var canvas = document.getElementById("map-canvas");
-    var deviceWidth = cx.pixelRatio * canvas.clientWidth; // TODO
-    var deviceHeight = cx.pixelRatio * canvas.clientHeight; // TODO
+    var canvas = document.getElementById("map-canvas"); // TODO
+    var clientWidth = canvas.clientWidth;
+    var clientHeight = canvas.clientHeight;
+    var deviceWidth = cx.pixelRatio * clientWidth;
+    var deviceHeight = cx.pixelRatio * clientHeight;
     if (canvas.width !== deviceWidth || canvas.height !== deviceHeight) {
       this.isDrawingNeeded = true;
       canvas.width = deviceWidth;
@@ -228,25 +230,22 @@ module.exports = {
       var zoomLevel = compute.zoomLevel(zoom);
 
       var gl = cx.gl;
-      gl.uniform2f(cx.resolutionLoc, canvas.clientWidth, canvas.clientHeight); // TODO
-
-      var dilation = defs.clientTileRatio * zoomLevel / 2;
-      gl.uniform2f(cx.dilationLoc, dilation, dilation);
-
-      var translationX = defs.firstTileX + left * defs.spaceWidth;
-      var translationY = defs.lastTileY + defs.tileSize - top * defs.spaceHeight;
-      gl.uniform2f(cx.translationLoc, translationX, translationY);
+      gl.uniform2f(cx.clientSizeLoc, clientWidth, clientHeight);
+      gl.uniform2f(cx.scaleRatioLoc,
+        defs.tileSize / defs.baseClientTileSize * clientWidth / 2 * zoomLevel,
+        defs.tileSize / defs.baseClientTileSize * clientHeight / 2 * zoomLevel);
+      gl.uniform2f(cx.centerLoc, centerX, centerY);
 
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       // Draw grid
       gl.lineWidth(1);
       gl.uniform4f(cx.colorLoc, 0.2, 0.2, 0.2, 1);
-      Grid.draw(gl, cx.positionLoc); // TODO
+      Grid.draw(gl, cx.vertexLoc); // TODO
 
       if (Geometry.bindVertexBuffer(gl)) { // TODO
-        gl.enableVertexAttribArray(cx.positionLoc);
-        gl.vertexAttribPointer(cx.positionLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(cx.vertexLoc);
+        gl.vertexAttribPointer(cx.vertexLoc, 2, gl.FLOAT, false, 0, 0);
 
         // Draw road links
         var roadLinkSize = 2 * Math.sqrt(zoomLevel) * cx.pixelRatio / zoomLevel;
