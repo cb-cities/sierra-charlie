@@ -40,11 +40,9 @@ module.exports = {
     var frame = document.getElementById("map-frame");
     var canvas = document.getElementById("map-canvas");
     var space = document.getElementById("map-space");
-    frame.addEventListener("scroll", this.onScroll);
+
     canvas.addEventListener("webglcontextlost", this.onLoseContext);
     canvas.addEventListener("webglcontextrestored", this.onRestoreContext);
-
-    addEventListener("resize", this.onResize);
 
     this.startGeometryLoader();
     this.startPainter();
@@ -112,32 +110,43 @@ module.exports = {
       });
   },
 
+  setStaticLeftTop: function (left, top) {
+    this.setState({
+        left: left,
+        top: top
+      });
+  },
+
   setLeft: function (left, duration) {
-    this.easingLeft = true;
+    this.isEasingLeft = true;
     this.setEasedState("left", left, duration, function () {
-        this.easingLeft = false;
+        this.isEasingLeft = false;
       }.bind(this));
   },
 
   setTop: function (top, duration) {
-    this.easingTop = true;
+    this.isEasingTop = true;
     this.setEasedState("top", top, duration, function () {
-        this.easingTop = false;
+        this.isEasingTop = false;
       }.bind(this));
   },
 
   setZoom: function (zoom, duration) {
-    this.easingZoom = true;
+    this.isEasingZoom = true;
     this.setEasedState("zoom", zoom, duration, function () {
-        this.easingZoom = false;
+        this.isEasingZoom = false;
       }.bind(this));
   },
 
   setRawTime: function (rawTime, duration) {
-    this.easingRawTime = true;
+    this.isEasingRawTime = true;
     this.setEasedState("rawTime", rawTime, duration, function () {
-        this.easingRawTime = false;
+        this.isEasingRawTime = false;
       }.bind(this));
+  },
+
+  isScrolling: function () {
+    return this.isEasingLeft || this.isEasingTop || this.isEasingZoom;
   },
 
   getEasedState: function (stateKey) {
@@ -482,27 +491,14 @@ module.exports = {
 
   onRestoreContext: function () {
     this.startPainter();
-  },
-
-
-
-
-
-
-  onScroll: function (event) {
-    if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
-      var frame = document.getElementById("map-frame");
-      var zoom = this.getEasedState("zoom");
-      this.setState({
-          left: compute.leftFromFrameScrollLeft(frame.scrollLeft, zoom),
-          top: compute.topFromFrameScrollTop(frame.scrollTop, zoom)
-        });
-    }
-  },
-
-  onResize: function () {
-    this.needsPainting = true;
   }
+
+
+
+
+
+
+
 };
 
 r.makeComponent("App", module);

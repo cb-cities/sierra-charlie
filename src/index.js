@@ -30,9 +30,21 @@ function init() {
       maxZoom: defs.maxZoom
     });
 
-  addEventListener("keydown", controller.onKeyDown.bind(controller));
+  window.addEventListener("keydown", controller.onKeyDown.bind(controller));
+  window.addEventListener("resize", function () {
+      App.needsPainting = true;
+    });
+  window.addEventListener("orientationchange", function () {
+      console.log("device orientation changed");
+      App.needsPainting = true;
+    });
+  window.matchMedia("screen and (min-resolution: 2dppx)").addListener(function () {
+      console.log("device pixel ratio changed to", window.devicePixelRatio);
+      App.needsPainting = true;
+    });
 
   var frame = document.getElementById("map-frame");
+  frame.addEventListener("scroll", controller.onScroll.bind(controller));
 
   var canvas = document.getElementById("map-canvas");
 
