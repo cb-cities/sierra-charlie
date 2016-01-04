@@ -128,24 +128,24 @@ module.exports = {
   updateFrame: function (left, top, zoom) {
     var newScrollLeft = compute.clientScrollLeft(left, zoom);
     var newScrollTop = compute.clientScrollTop(top, zoom);
-    if (this.lastFrameScrollLeft !== newScrollLeft || this.lastFrameScrollTop !== newScrollTop) {
+    if (this.prevScrollLeft !== newScrollLeft || this.prevScrollTop !== newScrollTop) {
       var frame = document.getElementById("map-frame");
       frame.scrollLeft = newScrollLeft;
       frame.scrollTop = newScrollTop;
-      this.lastFrameScrollLeft = newScrollLeft;
-      this.lastFrameScrollTop = newScrollTop;
+      this.prevScrollLeft = newScrollLeft;
+      this.prevScrollTop = newScrollTop;
     }
   },
 
   updateSpace: function (zoom) {
     var newWidth = compute.clientSpaceWidth(zoom);
     var newHeight = compute.clientSpaceHeight(zoom);
-    if (this.lastSpaceWidth !== newWidth || this.lastSpaceHeight !== newHeight) {
+    if (this.prevWidth !== newWidth || this.prevHeight !== newHeight) {
       var space = document.getElementById("map-space");
       space.style.width = newWidth + "px";
       space.style.height = newHeight + "px";
-      this.lastSpaceWidth = newWidth;
-      this.lastSpaceHeight = newHeight;
+      this.prevWidth = newWidth;
+      this.prevHeight = newHeight;
     }
   },
 
@@ -178,7 +178,7 @@ module.exports = {
       this.drawingContext = {
         gl: gl,
         program: program,
-        devicePixelRatio: window.devicePixelRatio,
+        pixelRatio: devicePixelRatio,
         positionLoc: positionLoc,
         resolutionLoc: resolutionLoc,
         dilationLoc: dilationLoc,
@@ -197,9 +197,9 @@ module.exports = {
     if (Geometry.render(gl)) { // OMG TODO
       this.isDrawingNeeded = true;
     }
-    if (cx.devicePixelRatio !== window.devicePixelRatio) { // TODO
+    if (cx.pixelRatio !== devicePixelRatio) { // TODO
       this.isDrawingNeeded = true;
-      cx.devicePixelRatio = window.devicePixelRatio;
+      cx.pixelRatio = devicePixelRatio;
     }
   },
 
@@ -211,8 +211,8 @@ module.exports = {
     var cx = this.drawingContext;
     var gl = cx.gl;
     var canvas = document.getElementById("map-canvas");
-    var deviceWidth = cx.devicePixelRatio * canvas.clientWidth; // TODO
-    var deviceHeight = cx.devicePixelRatio * canvas.clientHeight; // TODO
+    var deviceWidth = cx.pixelRatio * canvas.clientWidth; // TODO
+    var deviceHeight = cx.pixelRatio * canvas.clientHeight; // TODO
     if (canvas.width !== deviceWidth || canvas.height !== deviceHeight) {
       this.isDrawingNeeded = true;
       canvas.width = deviceWidth;
@@ -249,7 +249,7 @@ module.exports = {
         gl.vertexAttribPointer(cx.positionLoc, 2, gl.FLOAT, false, 0, 0);
 
         // Draw road links
-        var roadLinkSize = 2 * Math.sqrt(zoomLevel) * cx.devicePixelRatio / zoomLevel;
+        var roadLinkSize = 2 * Math.sqrt(zoomLevel) * cx.pixelRatio / zoomLevel;
         var roadLinkAlpha = Math.min(roadLinkSize, 1);
         gl.lineWidth(roadLinkSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
@@ -258,7 +258,7 @@ module.exports = {
         this.hoveredRoadLinkIndices.draw(gl, gl.LINES); // TODO
 
         // Draw road nodes
-        var roadNodeSize = 8 * Math.cbrt(zoomLevel) * cx.devicePixelRatio / zoomLevel;
+        var roadNodeSize = 8 * Math.cbrt(zoomLevel) * cx.pixelRatio / zoomLevel;
         var roadNodeAlpha = Math.min(roadNodeSize, 1);
         gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
