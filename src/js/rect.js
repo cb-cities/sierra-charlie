@@ -8,7 +8,7 @@ module.exports = {
     right: -Infinity,
     bottom: -Infinity
   },
-  
+
   width: function (r) {
     return r.right - r.left;
   },
