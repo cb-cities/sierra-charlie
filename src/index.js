@@ -15,5 +15,7 @@ require("./index.appcache");
 window.Controller = new Controller();
 window.App = r.render(App(), document.getElementById("app"));
 window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
-    setLoadingProgress: 0
+    setLoadingProgress: 0,
+    setHoveredToid: null,
+    setSelectedToid: null
   });
