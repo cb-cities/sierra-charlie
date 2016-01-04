@@ -40,12 +40,7 @@ var _ = module.exports = {
   },
 
   bounds: function (margin, ps) {
-    var result = {
-      left: Infinity,
-      top: Infinity,
-      right: -Infinity,
-      bottom: -Infinity
-    };
+    var result = rect.invalid;
     for (var i = 0; i < ps.length - 1; i++) {
       result = rect.union(result, segment.bounds(margin, {
           p1: ps[i],

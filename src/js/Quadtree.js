@@ -68,27 +68,7 @@ Quadtree.prototype = {
     }
     return results;
   },
-
-  fnord: function (p) {
-    if (this.contains(p)) {
-      if (this.items) {
-        return this.items;
-      } else {
-        if (this.topLeft.contains(p)) {
-          return this.topLeft.fnord(p);
-        } else if (this.topRight.contains(p)) {
-          return this.topRight.fnord(p);
-        } else if (this.bottomLeft.contains(p)) {
-          return this.bottomLeft.fnord(p);
-        } else if (this.bottomRight.contains(p)) {
-          return this.bottomRight.fnord(p);
-        }
-      }
-    } else {
-      return [];
-    }
-  },
-
+  
   contains: function (p) {
     return (
       this.left <= p.x &&
