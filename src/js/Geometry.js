@@ -127,15 +127,17 @@ Geometry.prototype = {
 
   render: function (gl) {
     if (this.isRenderingNeeded) {
-      var usage = this.isLoadingFinished ? gl.STATIC_DRAW : gl.STREAM_DRAW;
+      var usage = this.isLoadingFinished ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW;
       this.isRenderingNeeded = false;
-      this.vertexBuf = gl.createBuffer();
+      if (!this.vertexBuf) { // TODO
+        this.vertexBuf = gl.createBuffer();
+        this.roadNodeIndexBuf = gl.createBuffer();
+        this.roadLinkIndexBuf = gl.createBuffer();
+      }
       gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
       gl.bufferData(gl.ARRAY_BUFFER, this.vertexArr, usage);
-      this.roadNodeIndexBuf = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexBuf);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexArr, usage);
-      this.roadLinkIndexBuf = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexBuf);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexArr, usage);
       return true;

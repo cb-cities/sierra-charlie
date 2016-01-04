@@ -8,8 +8,8 @@ var defs = require("./defs");
 function Grid() {
   var left = defs.firstTileX;
   var top = defs.firstTileY;
-  var right = left + defs.spaceWidth;
-  var bottom = top + defs.spaceHeight;
+  var right = left + defs.totalWidth;
+  var bottom = top + defs.totalHeight;
   this.gridLines = new Lineset();
   for (var i = 0; i <= defs.tileCountX; i++) {
     var x = defs.firstTileX + i * defs.tileSize;

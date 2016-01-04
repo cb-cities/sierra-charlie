@@ -20,7 +20,9 @@ Indexset.prototype = {
   },
 
   render: function (gl, usage) {
-    this.indexBuf = gl.createBuffer();
+    if (!this.indexBuf) { // TODO
+      this.indexBuf = gl.createBuffer();
+    }
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indexArr), usage);
   },

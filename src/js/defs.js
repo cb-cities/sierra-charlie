@@ -2,7 +2,7 @@
 
 
 var tileSize = 1000;
-var clientTileSize = 1024;
+var baseClientTileSize = 1024;
 
 var firstTileX = 489000;
 var firstTileY = 148000;
@@ -26,8 +26,8 @@ var maxZoom = 7;
 
 var _ = module.exports = {
   tileSize: tileSize,
-  clientTileSize: clientTileSize,
-  clientTileRatio: tileSize / clientTileSize,
+  baseClientTileSize: baseClientTileSize,
+  baseClientTileRatio: tileSize / baseClientTileSize,
 
   firstTileX: firstTileX,
   firstTileY: firstTileY,
@@ -37,8 +37,10 @@ var _ = module.exports = {
   tileCountX: tileCountX,
   tileCountY: tileCountY,
 
-  spaceWidth: tileCountX * tileSize,
-  spaceHeight: tileCountY * tileSize,
+  totalWidth: tileCountX * tileSize,
+  totalHeight: tileCountY * tileSize,
+  totalBaseClientWidth: tileCountX * baseClientTileSize,
+  totalBaseClientHeight: tileCountY * baseClientTileSize,
 
   maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
 

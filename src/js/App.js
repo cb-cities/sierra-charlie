@@ -29,31 +29,31 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      left: 0.4897637424698795, // 41625
-      top: 0.4768826844262295, // 29563
+      centerX: 530625,
+      centerY: 177563,
       zoom: 5,
       rawTime: 10 + 9 / 60
     };
   },
 
-  setStaticLeftTop: function (left, top) {
+  setStaticCenter: function (centerX, centerY) {
     this.setState({
-        left: left,
-        top: top
+        centerX: centerX,
+        centerY: centerY
       });
   },
 
-  setLeft: function (left, duration) {
-    this.isEasingLeft = true;
-    this.setEasedState("left", left, duration, function () {
-        this.isEasingLeft = false;
+  setCenterX: function (centerX, duration) {
+    this.isEasingCenterX = true;
+    this.setEasedState("centerX", centerX, duration, function () {
+        this.isEasingCenterX = false;
       }.bind(this));
   },
 
-  setTop: function (top, duration) {
-    this.isEasingTop = true;
-    this.setEasedState("top", top, duration, function () {
-        this.isEasingTop = false;
+  setCenterY: function (centerY, duration) {
+    this.isEasingCenterY = true;
+    this.setEasedState("centerY", centerY, duration, function () {
+        this.isEasingCenterY = false;
       }.bind(this));
   },
 
@@ -72,15 +72,15 @@ module.exports = {
   },
 
   isScrolling: function () {
-    return this.isEasingLeft || this.isEasingTop || this.isEasingZoom;
+    return this.isEasingCenterX || this.isEasingCenterY || this.isEasingZoom;
   },
 
-  getStaticLeft: function () {
-    return this.state.left;
+  getStaticCenterX: function () {
+    return this.state.centerX;
   },
 
-  getStaticTop: function () {
-    return this.state.top;
+  getStaticCenterY: function () {
+    return this.state.centerY;
   },
 
   getStaticZoom: function () {
@@ -91,12 +91,12 @@ module.exports = {
     return this.state.rawTime;
   },
 
-  getLeft: function () {
-    return this.getEasedState("left");
+  getCenterX: function () {
+    return this.getEasedState("centerX");
   },
 
-  getTop: function () {
-    return this.getEasedState("top");
+  getCenterY: function () {
+    return this.getEasedState("centerY");
   },
 
   getZoom: function () {
@@ -118,16 +118,16 @@ module.exports = {
   },
 
   updateFrameSpace: function () {
-    var left = this.getLeft();
-    var top = this.getTop();
+    var centerX = this.getCenterX();
+    var centerY = this.getCenterY();
     var zoom = this.getZoom();
     this.updateSpace(zoom);
-    this.updateFrame(left, top, zoom);
+    this.updateFrame(centerX, centerY, zoom);
   },
 
-  updateFrame: function (left, top, zoom) {
-    var newScrollLeft = compute.clientScrollLeft(left, zoom);
-    var newScrollTop = compute.clientScrollTop(top, zoom);
+  updateFrame: function (centerX, centerY, zoom) {
+    var newScrollLeft = compute.scrollLeft(centerX, zoom);
+    var newScrollTop = compute.scrollTop(centerY, zoom);
     if (this.prevScrollLeft !== newScrollLeft || this.prevScrollTop !== newScrollTop) {
       var frame = document.getElementById("map-frame");
       frame.scrollLeft = newScrollLeft;
@@ -138,8 +138,8 @@ module.exports = {
   },
 
   updateSpace: function (zoom) {
-    var newWidth = compute.clientSpaceWidth(zoom);
-    var newHeight = compute.clientSpaceHeight(zoom);
+    var newWidth = compute.totalClientWidth(zoom);
+    var newHeight = compute.totalClientHeight(zoom);
     if (this.prevWidth !== newWidth || this.prevHeight !== newHeight) {
       var space = document.getElementById("map-space");
       space.style.width = newWidth + "px";
@@ -221,8 +221,8 @@ module.exports = {
     }
     if (this.isDrawingNeeded) {
       this.isDrawingNeeded = false;
-      var left = this.getLeft();
-      var top = this.getTop();
+      var centerX = this.getCenterX();
+      var centerY = this.getCenterY();
       var zoom = this.getZoom();
       // var time = compute.time(this.getRawTime());
       var zoomLevel = compute.zoomLevel(zoom);
