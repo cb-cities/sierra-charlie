@@ -16,6 +16,8 @@ function Controller(props) {
   window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(this.props.treeLeft, this.props.treeTop, this.props.treeSize, function (roadLink) {
       return App.getRoadLinkBounds(roadLink);
     }); // TODO
+  this.lastClientX = 0;
+  this.lastClientY = 0;
   this.hoveredRoadNodeIndices = new Indexset();
   this.hoveredRoadLinkIndices = new Indexset();
 }
@@ -48,29 +50,12 @@ Controller.prototype = {
     };
   },
 
-  projectMouseToWorld: function (event) {
-    return (
+  updateHover: function (clientX, clientY) {
+    var mouse =
       this.projectRectToWorld(vector.bounds(16, {
-          x: event.clientX,
-          y: event.clientY
-        })));
-  },
-
-  onLoadRoadNodes: function (roadNodes) {
-    for (var i = 0; i < roadNodes.length; i++) {
-      this.roadNodeTree.insert(roadNodes[i]);
-    }
-  },
-
-  onLoadRoadLinks: function (roadLinks) {
-    for (var i = 0; i < roadLinks.length; i++) {
-      this.roadLinkTree.insert(roadLinks[i]);
-    }
-  },
-
-  onMouseMove: function (event) {
-    // console.log("mouseMove", event.clientX, event.clientY);
-    var mouse = this.projectMouseToWorld(event);
+          x: clientX,
+          y: clientY
+        }))
     var roadNodes = this.roadNodeTree.select(mouse);
     this.hoveredRoadNodeIndices.clear();
     for (var i = 0; i < roadNodes.length; i++) {
@@ -89,6 +74,36 @@ Controller.prototype = {
     App.needsPainting = true; // TODO
     App.hoveredRoadNodeIndices = this.hoveredRoadNodeIndices; // OMG
     App.hoveredRoadLinkIndices = this.hoveredRoadLinkIndices; // OMG
+  },
+
+  onLoadRoadNodes: function (roadNodes) {
+    for (var i = 0; i < roadNodes.length; i++) {
+      this.roadNodeTree.insert(roadNodes[i]);
+    }
+  },
+
+  onLoadRoadLinks: function (roadLinks) {
+    for (var i = 0; i < roadLinks.length; i++) {
+      this.roadLinkTree.insert(roadLinks[i]);
+    }
+  },
+
+  onScroll: function (event) {
+    if (!(App.isScrolling())) {
+      var frame = document.getElementById("map-frame");
+      var zoom = App.getZoom();
+      var newLeft = compute.leftFromFrameScrollLeft(frame.scrollLeft, zoom);
+      var newTop = compute.topFromFrameScrollTop(frame.scrollTop, zoom);
+      App.setStaticLeftTop(newLeft, newTop);
+    }
+    this.updateHover(this.lastClientX, this.lastClientY);
+  },
+
+  onMouseMove: function (event) {
+    // console.log("mouseMove", event.clientX, event.clientY);
+    this.updateHover(event.clientX, event.clientY);
+    this.lastClientX = event.clientX;
+    this.lastClientY = event.clientY;
   },
 
   onDoubleClick: function (event) {
