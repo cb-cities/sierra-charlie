@@ -25,6 +25,18 @@ function Controller() {
   this.hoveredRoadLinkIndices = new Indexset();
   // this.roadNodeTreeLines = new Lineset(); // TODO
   // this.roadLinkTreeLines = new Lineset();
+  var frame = document.getElementById("map-frame");
+  frame.addEventListener("scroll", this.onFrameScrolled.bind(this));
+  var canvas = document.getElementById("map-canvas");
+  canvas.addEventListener("webglcontextlost", this.onCanvasContextLost.bind(this));
+  canvas.addEventListener("webglcontextrestored", this.onCanvasContextRestored.bind(this));
+  var space = document.getElementById("map-space");
+  space.addEventListener("mousemove", this.onMouseMoved.bind(this));
+  space.addEventListener("dblclick", this.onMouseDoubleClicked.bind(this));
+  window.addEventListener("keydown", this.onKeyPressed.bind(this));
+  window.addEventListener("resize", this.onWindowResized.bind(this));
+  window.addEventListener("orientationchange", this.onWindowResized.bind(this));
+  window.matchMedia("screen and (min-resolution: 2dppx)").addListener(this.onWindowResized.bind(this));
 }
 
 Controller.prototype = {
@@ -96,7 +108,7 @@ Controller.prototype = {
       this.roadNodeTree.insert(roadNodes[i]);
     }
     App.updateDrawingContext(); // TODO
-    UI.ports.setVertexCount.send(this.geometry.vertexCount); // TODO
+    UI.ports.setLoadingProgress.send(this.geometry.getLoadingProgress());
 
     // var gl = App.drawingContext.gl; // TODO
     // this.roadNodeTreeLines.clear();
@@ -114,7 +126,7 @@ Controller.prototype = {
       this.roadLinkTree.insert(roadLinks[i]);
     }
     App.updateDrawingContext(); // TODO
-    UI.ports.setVertexCount.send(this.geometry.vertexCount); // TODO
+    UI.ports.setLoadingProgress.send(this.geometry.getLoadingProgress());
 
     // var gl = App.drawingContext.gl; // TODO
     // this.roadLinkTreeLines.clear();
