@@ -6,7 +6,7 @@ var r = require("react-wrapper");
 
 window.Elm = require("./elm/UI");
 
-var app = r.wrap(require("./js/app"));
+var App = r.wrap(require("./js/App"));
 var compute = require("./js/compute");
 var defs = require("./js/defs");
 
@@ -16,7 +16,7 @@ require("./index.html");
 
 
 function init() {
-  var map = r.render(app(), document.getElementById("map"));
+  r.render(App(), document.getElementById("app"));
 
   window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
       maxVertexCount: defs.maxVertexCount,

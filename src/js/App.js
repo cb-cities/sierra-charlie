@@ -210,8 +210,7 @@ module.exports = {
   updatePainterContext: function () {
     if (!this.painterContext) {
       this.needsPainting = true;
-      var frame = r.domNode(this);
-      var canvas = frame.firstChild;
+      var canvas = document.getElementById("map-canvas");
       var gl = canvas.getContext("webgl", {
           alpha: false
         });
@@ -276,8 +275,7 @@ module.exports = {
     this.painterReceipt = requestAnimationFrame(this.onPaint);
     var cx = this.painterContext;
     var gl = cx.gl;
-    var frame = r.domNode(this);
-    var canvas = frame.firstChild;
+    var canvas = document.getElementById("map-canvas");
     var width = cx.devicePixelRatio * canvas.clientWidth;
     var height = cx.devicePixelRatio * canvas.clientHeight;
     if (canvas.width !== width || canvas.height !== height) {
@@ -355,59 +353,66 @@ module.exports = {
   },
 
 
-
-  updateFrame: function (left, top, zoom) {
-    var frame = r.domNode(this);
-    var left = this.getEasedState("left");
-    var top = this.getEasedState("top");
-    var zoom = this.getEasedState("zoom");
-    frame.scrollLeft = compute.frameScrollLeft(left, zoom);
-    frame.scrollTop  = compute.frameScrollTop(top, zoom);
-  },
-
   componentDidMount: function () {
-    var frame = r.domNode(this);
-    var canvas = frame.firstChild;
+    var frame = document.getElementById("map-frame");
+    var canvas = document.getElementById("map-canvas");
+    var space = document.getElementById("map-space");
+    frame.addEventListener("scroll", this.onScroll);
     canvas.addEventListener("webglcontextlost", this.onLoseContext);
     canvas.addEventListener("webglcontextrestored", this.onRestoreContext);
-    frame.addEventListener("scroll", this.onScroll);
+    space.addEventListener("dblclick", this.onDoubleClick);
+    space.addEventListener("mousemove", this.onMouseMove);
     addEventListener("resize", this.onResize);
     addEventListener("keydown", this.onKeyDown);
     this.startGeometryLoader();
     this.startPainter();
-    this.updateFrame();
+    var left = this.getEasedState("left");
+    var top = this.getEasedState("top");
+    var zoom = this.getEasedState("zoom");
+    this.updateSpace(zoom);
+    this.updateFrame(left, top, zoom);
   },
 
   componentDidUpdate: function () {
-    this.updateFrame();
+    var left = this.getEasedState("left");
+    var top = this.getEasedState("top");
+    var zoom = this.getEasedState("zoom");
     this.needsPainting = true;
+    this.updateSpace(zoom);
+    this.updateFrame(left, top, zoom);
+  },
+
+  updateFrame: function (left, top, zoom) {
+    var newScrollLeft = compute.frameScrollLeft(left, zoom);
+    var newScrollTop = compute.frameScrollTop(top, zoom);
+    if (this.frameScrollLeft !== newScrollLeft) {
+      var frame = document.getElementById("map-frame");
+      frame.scrollLeft = newScrollLeft;
+      frame.scrollTop = newScrollTop;
+    }
+  },
+  
+  updateSpace: function (zoom) {
+    var newWidth = compute.spaceWidth(zoom);
+    var newHeight = compute.spaceHeight(zoom);
+    if (this.updatedSpaceWidth !== newWidth || this.updatedSpaceHeight !== newHeight) {
+      var space = document.getElementById("map-space");
+      space.style.width = newWidth + "px";
+      space.style.height = newHeight + "px";
+      this.updatedSpaceWidth = newWidth;
+      this.updatedSpaceHeight = newHeight;
+    }
   },
 
   render: function () {
-    var zoom = this.getEasedState("zoom");
-    return (
-      r.div({
-          id: "map-frame"
-        },
-        r.canvas({
-          id: "map-canvas"
-        }),
-        r.div({
-            id: "map-space",
-            style: {
-              width:  compute.spaceWidth(zoom),
-              height: compute.spaceHeight(zoom)
-            },
-            onDoubleClick: this.onDoubleClick,
-            onMouseMove: this.onMouseMove
-          })));
+    return r.div();
   },
 
 
 
   onScroll: function (event) {
     if (!this.easingLeft && !this.easingTop && !this.easingZoom) {
-      var frame = r.domNode(this);
+      var frame = document.getElementById("map-frame");
       var zoom = this.getEasedState("zoom");
       this.setState({
           left: compute.leftFromFrameScrollLeft(frame.scrollLeft, zoom),
@@ -422,7 +427,7 @@ module.exports = {
 
   onKeyDown: function (event) {
     // console.log("keyDown", event.keyCode);
-    var canvas = r.domNode(this).firstChild;
+    var canvas = document.getElementById("map-canvas");
     var width = canvas.clientWidth;
     var height = canvas.clientHeight;
     var pageWidth = compute.pageWidth(width, this.state.zoom);
@@ -477,7 +482,7 @@ module.exports = {
 
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var canvas = r.domNode(this).firstChild;
+    var canvas = document.getElementById("map-canvas");
     var width = canvas.clientWidth;
     var height = canvas.clientHeight;
     var left = compute.leftFromEventClientX(event.clientX, width, this.state.left, this.state.zoom);
@@ -495,8 +500,7 @@ module.exports = {
 
 
   fromClientPoint: function(clientX, clientY) {
-    var frame = r.domNode(this);
-    var canvas = frame.firstChild;
+    var canvas = document.getElementById("map-canvas");
     var left = this.getEasedState("left");
     var top = this.getEasedState("top");
     var zoom = this.getEasedState("zoom");
