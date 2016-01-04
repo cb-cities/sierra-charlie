@@ -1,5 +1,6 @@
 "use strict";
 
+var Geometry = require("./Geometry");
 var Indexset = require("./Indexset");
 var Polyquadtree = require("./Polyquadtree");
 var Quadtree = require("./Quadtree");
@@ -10,16 +11,22 @@ var vector = require("./vector");
 
 function Controller(props) {
   this.props = props;
-  window.RoadNodeTree = this.roadNodeTree = new Quadtree(this.props.treeLeft, this.props.treeTop, this.props.treeSize, function (roadNode) {
-      return App.getRoadNodePoint(roadNode);
-    }); // TODO
-  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(this.props.treeLeft, this.props.treeTop, this.props.treeSize, function (roadLink) {
-      return App.getRoadLinkBounds(roadLink);
-    }); // TODO
   this.lastClientX = 0;
   this.lastClientY = 0;
+  window.Geometry = this.geometry = new Geometry({ // TODO
+      maxVertexCount: this.props.maxVertexCount,
+      maxRoadNodeIndexCount: this.props.maxRoadNodeIndexCount,
+      maxRoadLinkIndexCount: this.props.maxRoadLinkIndexCount,
+      origin: window.location.origin,
+      onRoadNodesLoaded: this.onRoadNodesLoaded.bind(this),
+      onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this)
+    });
+  window.RoadNodeTree = this.roadNodeTree = new Quadtree(this.props.treeLeft, this.props.treeTop, this.props.treeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
+  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(this.props.treeLeft, this.props.treeTop, this.props.treeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
   this.hoveredRoadNodeIndices = new Indexset();
   this.hoveredRoadLinkIndices = new Indexset();
+  // this.roadNodeTreeLines = new Lineset(); // TODO
+  // this.roadLinkTreeLines = new Lineset();
 }
 
 Controller.prototype = {
@@ -59,13 +66,13 @@ Controller.prototype = {
     var roadNodes = this.roadNodeTree.select(mouse);
     this.hoveredRoadNodeIndices.clear();
     for (var i = 0; i < roadNodes.length; i++) {
-      var index = App.getRoadNodeIndex(roadNodes[i]); // TODO
+      var index = this.geometry.getRoadNodeIndex(roadNodes[i]);
       this.hoveredRoadNodeIndices.insert(index);
     }
     var roadLinks = this.roadLinkTree.select(mouse);
     this.hoveredRoadLinkIndices.clear();
     for (var i = 0; i < roadLinks.length; i++) {
-      var indices = App.getRoadLinkIndices(roadLinks[i]); // TODO
+      var indices = this.geometry.getRoadLinkIndices(roadLinks[i]);
       this.hoveredRoadLinkIndices.insertMany(indices);
     }
     var gl = App.painterContext.gl; // TODO
@@ -76,16 +83,40 @@ Controller.prototype = {
     App.hoveredRoadLinkIndices = this.hoveredRoadLinkIndices; // OMG
   },
 
-  onLoadRoadNodes: function (roadNodes) {
+  onRoadNodesLoaded: function (roadNodes) {
     for (var i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
     }
+    App.updatePainterContext(); // TODO
+    UI.ports.setVertexCount.send(this.geometry.vertexCount); // TODO
+    
+    // var gl = this.painterContext.gl; // TODO
+    // this.roadNodeTreeLines.clear();
+    // this.roadNodeTree.extendLineset(this.roadNodeTreeLines);
+    // this.roadNodeTreeLines.render(gl, gl.STATIC_DRAW);
+
+    // var s = this.roadNodeTree.extendStats({itemCounts: [], nodeSizes: []});
+    // console.log("RN item counts\n", stats.dump(s.itemCounts));
+    // console.log("RN node sizes\n", stats.dump(s.nodeSizes));
+    // console.log("RN tree size: ", s.nodeSizes.length);
   },
 
-  onLoadRoadLinks: function (roadLinks) {
+  onRoadLinksLoaded: function (roadLinks) {
     for (var i = 0; i < roadLinks.length; i++) {
       this.roadLinkTree.insert(roadLinks[i]);
     }
+    App.updatePainterContext(); // TODO
+    UI.ports.setVertexCount.send(this.geometry.vertexCount); // TODO
+    
+    // var gl = this.painterContext.gl; // TODO
+    // this.roadLinkTreeLines.clear();
+    // this.roadLinkTree.extendLineset(this.roadLinkTreeLines);
+    // this.roadLinkTreeLines.render(gl, gl.STATIC_DRAW);
+
+    // var s = this.roadLinkTree.extendStats({itemCounts: [], nodeSizes: []});
+    // console.log("RL item counts\n", stats.dump(s.itemCounts));
+    // console.log("RL node sizes\n", stats.dump(s.nodeSizes));
+    // console.log("RL tree size: ", s.nodeSizes.length);
   },
 
   onScroll: function (event) {
@@ -97,6 +128,17 @@ Controller.prototype = {
       App.setStaticLeftTop(newLeft, newTop);
     }
     this.updateHover(this.lastClientX, this.lastClientY);
+  },
+  
+  onContextLost: function (event) {
+    event.preventDefault();
+    // cancelAnimationFrame(this.painterReceipt); // TODO
+    // this.painterContext = null;
+    // this.painterReceipt = null;
+  },
+
+  onContextRestored: function () {
+    // this.startPainter(); // TODO
   },
 
   onMouseMove: function (event) {

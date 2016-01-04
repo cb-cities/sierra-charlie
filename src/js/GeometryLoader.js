@@ -40,7 +40,7 @@ function start(origin) {
 
   function postRoadNodes(force) {
     var data = {
-      message: "loadRoadNodes",
+      message: "roadNodesLoaded",
       vertices: sliceVertices(vertices, vertexOffset, vertexCount),
       roadNodes: roadNodes,
       roadNodeIndices: sliceIndices(roadNodeIndices, roadNodeIndexOffset, roadNodeIndexCount)
@@ -54,7 +54,7 @@ function start(origin) {
 
   function postRoadLinks(force) {
     var data = {
-      message: "loadRoadLinks",
+      message: "roadLinksLoaded",
       vertices: sliceVertices(vertices, vertexOffset, vertexCount),
       roadLinks: roadLinks,
       roadLinkIndices: sliceIndices(roadLinkIndices, roadLinkIndexOffset, roadLinkIndexCount)
@@ -142,7 +142,7 @@ function start(origin) {
 
 onmessage = function (event) {
   switch (event.data.message) {
-    case "start":
+    case "startLoading":
       start(event.data.origin);
       break;
   }
