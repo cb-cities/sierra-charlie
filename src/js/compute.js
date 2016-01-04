@@ -7,7 +7,7 @@ var _ = module.exports = {
   clamp: function (value) {
     return (Math.max(0, Math.min(value, 1)));
   },
-  
+
   clientSpaceWidth: function (zoom) {
     return defs.tileCountX * defs.clientTileSize / _.zoomLevel(zoom);
   },
@@ -15,7 +15,7 @@ var _ = module.exports = {
   clientSpaceHeight: function (zoom) {
     return defs.tileCountY * defs.clientTileSize / _.zoomLevel(zoom);
   },
-  
+
   clientPageWidth: function (width, zoom) {
     return width / _.clientSpaceWidth(zoom);
   },
@@ -62,7 +62,7 @@ var _ = module.exports = {
         Math.round((rawTime * 3600) % (24 * 3600)) / 3600 :
         24 - Math.round((-rawTime * 3600) % (24 * 3600)) / 3600);
   },
-  
+
   zoomLevel: function (zoom) {
     return Math.pow(2, zoom);
   }

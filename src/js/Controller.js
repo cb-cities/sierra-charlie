@@ -12,8 +12,8 @@ var vector = require("./vector");
 
 
 function Controller() {
-  this.lastClientX = 0;
-  this.lastClientY = 0;
+  this.prevClientX = 0;
+  this.prevClientY = 0;
   window.Geometry = this.geometry = new Geometry({ // TODO
       onRoadNodesLoaded: this.onRoadNodesLoaded.bind(this),
       onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this)
@@ -49,7 +49,7 @@ Controller.prototype = {
     var canvas = document.getElementById("map-canvas");
     return canvas.clientHeight;
   },
-  
+
   fromClientPoint: function (x, y) {
     var width = this.getClientWidth();
     var height = this.getClientHeight();
@@ -147,7 +147,7 @@ Controller.prototype = {
       var newTop = compute.topFromClientScrollTop(frame.scrollTop, zoom);
       App.setStaticLeftTop(newLeft, newTop);
     }
-    this.updateHover(this.lastClientX, this.lastClientY);
+    this.updateHover(this.prevClientX, this.prevClientY);
   },
 
   onCanvasContextLost: function (event) {
@@ -164,8 +164,8 @@ Controller.prototype = {
   onMouseMoved: function (event) {
     // console.log("mouseMove", event.clientX, event.clientY);
     this.updateHover(event.clientX, event.clientY);
-    this.lastClientX = event.clientX;
-    this.lastClientY = event.clientY;
+    this.prevClientX = event.clientX;
+    this.prevClientY = event.clientY;
   },
 
   onMouseDoubleClicked: function (event) {

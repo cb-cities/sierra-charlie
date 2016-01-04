@@ -1,6 +1,7 @@
 "use strict";
 
 var Lineset = require("./lineset");
+
 var defs = require("./defs");
 
 

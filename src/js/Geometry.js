@@ -1,6 +1,7 @@
 "use strict";
 
-var GeometryLoader = require("worker?inline!./GeometryLoader");
+var GeometryLoaderWorker = require("worker?inline!./GeometryLoaderWorker");
+
 var defs = require("./defs");
 var rect = require("./rect");
 
@@ -16,9 +17,9 @@ function Geometry(props) {
   this.roadLinks = {};
   this.roadLinkIndexArr = new Uint32Array(defs.maxRoadLinkIndexCount);
   this.roadLinkIndexCount = 0;
-  this.loader = new GeometryLoader();
-  this.loader.addEventListener("message", this.onMessage.bind(this));
-  this.loader.postMessage({
+  this.worker = new GeometryLoaderWorker();
+  this.worker.addEventListener("message", this.onMessage.bind(this));
+  this.worker.postMessage({
       message: "startLoading",
       origin: window.location.origin
     });
@@ -90,16 +91,16 @@ Geometry.prototype = {
 
   onRoadNodesLoaded: function (data) {
     this.isRenderingNeeded = true;
-    this.vertexArr.set(data.vertices, this.vertexCount * 2);
-    this.vertexCount += data.vertices.length / 2;
-    this.roadNodeIndexArr.set(data.roadNodeIndices, this.roadNodeIndexCount);
-    this.roadNodeIndexCount += data.roadNodeIndices.length;
+    this.vertexArr.set(data.vertexArr, this.vertexCount * 2);
+    this.vertexCount += data.vertexArr.length / 2;
+    this.roadNodeIndexArr.set(data.roadNodeIndexArr, this.roadNodeIndexCount);
+    this.roadNodeIndexCount += data.roadNodeIndexArr.length;
     for (var i = 0; i < data.roadNodes.length; i++) {
       var roadNode = data.roadNodes[i];
       this.roadNodes[roadNode.toid] = roadNode;
     }
     if (this.isLoadingFinished()) {
-      this.loader.terminate();
+      this.worker.terminate();
     }
     if (this.props.onRoadNodesLoaded) {
       this.props.onRoadNodesLoaded(data.roadNodes);
@@ -108,16 +109,16 @@ Geometry.prototype = {
 
   onRoadLinksLoaded: function (data) {
     this.isRenderingNeeded = true;
-    this.vertexArr.set(data.vertices, this.vertexCount * 2);
-    this.vertexCount += data.vertices.length / 2;
-    this.roadLinkIndexArr.set(data.roadLinkIndices, this.roadLinkIndexCount);
-    this.roadLinkIndexCount += data.roadLinkIndices.length;
+    this.vertexArr.set(data.vertexArr, this.vertexCount * 2);
+    this.vertexCount += data.vertexArr.length / 2;
+    this.roadLinkIndexArr.set(data.roadLinkIndexArr, this.roadLinkIndexCount);
+    this.roadLinkIndexCount += data.roadLinkIndexArr.length;
     for (var i = 0; i < data.roadLinks.length; i++) {
       var roadLink = data.roadLinks[i];
       this.roadLinks[roadLink.toid] = roadLink;
     }
     if (this.isLoadingFinished()) {
-      this.loader.terminate();
+      this.worker.terminate();
     }
     if (this.props.onRoadLinksLoaded) {
       this.props.onRoadLinksLoaded(data.roadLinks);

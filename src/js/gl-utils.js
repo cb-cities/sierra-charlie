@@ -14,8 +14,8 @@ function loadShader(gl, shaderSrc, shaderType) {
   gl.compileShader(shader);
   var isCompiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
   if (!isCompiled) {
-    var lastError = gl.getShaderInfoLog(shader);
-    console.error(addLineNumbers(shaderSrc) + "\nError compiling shader: " + lastError);
+    var prevError = gl.getShaderInfoLog(shader);
+    console.error(addLineNumbers(shaderSrc) + "\nError compiling shader: " + prevError);
     gl.deleteShader(shader);
     return null;
   }
@@ -33,8 +33,8 @@ module.exports = {
     gl.linkProgram(program);
     var isLinked = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (!isLinked) {
-        var lastError = gl.getProgramInfoLog(program);
-        console.error("Error linking program: " + lastError);
+        var prevError = gl.getProgramInfoLog(program);
+        console.error("Error linking program: " + prevError);
         gl.deleteProgram(program);
         return null;
     }

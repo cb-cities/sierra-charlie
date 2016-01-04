@@ -1,5 +1,6 @@
 "use strict";
 
+
 var tileSize = 1000;
 var clientTileSize = 1024;
 
@@ -38,12 +39,12 @@ var _ = module.exports = {
 
   spaceWidth: tileCountX * tileSize,
   spaceHeight: tileCountY * tileSize,
-  
+
   maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
-  
+
   maxRoadNodeCount: maxRoadNodeCount,
   maxRoadNodeIndexCount: maxRoadNodeCount,
-  
+
   maxRoadLinkCount: maxRoadLinkCount,
   maxRoadLinkPointCount: maxRoadLinkPointCount,
   maxRoadLinkIndexCount: maxRoadLinkIndexCount,
