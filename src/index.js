@@ -18,6 +18,15 @@ require("./index.html");
 
 function init() {
   var controller = new Controller({
+      tileSize: defs.tileSize,
+      imageSize: defs.imageSize,
+      firstTileX: defs.firstTileX,
+      lastTileY: defs.lastTileY,
+      tileXCount: defs.tileXCount,
+      tileYCount: defs.tileYCount,
+      treeLeft: 465464, // TODO
+      treeTop: 112964, // TODO
+      treeSize: 131072, // TODO
       maxZoom: defs.maxZoom
     });
 
@@ -29,6 +38,7 @@ function init() {
 
   var space = document.getElementById("map-space");
   space.addEventListener("dblclick", controller.onDoubleClick.bind(controller));
+  space.addEventListener("mousemove", controller.onMouseMove.bind(controller));
 
   window.App = r.render(App({
     }),

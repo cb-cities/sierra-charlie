@@ -1,13 +1,96 @@
 "use strict";
 
+var Indexset = require("./Indexset");
+var Polyquadtree = require("./Polyquadtree");
+var Quadtree = require("./Quadtree");
+
 var compute = require("./compute");
+var vector = require("./vector");
 
 
 function Controller(props) {
   this.props = props;
+  window.RoadNodeTree = this.roadNodeTree = new Quadtree(this.props.treeLeft, this.props.treeTop, this.props.treeSize, function (roadNode) {
+      return App.getRoadNodePoint(roadNode);
+    }); // TODO
+  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(this.props.treeLeft, this.props.treeTop, this.props.treeSize, function (roadLink) {
+      return App.getRoadLinkBounds(roadLink);
+    }); // TODO
+  this.hoveredRoadNodeIndices = new Indexset();
+  this.hoveredRoadLinkIndices = new Indexset();
 }
 
 Controller.prototype = {
+  projectPointToWorld: function (clientX, clientY) {
+    var clientWidth = App.getClientWidth();
+    var clientHeight = App.getClientHeight();
+    var left = App.getLeft();
+    var top = App.getTop();
+    var zoom = App.getZoom();
+    var zoomLevel = compute.zoomLevel(zoom);
+    var dilation = this.props.tileSize / this.props.imageSize * zoomLevel; // TODO: Compare with drawing
+    var translationX = (this.props.firstTileX + left * this.props.tileXCount) * this.props.tileSize;
+    var translationY = (this.props.lastTileY + 1 - top * this.props.tileYCount) * this.props.tileSize;
+    return {
+      x: (clientX - clientWidth / 2) * dilation + translationX,
+      y: ((clientHeight - clientY) - clientHeight / 2) * dilation + translationY
+    };
+  },
+
+  projectRectToWorld: function (clientR) {
+    var bottomLeft = this.projectPointToWorld(clientR.left, clientR.top);
+    var topRight = this.projectPointToWorld(clientR.right, clientR.bottom);
+    return {
+      left: bottomLeft.x,
+      top: topRight.y,
+      right: topRight.x,
+      bottom: bottomLeft.y
+    };
+  },
+
+  projectMouseToWorld: function (event) {
+    return (
+      this.projectRectToWorld(vector.bounds(16, {
+          x: event.clientX,
+          y: event.clientY
+        })));
+  },
+
+  onLoadRoadNodes: function (roadNodes) {
+    for (var i = 0; i < roadNodes.length; i++) {
+      this.roadNodeTree.insert(roadNodes[i]);
+    }
+  },
+
+  onLoadRoadLinks: function (roadLinks) {
+    for (var i = 0; i < roadLinks.length; i++) {
+      this.roadLinkTree.insert(roadLinks[i]);
+    }
+  },
+
+  onMouseMove: function (event) {
+    // console.log("mouseMove", event.clientX, event.clientY);
+    var mouse = this.projectMouseToWorld(event);
+    var roadNodes = this.roadNodeTree.select(mouse);
+    this.hoveredRoadNodeIndices.clear();
+    for (var i = 0; i < roadNodes.length; i++) {
+      var index = App.getRoadNodeIndex(roadNodes[i]); // TODO
+      this.hoveredRoadNodeIndices.insert(index);
+    }
+    var roadLinks = this.roadLinkTree.select(mouse);
+    this.hoveredRoadLinkIndices.clear();
+    for (var i = 0; i < roadLinks.length; i++) {
+      var indices = App.getRoadLinkIndices(roadLinks[i]); // TODO
+      this.hoveredRoadLinkIndices.insertMany(indices);
+    }
+    var gl = App.painterContext.gl; // TODO
+    this.hoveredRoadNodeIndices.render(gl, gl.STREAM_DRAW);
+    this.hoveredRoadLinkIndices.render(gl, gl.STREAM_DRAW);
+    App.needsPainting = true; // TODO
+    App.hoveredRoadNodeIndices = this.hoveredRoadNodeIndices; // OMG
+    App.hoveredRoadLinkIndices = this.hoveredRoadLinkIndices; // OMG
+  },
+
   onDoubleClick: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
     var clientWidth = App.getClientWidth();
