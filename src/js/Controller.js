@@ -22,8 +22,14 @@ function Controller() {
   window.Grid = this.grid = new Grid(); // TODO
   window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
   window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
+  this.hoveredRoadNodes = [];
   this.hoveredRoadNodeIndices = new Indexset();
+  this.hoveredRoadLinks = [];
   this.hoveredRoadLinkIndices = new Indexset();
+  this.selectedRoadNodes = [];
+  this.selectedRoadNodeIndices = new Indexset();
+  this.selectedRoadLinks = [];
+  this.selectedRoadLinkIndices = new Indexset();
   var frame = document.getElementById("map-frame");
   frame.addEventListener("scroll", this.onFrameScrolled.bind(this));
   var canvas = document.getElementById("map-canvas");
@@ -31,6 +37,7 @@ function Controller() {
   canvas.addEventListener("webglcontextrestored", this.onCanvasContextRestored.bind(this));
   var space = document.getElementById("map-space");
   space.addEventListener("mousemove", this.onMouseMoved.bind(this));
+  space.addEventListener("click", this.onMouseClicked.bind(this));
   space.addEventListener("dblclick", this.onMouseDoubleClicked.bind(this));
   window.addEventListener("keydown", this.onKeyPressed.bind(this));
   window.addEventListener("resize", this.onWindowResized.bind(this));
@@ -98,21 +105,29 @@ Controller.prototype = {
     }
   },
 
-  updateHover: function (clientX, clientY) {
+  updateHovered: function (clientX, clientY) {
     var result = this.findClosestFeature({
         x: clientX,
         y: clientY
       });
+    this.hoveredRoadNodes = [];
     this.hoveredRoadNodeIndices.clear();
+    this.hoveredRoadLinks = [];
     this.hoveredRoadLinkIndices.clear();
     if (result.key === "roadNode") {
-      var index = this.geometry.getRoadNodeIndex(result.roadNode);
-      this.hoveredRoadNodeIndices.insertPoint(index);
-      UI.ports.setHoveredToid.send(result.roadNode.toid);
+      if (this.selectedRoadNodes.indexOf(result.roadNode) === -1) {
+        var index = this.geometry.getRoadNodeIndex(result.roadNode);
+        this.hoveredRoadNodes.push(result.roadNode);
+        this.hoveredRoadNodeIndices.insertPoint(index);
+        UI.ports.setHoveredToid.send(result.roadNode.toid);
+      }
     } else if (result.key === "roadLink") {
-      var indices = this.geometry.getRoadLinkIndices(result.roadLink);
-      this.hoveredRoadLinkIndices.insertLine(indices);
-      UI.ports.setHoveredToid.send(result.roadLink.toid);
+      if (this.selectedRoadLinks.indexOf(result.roadLink) === -1) {
+        var indices = this.geometry.getRoadLinkIndices(result.roadLink);
+        this.hoveredRoadLinks.push(result.roadLink);
+        this.hoveredRoadLinkIndices.insertLine(indices);
+        UI.ports.setHoveredToid.send(result.roadLink.toid);
+      }
     } else {
       UI.ports.setHoveredToid.send(null);
     }
@@ -122,8 +137,22 @@ Controller.prototype = {
     this.hoveredRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
     this.hoveredRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
     App.isDrawingNeeded = true; // TODO
-    App.hoveredRoadNodeIndices = this.hoveredRoadNodeIndices; // OMG
-    App.hoveredRoadLinkIndices = this.hoveredRoadLinkIndices; // OMG
+  },
+
+  updateSelected: function (clientX, clientY) {
+    this.selectedRoadNodes = this.hoveredRoadNodes;
+    this.selectedRoadNodeIndices.copy(this.hoveredRoadNodeIndices);
+    this.hoveredRoadNodes = [];
+    this.hoveredRoadNodeIndices.clear();
+    this.selectedRoadLinks = this.hoveredRoadLinks;
+    this.selectedRoadLinkIndices.copy(this.hoveredRoadLinkIndices);
+    this.hoveredRoadLinks = [];
+    this.hoveredRoadLinkIndices.clear();
+
+    var gl = App.drawingContext.gl; // TODO
+    this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+    this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+    App.isDrawingNeeded = true; // TODO
   },
 
   onRoadNodesLoaded: function (roadNodes) {
@@ -150,7 +179,7 @@ Controller.prototype = {
       var newCenterY = compute.centerYFromScrollTop(frame.scrollTop, zoom);
       App.setStaticCenter(newCenterX, newCenterY);
     }
-    this.updateHover(this.prevClientX, this.prevClientY);
+    this.updateHovered(this.prevClientX, this.prevClientY);
   },
 
   onCanvasContextLost: function (event) {
@@ -166,9 +195,13 @@ Controller.prototype = {
 
   onMouseMoved: function (event) {
     // console.log("mouseMove", event.clientX, event.clientY);
-    this.updateHover(event.clientX, event.clientY);
+    this.updateHovered(event.clientX, event.clientY);
     this.prevClientX = event.clientX;
     this.prevClientY = event.clientY;
+  },
+
+  onMouseClicked: function (event) {
+    this.updateSelected(event.clientX, event.clientY);
   },
 
   onMouseDoubleClicked: function (event) {
