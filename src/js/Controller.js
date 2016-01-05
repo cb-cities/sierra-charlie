@@ -22,13 +22,13 @@ function Controller() {
   window.Grid = this.grid = new Grid(); // TODO
   window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
   window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
-  this.hoveredRoadNodes = [];
+  this.hoveredRoadNode = null;
   this.hoveredRoadNodeIndices = new Indexset();
-  this.hoveredRoadLinks = [];
+  this.hoveredRoadLink = null;
   this.hoveredRoadLinkIndices = new Indexset();
-  this.selectedRoadNodes = [];
+  this.selectedRoadNode = null;
   this.selectedRoadNodeIndices = new Indexset();
-  this.selectedRoadLinks = [];
+  this.selectedRoadLink = null;
   this.selectedRoadLinkIndices = new Indexset();
   var frame = document.getElementById("map-frame");
   frame.addEventListener("scroll", this.onFrameScrolled.bind(this));
@@ -110,24 +110,20 @@ Controller.prototype = {
         x: clientX,
         y: clientY
       });
-    this.hoveredRoadNodes = [];
+    this.hoveredRoadNode = null;
     this.hoveredRoadNodeIndices.clear();
-    this.hoveredRoadLinks = [];
+    this.hoveredRoadLink = null;
     this.hoveredRoadLinkIndices.clear();
     if (result.key === "roadNode") {
-      if (this.selectedRoadNodes.indexOf(result.roadNode) === -1) {
-        var index = this.geometry.getRoadNodeIndex(result.roadNode);
-        this.hoveredRoadNodes.push(result.roadNode);
-        this.hoveredRoadNodeIndices.insertPoint(index);
-        UI.ports.setHoveredToid.send(result.roadNode.toid);
-      }
+      var index = this.geometry.getRoadNodeIndex(result.roadNode);
+      this.hoveredRoadNode = result.roadNode;
+      this.hoveredRoadNodeIndices.insertPoint(index);
+      UI.ports.setHoveredToid.send(result.roadNode.toid);
     } else if (result.key === "roadLink") {
-      if (this.selectedRoadLinks.indexOf(result.roadLink) === -1) {
-        var indices = this.geometry.getRoadLinkIndices(result.roadLink);
-        this.hoveredRoadLinks.push(result.roadLink);
-        this.hoveredRoadLinkIndices.insertLine(indices);
-        UI.ports.setHoveredToid.send(result.roadLink.toid);
-      }
+      var indices = this.geometry.getRoadLinkIndices(result.roadLink);
+      this.hoveredRoadLink = result.roadLink;
+      this.hoveredRoadLinkIndices.insertLine(indices);
+      UI.ports.setHoveredToid.send(result.roadLink.toid);
     } else {
       UI.ports.setHoveredToid.send(null);
     }
@@ -140,14 +136,21 @@ Controller.prototype = {
   },
 
   updateSelected: function (clientX, clientY) {
-    this.selectedRoadNodes = this.hoveredRoadNodes;
-    this.selectedRoadNodeIndices.copy(this.hoveredRoadNodeIndices);
-    this.hoveredRoadNodes = [];
-    this.hoveredRoadNodeIndices.clear();
-    this.selectedRoadLinks = this.hoveredRoadLinks;
-    this.selectedRoadLinkIndices.copy(this.hoveredRoadLinkIndices);
-    this.hoveredRoadLinks = [];
-    this.hoveredRoadLinkIndices.clear();
+    this.selectedRoadNode = null;
+    this.selectedRoadNodeIndices.clear();
+    this.selectedRoadLink = null;
+    this.selectedRoadLinkIndices.clear();
+    if (this.hoveredRoadNode) {
+      this.selectedRoadNode = this.hoveredRoadNode;
+      this.selectedRoadNodeIndices.copy(this.hoveredRoadNodeIndices);
+      UI.ports.setSelectedToid.send(this.selectedRoadNode.toid);
+    } else if (this.hoveredRoadLink) {
+      this.selectedRoadLink = this.hoveredRoadLink;
+      this.selectedRoadLinkIndices.copy(this.hoveredRoadLinkIndices);
+      UI.ports.setSelectedToid.send(this.selectedRoadLink.toid);
+    } else {
+      UI.ports.setSelectedToid.send(null);
+    }
 
     var gl = App.drawingContext.gl; // TODO
     this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
