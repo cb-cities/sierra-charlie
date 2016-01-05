@@ -18,5 +18,6 @@ window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
     setLoadingProgress: 0,
     setHoveredLocation: {x: 0, y: 0},
     setHoveredToid: null,
-    setSelectedToid: null
+    setSelectedToid: null,
+    setSelectedLocation: []
   });
