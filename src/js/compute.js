@@ -34,21 +34,21 @@ var _ = module.exports = {
     return defs.tileCountY * defs.baseClientTileSize / _.zoomLevel(zoom);
   },
 
-  visibleWidth: function (clientWidth, zoom) {
+  fromClientWidth: function (clientWidth, zoom) {
     return clientWidth / _.totalClientWidth(zoom) * defs.totalWidth;
   },
 
-  visibleHeight: function (clientHeight, zoom) {
+  fromClientHeight: function (clientHeight, zoom) {
     return clientHeight / _.totalClientHeight(zoom) * defs.totalHeight;
   },
 
-  scrollLeft: function (centerX, zoom) {
+  scrollLeftFromCenterX: function (centerX, zoom) {
     return (
       Math.floor(
         (centerX - defs.firstTileX) / defs.totalWidth * _.totalClientWidth(zoom)));
   },
 
-  scrollTop: function (centerY, zoom) {
+  scrollTopFromCenterY: function (centerY, zoom) {
     return (
       Math.floor(
         (1 - (centerY - defs.firstTileY) / defs.totalHeight) * _.totalClientHeight(zoom)));
@@ -63,11 +63,11 @@ var _ = module.exports = {
   },
 
   fromClientX: function (clientX, clientWidth, centerX, zoom) {
-    return _.centerXFromScrollLeft(_.scrollLeft(centerX, zoom) + clientX - clientWidth / 2, zoom);
+    return _.centerXFromScrollLeft(_.scrollLeftFromCenterX(centerX, zoom) + clientX - clientWidth / 2, zoom);
   },
 
   fromClientY: function (clientY, clientHeight, centerY, zoom) {
-    return _.centerYFromScrollTop(_.scrollTop(centerY, zoom) + clientY - clientHeight / 2, zoom);
+    return _.centerYFromScrollTop(_.scrollTopFromCenterY(centerY, zoom) + clientY - clientHeight / 2, zoom);
   },
 
   fromClientPoint: function (clientP, clientWidth, clientHeight, centerX, centerY, zoom) {
