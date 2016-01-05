@@ -25,7 +25,7 @@ var _ = module.exports = {
 
   clampZoom: function (zoom) {
     return (
-      Math.max(0,
+      Math.max(defs.minZoom,
         Math.min(zoom, defs.maxZoom)));
   },
 

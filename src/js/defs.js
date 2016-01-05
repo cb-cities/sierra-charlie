@@ -21,6 +21,7 @@ var quadtreeLeft = 465464;
 var quadtreeTop = 112964;
 var quadtreeSize = 131072;
 
+var minZoom = -2;
 var maxZoom = 7;
 
 
@@ -54,5 +55,6 @@ var _ = module.exports = {
   quadtreeTop: quadtreeTop,
   quadtreeSize: quadtreeSize,
 
+  minZoom: minZoom,
   maxZoom: maxZoom
 };
