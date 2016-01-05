@@ -1,7 +1,9 @@
 CACHE MANIFEST
-# v18 - 2015-12-31 23:59:59
+# v21
 
 CACHE:
+json/addresses1.json.gz
+json/addresses2.json.gz
 json/roadnodes.json.gz
 json/roadlinks1.json.gz
 json/roadlinks2.json.gz

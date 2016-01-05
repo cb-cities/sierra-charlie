@@ -17,6 +17,8 @@ var maxRoadLinkCount = 423541;
 var maxRoadLinkPointCount = 2267772;
 var maxRoadLinkIndexCount = 3688462;
 
+var maxAddressCount = 343443;
+
 var quadtreeLeft = 465464;
 var quadtreeTop = 112964;
 var quadtreeSize = 131072;
@@ -50,6 +52,8 @@ var _ = module.exports = {
   maxRoadLinkCount: maxRoadLinkCount,
   maxRoadLinkPointCount: maxRoadLinkPointCount,
   maxRoadLinkIndexCount: maxRoadLinkIndexCount,
+
+  maxAddressCount: maxAddressCount,
 
   quadtreeLeft: quadtreeLeft,
   quadtreeTop: quadtreeTop,
