@@ -325,7 +325,7 @@ Controller.prototype = {
         var newZoom = compute.clampZoom(Math.round((zoom * 10) + zoomDelta) / 10);
         App.setZoom(newZoom, duration);
         break;
-      default: // 1-8
+      default: // 1-9, 0
         if (event.keyCode >= 49 && event.keyCode <= 57 || event.keyCode === 48) {
           var newZoom = compute.clampZoom(
               event.keyCode === 48 ? 7 : event.keyCode - 49 - 2);
