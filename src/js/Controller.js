@@ -1,5 +1,6 @@
 "use strict";
 
+var AddressBook = require("./AddressBook");
 var Geometry = require("./Geometry");
 var Grid = require("./Grid");
 var Indexset = require("./Indexset");
@@ -21,6 +22,13 @@ function Controller() {
       onRoadNodesLoaded: this.onRoadNodesLoaded.bind(this),
       onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this)
     });
+  window.AddressBook = this.addressBook = new AddressBook({ // TODO
+      onAddressesLoaded: this.onAddressesLoaded.bind(this)
+    });
+  this.loadingProgress = {
+    geometry: 0,
+    addressBook: 0
+  };
   window.Grid = this.grid = new Grid(); // TODO
   window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
   window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
@@ -129,7 +137,25 @@ Controller.prototype = {
     }
   },
 
-  updateHovered: function (clientX, clientY) {
+  updateHoveredAddress: function () {
+    if (this.hoveredRoadNode) {
+      var address = this.addressBook.getRoadNodeAddress(this.hoveredRoadNode);
+      UI.ports.setHoveredAddress.send(address);
+    } else {
+      UI.ports.setHoveredAddress.send(null);
+    }
+  },
+
+  updateSelectedAddress: function () {
+    if (this.selectedRoadNode) {
+      var address = this.addressBook.getRoadNodeAddress(this.selectedRoadNode);
+      UI.ports.setSelectedAddress.send(address);
+    } else {
+      UI.ports.setSelectedAddress.send(null);
+    }
+  },
+
+  updateHoveredGeometry: function (clientX, clientY) {
     var result = this.findClosestFeature({
         x: clientX,
         y: clientY
@@ -157,6 +183,7 @@ Controller.prototype = {
       UI.ports.setHoveredAnchor.send(null);
       UI.ports.setHoveredToid.send(null);
     }
+    this.updateHoveredAddress();
 
     var gl = App.drawingContext.gl; // TODO
     this.hoveredRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
@@ -164,7 +191,7 @@ Controller.prototype = {
     App.isDrawingNeeded = true; // TODO
   },
 
-  updateSelected: function (clientX, clientY) {
+  updateSelectedGeometry: function (clientX, clientY) {
     this.selectedRoadNode = null;
     this.selectedRoadNodeIndices.clear();
     this.selectedRoadLink = null;
@@ -188,6 +215,7 @@ Controller.prototype = {
       UI.ports.setSelectedAnchor.send(null);
       UI.ports.setSelectedToid.send(null);
     }
+    this.updateSelectedAddress();
 
     var gl = App.drawingContext.gl; // TODO
     this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
@@ -195,20 +223,41 @@ Controller.prototype = {
     App.isDrawingNeeded = true; // TODO
   },
 
-  onRoadNodesLoaded: function (roadNodes) {
+  updateLoadingProgress: function (source, loadedCount) {
+    switch (source) {
+      case "geometry":
+        this.loadingProgress.geometry = loadedCount;
+        break;
+      case "addressBook":
+        this.loadingProgress.addressBook = loadedCount;
+        break;
+    }
+    var count = this.loadingProgress.geometry + this.loadingProgress.addressBook;
+    var maxCount = defs.maxVertexCount + defs.maxAddressCount; // TODO;
+    UI.ports.setLoadingProgress.send(count / maxCount * 100);
+  },
+
+  onRoadNodesLoaded: function (roadNodes, vertexCount) {
     for (var i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
     }
     App.updateDrawingContext(); // TODO
-    UI.ports.setLoadingProgress.send(this.geometry.getLoadingProgress());
+    this.updateLoadingProgress("geometry", vertexCount);
+    this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
   },
 
-  onRoadLinksLoaded: function (roadLinks) {
+  onRoadLinksLoaded: function (roadLinks, vertexCount) {
     for (var i = 0; i < roadLinks.length; i++) {
       this.roadLinkTree.insert(roadLinks[i]);
     }
     App.updateDrawingContext(); // TODO
-    UI.ports.setLoadingProgress.send(this.geometry.getLoadingProgress());
+    this.updateLoadingProgress("geometry", vertexCount);
+    this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
+  },
+
+  onAddressesLoaded: function (addresses, addressCount) {
+    this.updateLoadingProgress("addressBook", addressCount);
+    this.updateSelectedAddress();
   },
 
   onFrameScrolled: function (event) {
@@ -219,7 +268,7 @@ Controller.prototype = {
       var newCenterY = compute.centerYFromScrollTop(frame.scrollTop, zoom);
       App.setStaticCenter(newCenterX, newCenterY);
     }
-    this.updateHovered(this.prevClientX, this.prevClientY);
+    this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
   },
 
   onCanvasContextLost: function (event) {
@@ -235,7 +284,7 @@ Controller.prototype = {
 
   onMouseMoved: function (event) {
     // console.log("mouseMove", event.clientX, event.clientY);
-    this.updateHovered(event.clientX, event.clientY);
+    this.updateHoveredGeometry(event.clientX, event.clientY);
     this.prevClientX = event.clientX;
     this.prevClientY = event.clientY;
   },
@@ -245,7 +294,7 @@ Controller.prototype = {
       // console.log("click", event.clientX, event.clientY, Date.now() - this.prevClickDate);
       this.prevClickDate = Date.now();
       var duration = event.shiftKey ? 2500 : 500;
-      this.updateSelected(this.clientX, event.clientY);
+      this.updateSelectedGeometry(this.clientX, event.clientY);
       this.prevClientX = event.clientX;
       this.prevClientY = event.clientY;
       if (this.selectedRoadNode) {

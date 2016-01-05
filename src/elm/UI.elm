@@ -3,7 +3,6 @@ module UI where
 import Effects exposing (Effects, Never)
 import Html exposing (Html, div, span, text)
 import Html.Attributes exposing (id, style)
-import Signal exposing (Address)
 import StartApp exposing (App)
 import Task exposing (Task)
 
@@ -13,14 +12,23 @@ type alias Point =
   , y : Float
   }
 
+type alias Address =
+  { toid : String
+  , lat : Float
+  , lng : Float
+  , addr : String
+  }
+
 type alias Model =
   { loadingProgress : Float
   , hoveredLocation : Point
   , hoveredAnchor : Maybe Point
   , hoveredToid : Maybe String
+  , hoveredAddress : Maybe Address
   , selectedLocation : List Point
   , selectedAnchor : Maybe Point
   , selectedToid : Maybe String
+  , selectedAddress : Maybe Address
   }
 
 
@@ -30,9 +38,11 @@ defaultModel =
   , hoveredLocation = {x = 0, y = 0}
   , hoveredAnchor = Nothing
   , hoveredToid = Nothing
+  , hoveredAddress = Nothing
   , selectedLocation = []
   , selectedAnchor = Nothing
   , selectedToid = Nothing
+  , selectedAddress = Nothing
   }
 
 
@@ -42,9 +52,11 @@ type Action =
   | SetHoveredLocation Point
   | SetHoveredAnchor (Maybe Point)
   | SetHoveredToid (Maybe String)
+  | SetHoveredAddress (Maybe Address)
   | SetSelectedLocation (List Point)
   | SetSelectedAnchor (Maybe Point)
   | SetSelectedToid (Maybe String)
+  | SetSelectedAddress (Maybe Address)
 
 
 noEffect : Model -> (Model, Effects Action)
@@ -69,6 +81,9 @@ update action model =
       SetHoveredToid newToid ->
         {model | hoveredToid = newToid}
           |> noEffect
+      SetHoveredAddress newAddress ->
+        {model | hoveredAddress = newAddress}
+          |> noEffect
       SetSelectedLocation newLocation ->
         {model | selectedLocation = newLocation}
           |> noEffect
@@ -78,6 +93,9 @@ update action model =
       SetSelectedToid newToid ->
         {model | selectedToid = newToid}
           |> noEffect
+      SetSelectedAddress newAddress ->
+        {model | selectedAddress = newAddress}
+          |> noEffect
 
 
 viewPoint : Point -> String
@@ -85,7 +103,32 @@ viewPoint p =
     toString (round p.x) ++ " " ++ toString (round p.y)
 
 
-view : Address Action -> Model -> Html
+viewLegend : String -> Maybe String -> Maybe Address -> Html
+viewLegend legendId maybeToid maybeAddress =
+    let
+      toidPart =
+        case maybeToid of
+          Nothing ->
+            []
+          Just toid ->
+            [div [] [text toid]]
+      addressPart =
+        case maybeAddress of
+          Nothing ->
+            []
+          Just address ->
+            [ div [] [text (toString address.lat ++ " " ++ toString address.lng)]
+            , div [] [text address.addr]
+            ]
+    in
+      div
+        [ id legendId
+        , style [("opacity", if maybeToid == Nothing then "0" else "1")]
+        ]
+        (toidPart ++ addressPart)
+
+
+view : Signal.Address Action -> Model -> Html
 view address model =
     div []
       [ div
@@ -106,26 +149,8 @@ view address model =
           , span [id "ui-status-right"]
               []
           ]
-      , div
-          [ id "ui-hovered-legend"
-          , style [("opacity", if model.hoveredToid == Nothing then "0" else "1")]
-          ]
-          ( case model.hoveredToid of
-              Nothing ->
-                []
-              Just toid ->
-                [text toid]
-          )
-      , div
-          [ id "ui-selected-legend"
-          , style [("opacity", if model.selectedToid == Nothing then "0" else "1")]
-          ]
-          ( case model.selectedToid of
-              Nothing ->
-                []
-              Just toid ->
-                [text toid]
-          )
+      , viewLegend "ui-hovered-legend" model.hoveredToid model.hoveredAddress
+      , viewLegend "ui-selected-legend" model.selectedToid model.selectedAddress
       ]
 
 
@@ -138,9 +163,11 @@ port setLoadingProgress : Signal Float
 port setHoveredLocation : Signal Point
 port setHoveredAnchor : Signal (Maybe Point)
 port setHoveredToid : Signal (Maybe String)
+port setHoveredAddress : Signal (Maybe Address)
 port setSelectedLocation : Signal (List Point)
 port setSelectedAnchor : Signal (Maybe Point)
 port setSelectedToid : Signal (Maybe String)
+port setSelectedAddress : Signal (Maybe Address)
 
 
 app : App Model
@@ -154,9 +181,11 @@ app =
           , Signal.map SetHoveredLocation setHoveredLocation
           , Signal.map SetHoveredAnchor setHoveredAnchor
           , Signal.map SetHoveredToid setHoveredToid
+          , Signal.map SetHoveredAddress setHoveredAddress
           , Signal.map SetSelectedLocation setSelectedLocation
           , Signal.map SetSelectedAnchor setSelectedAnchor
           , Signal.map SetSelectedToid setSelectedToid
+          , Signal.map SetSelectedAddress setSelectedAddress
           ]
       }
 

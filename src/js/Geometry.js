@@ -30,10 +30,6 @@ Geometry.prototype = {
     return this.vertexCount === defs.maxVertexCount;
   },
 
-  getLoadingProgress: function () {
-    return this.vertexCount / defs.maxVertexCount * 100;
-  },
-
   getRoadNodePoint: function (roadNode) {
     return {
       x: this.vertexArr[roadNode.vertexOffset * 2],
@@ -87,6 +83,9 @@ Geometry.prototype = {
         this.onRoadLinksLoaded(event.data);
         break;
     }
+    if (this.isLoadingFinished()) {
+      this.worker.terminate();
+    }
   },
 
   onRoadNodesLoaded: function (data) {
@@ -99,11 +98,8 @@ Geometry.prototype = {
       var roadNode = data.roadNodes[i];
       this.roadNodes[roadNode.toid] = roadNode;
     }
-    if (this.isLoadingFinished()) {
-      this.worker.terminate();
-    }
     if (this.props.onRoadNodesLoaded) {
-      this.props.onRoadNodesLoaded(data.roadNodes);
+      this.props.onRoadNodesLoaded(data.roadNodes, this.vertexCount);
     }
   },
 
@@ -117,11 +113,8 @@ Geometry.prototype = {
       var roadLink = data.roadLinks[i];
       this.roadLinks[roadLink.toid] = roadLink;
     }
-    if (this.isLoadingFinished()) {
-      this.worker.terminate();
-    }
     if (this.props.onRoadLinksLoaded) {
-      this.props.onRoadLinksLoaded(data.roadLinks);
+      this.props.onRoadLinksLoaded(data.roadLinks, this.vertexCount);
     }
   },
 
