@@ -258,25 +258,27 @@ module.exports = {
         gl.vertexAttribPointer(cx.vertexLoc, 2, gl.FLOAT, false, 0, 0);
 
         // Draw road links
-        var roadLinkSize = 2 * Math.sqrt(zoomLevel) * cx.pixelRatio / zoomLevel;
+        var baseRoadLinkSize = 2 * cx.pixelRatio;
+        var roadLinkSize = baseRoadLinkSize * Math.sqrt(zoomLevel) / zoomLevel;
         var roadLinkAlpha = Math.min(roadLinkSize, 1);
         gl.lineWidth(roadLinkSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
         Geometry.drawRoadLinks(gl); // TODO
-        gl.uniform4f(cx.colorLoc, 1, 1, 1, roadLinkAlpha);
+        gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
         this.hoveredRoadLinkIndices.draw(gl, gl.LINES); // TODO
-        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, roadLinkAlpha);
+        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
         this.selectedRoadLinkIndices.draw(gl, gl.LINES); // TODO
 
         // Draw road nodes
-        var roadNodeSize = 8 * Math.cbrt(zoomLevel) * cx.pixelRatio / zoomLevel;
+        var baseRoadNodeSize = 8 * cx.pixelRatio;
+        var roadNodeSize = baseRoadNodeSize * Math.cbrt(zoomLevel) / zoomLevel;
         var roadNodeAlpha = Math.min(roadNodeSize, 1);
         gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
         Geometry.drawRoadNodes(gl); // TODO
-        gl.uniform4f(cx.colorLoc, 1, 1, 1, roadNodeAlpha);
+        gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
         this.hoveredRoadNodeIndices.draw(gl, gl.POINTS); // TODO
-        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, roadNodeAlpha);
+        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
         this.selectedRoadNodeIndices.draw(gl, gl.POINTS); // TODO
       }
     }

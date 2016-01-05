@@ -90,15 +90,11 @@ view address model =
     div []
       [ div
           [ id "ui-loading-progress-track"
-          , style
-              [ ("opacity", if model.loadingProgress == 100 then "0" else "1")
-              ]
+          , style [("opacity", if model.loadingProgress == 100 then "0" else "1")]
           ]
           [ div
             [ id "ui-loading-progress-bar"
-            , style
-                [ ("width", toString model.loadingProgress ++ "%")
-                ]
+            , style [("width", toString model.loadingProgress ++ "%")]
             ]
             []
           ]
@@ -106,50 +102,30 @@ view address model =
           [ id "ui-status-area"
           ]
           [ span [id "ui-status-left"]
-              [ let
-                  location = viewPoint (model.hoveredLocation)
-                  toid =
-                    case model.hoveredToid of
-                      Nothing ->
-                        ""
-                      Just toid ->
-                        toid
-                in
-                  text (location ++ " " ++ toid)
-              ]
+              []
           , span [id "ui-status-right"]
-              [ let
-                  location = List.foldl (\p s -> viewPoint p ++ "\n" ++ s) "" model.selectedLocation
-                  toid =
-                    case model.selectedToid of
-                      Nothing ->
-                        ""
-                      Just toid ->
-                        toid
-                in
-                  text (location ++ " " ++ toid)
-              ]
+              []
           ]
       , div
           [ id "ui-hovered-legend"
-          , style
-              [ ("opacity", if model.hoveredAnchor == Nothing then "0" else "1")
-              , ("left", "100px")
-              , ("top", "100px")
-              ]
+          , style [("opacity", if model.hoveredToid == Nothing then "0" else "1")]
           ]
-          [ text "hovered legend"
-          ]
+          ( case model.hoveredToid of
+              Nothing ->
+                []
+              Just toid ->
+                [text toid]
+          )
       , div
           [ id "ui-selected-legend"
-          , style
-              [ ("opacity", if model.selectedAnchor == Nothing then "0" else "1")
-              , ("left", "200px")
-              , ("top", "200px")
-              ]
+          , style [("opacity", if model.selectedToid == Nothing then "0" else "1")]
           ]
-          [ text "selected legend"
-          ]
+          ( case model.selectedToid of
+              Nothing ->
+                []
+              Just toid ->
+                [text toid]
+          )
       ]
 
 
