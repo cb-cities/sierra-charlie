@@ -16,9 +16,11 @@ type alias Point =
 type alias Model =
   { loadingProgress : Float
   , hoveredLocation : Point
+  , hoveredAnchor : Maybe Point
   , hoveredToid : Maybe String
-  , selectedToid : Maybe String
   , selectedLocation : List Point
+  , selectedAnchor : Maybe Point
+  , selectedToid : Maybe String
   }
 
 
@@ -26,9 +28,11 @@ defaultModel : Model
 defaultModel =
   { loadingProgress = 0
   , hoveredLocation = {x = 0, y = 0}
+  , hoveredAnchor = Nothing
   , hoveredToid = Nothing
-  , selectedToid = Nothing
   , selectedLocation = []
+  , selectedAnchor = Nothing
+  , selectedToid = Nothing
   }
 
 
@@ -36,9 +40,11 @@ type Action =
     Idle
   | SetLoadingProgress Float
   | SetHoveredLocation Point
+  | SetHoveredAnchor (Maybe Point)
   | SetHoveredToid (Maybe String)
-  | SetSelectedToid (Maybe String)
   | SetSelectedLocation (List Point)
+  | SetSelectedAnchor (Maybe Point)
+  | SetSelectedToid (Maybe String)
 
 
 noEffect : Model -> (Model, Effects Action)
@@ -57,14 +63,20 @@ update action model =
       SetHoveredLocation newLocation ->
         {model | hoveredLocation = newLocation}
           |> noEffect
+      SetHoveredAnchor newAnchor ->
+        {model | hoveredAnchor = newAnchor}
+          |> noEffect
       SetHoveredToid newToid ->
         {model | hoveredToid = newToid}
           |> noEffect
-      SetSelectedToid newToid ->
-        {model | selectedToid = newToid}
-          |> noEffect
       SetSelectedLocation newLocation ->
         {model | selectedLocation = newLocation}
+          |> noEffect
+      SetSelectedAnchor newAnchor ->
+        {model | selectedAnchor = newAnchor}
+          |> noEffect
+      SetSelectedToid newToid ->
+        {model | selectedToid = newToid}
           |> noEffect
 
 
@@ -118,6 +130,26 @@ view address model =
                   text (location ++ " " ++ toid)
               ]
           ]
+      , div
+          [ id "ui-hovered-legend"
+          , style
+              [ ("opacity", if model.hoveredAnchor == Nothing then "0" else "1")
+              , ("left", "100px")
+              , ("top", "100px")
+              ]
+          ]
+          [ text "hovered legend"
+          ]
+      , div
+          [ id "ui-selected-legend"
+          , style
+              [ ("opacity", if model.selectedAnchor == Nothing then "0" else "1")
+              , ("left", "200px")
+              , ("top", "200px")
+              ]
+          ]
+          [ text "selected legend"
+          ]
       ]
 
 
@@ -128,9 +160,11 @@ init =
 
 port setLoadingProgress : Signal Float
 port setHoveredLocation : Signal Point
+port setHoveredAnchor : Signal (Maybe Point)
 port setHoveredToid : Signal (Maybe String)
-port setSelectedToid : Signal (Maybe String)
 port setSelectedLocation : Signal (List Point)
+port setSelectedAnchor : Signal (Maybe Point)
+port setSelectedToid : Signal (Maybe String)
 
 
 app : App Model
@@ -142,9 +176,11 @@ app =
       , inputs =
           [ Signal.map SetLoadingProgress setLoadingProgress
           , Signal.map SetHoveredLocation setHoveredLocation
+          , Signal.map SetHoveredAnchor setHoveredAnchor
           , Signal.map SetHoveredToid setHoveredToid
-          , Signal.map SetSelectedToid setSelectedToid
           , Signal.map SetSelectedLocation setSelectedLocation
+          , Signal.map SetSelectedAnchor setSelectedAnchor
+          , Signal.map SetSelectedToid setSelectedToid
           ]
       }
 

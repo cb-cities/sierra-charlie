@@ -9,6 +9,7 @@ var Quadtree = require("./Quadtree");
 var compute = require("./compute");
 var defs = require("./defs");
 var polyline = require("./polyline");
+var rect = require("./rect");
 var vector = require("./vector");
 
 
@@ -56,14 +57,27 @@ Controller.prototype = {
     return canvas.clientHeight;
   },
 
-  findClosestFeature: function (clientP) {
+  fromClientPoint: function (clientP) {
     var clientWidth = this.getClientWidth();
     var clientHeight = this.getClientHeight();
     var centerX = App.getCenterX();
     var centerY = App.getCenterY();
     var zoom = App.getZoom();
-    var cursorP = compute.fromClientPoint(clientP, clientWidth, clientHeight, centerX, centerY, zoom);
-    var cursorR = compute.fromClientRect(vector.bounds(16, clientP), clientWidth, clientHeight, centerX, centerY, zoom)
+    return compute.fromClientPoint(clientP, clientWidth, clientHeight, centerX, centerY, zoom);
+  },
+
+  toClientPoint: function (p) {
+    var clientWidth = this.getClientWidth();
+    var clientHeight = this.getClientHeight();
+    var centerX = App.getCenterX();
+    var centerY = App.getCenterY();
+    var zoom = App.getZoom();
+    return compute.toClientPoint(p, clientWidth, clientHeight, centerX, centerY, zoom);
+  },
+
+  findClosestFeature: function (clientP) {
+    var cursorP = this.fromClientPoint(clientP);
+    var cursorR = vector.bounds(100, cursorP);
     var roadNodes = this.roadNodeTree.select(cursorR);
     var closestRoadNodeDistance = Infinity;
     var closestRoadNode = null;
@@ -114,20 +128,25 @@ Controller.prototype = {
     this.hoveredRoadNodeIndices.clear();
     this.hoveredRoadLink = null;
     this.hoveredRoadLinkIndices.clear();
+    UI.ports.setHoveredLocation.send(result.cursorP);
     if (result.key === "roadNode") {
-      var index = this.geometry.getRoadNodeIndex(result.roadNode);
       this.hoveredRoadNode = result.roadNode;
+      var index = this.geometry.getRoadNodeIndex(this.hoveredRoadNode);
       this.hoveredRoadNodeIndices.insertPoint(index);
-      UI.ports.setHoveredToid.send(result.roadNode.toid);
+      var p = this.geometry.getRoadNodePoint(this.hoveredRoadNode);
+      UI.ports.setHoveredAnchor.send(this.toClientPoint(p));
+      UI.ports.setHoveredToid.send(this.hoveredRoadNode.toid);
     } else if (result.key === "roadLink") {
-      var indices = this.geometry.getRoadLinkIndices(result.roadLink);
       this.hoveredRoadLink = result.roadLink;
+      var indices = this.geometry.getRoadLinkIndices(this.hoveredRoadLink);
       this.hoveredRoadLinkIndices.insertLine(indices);
-      UI.ports.setHoveredToid.send(result.roadLink.toid);
+      var ps = this.geometry.getRoadLinkPoints(this.hoveredRoadLink);
+      UI.ports.setHoveredAnchor.send(polyline.approximateMidpoint(ps));
+      UI.ports.setHoveredToid.send(this.hoveredRoadLink.toid);
     } else {
+      UI.ports.setHoveredAnchor.send(null);
       UI.ports.setHoveredToid.send(null);
     }
-    UI.ports.setHoveredLocation.send(result.cursorP);
 
     var gl = App.drawingContext.gl; // TODO
     this.hoveredRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
@@ -143,18 +162,21 @@ Controller.prototype = {
     if (this.hoveredRoadNode) {
       this.selectedRoadNode = this.hoveredRoadNode;
       this.selectedRoadNodeIndices.copy(this.hoveredRoadNodeIndices);
-      UI.ports.setSelectedToid.send(this.selectedRoadNode.toid);
       var p = this.geometry.getRoadNodePoint(this.selectedRoadNode);
+      UI.ports.setSelectedToid.send(this.selectedRoadNode.toid);
       UI.ports.setSelectedLocation.send([p]);
+      UI.ports.setSelectedAnchor.send(this.toClientPoint(p));
     } else if (this.hoveredRoadLink) {
       this.selectedRoadLink = this.hoveredRoadLink;
       this.selectedRoadLinkIndices.copy(this.hoveredRoadLinkIndices);
-      UI.ports.setSelectedToid.send(this.selectedRoadLink.toid);
-      var ps = this.geometry.getRoadLinkPoints(this.selectedRoadLink);
+      var ps = this.geometry.getRoadLinkPoints(this.hoveredRoadLink);
       UI.ports.setSelectedLocation.send([ps[0], ps[ps.length - 1]]);
+      UI.ports.setSelectedAnchor.send(polyline.approximateMidpoint(ps));
+      UI.ports.setSelectedToid.send(this.selectedRoadLink.toid);
     } else {
-      UI.ports.setSelectedToid.send(null);
       UI.ports.setSelectedLocation.send([]);
+      UI.ports.setSelectedAnchor.send(null);
+      UI.ports.setSelectedToid.send(null);
     }
 
     var gl = App.drawingContext.gl; // TODO
@@ -209,22 +231,27 @@ Controller.prototype = {
   },
 
   onMouseClicked: function (event) {
-    this.updateSelected(event.clientX, event.clientY);
+    var duration = event.shiftKey ? 2500 : 500;
+    this.updateSelected(this.clientX, event.clientY);
+    if (this.selectedRoadNode) {
+      var p = this.geometry.getRoadNodePoint(this.selectedRoadNode);
+      App.setCenter(p, duration);
+    } else if (this.selectedRoadLink) {
+      var ps = this.geometry.getRoadLinkPoints(this.selectedRoadLink);
+      App.setCenter(polyline.approximateMidpoint(ps), duration);
+    }
   },
 
   onMouseDoubleClicked: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var clientWidth = this.getClientWidth();
-    var clientHeight = this.getClientHeight();
-    var centerX = App.getStaticCenterX();
-    var centerY = App.getStaticCenterY();
-    var zoom = App.getStaticZoom();
+    var zoom = App.getZoom();
     var duration = event.shiftKey ? 2500 : 500;
-    var newCenterX = compute.clampX(compute.fromClientX(event.clientX, clientWidth, centerX, zoom));
-    var newCenterY = compute.clampY(compute.fromClientY(event.clientY, clientHeight, centerY, zoom));
+    var newCenter = compute.clampPoint(this.fromClientPoint({
+        x: event.clientX,
+        y: event.clientY
+      }));
     var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
-    App.setCenterX(newCenterX, duration);
-    App.setCenterY(newCenterY, duration);
+    App.setCenter(newCenter, duration);
     App.setZoom(newZoom, duration);
   },
 
@@ -239,8 +266,8 @@ Controller.prototype = {
     var pageWidth = compute.fromClientWidth(clientWidth, zoom);
     var pageHeight = compute.fromClientHeight(clientHeight, zoom);
     var duration = event.shiftKey ? 2500 : 500;
-    // var timeDelta = (event.ctrlKey || event.altKey) ? 60 : 3600;
-    var zoomDelta = (event.altKey || event.ctrlKey) ? 2 : 10; // TODO
+    // var timeDelta = event.altKey ? 60 : 3600;
+    var zoomDelta = event.altKey ? 2 : 10; // TODO
     switch (event.keyCode) {
       case 37: // left
       case 36: // home

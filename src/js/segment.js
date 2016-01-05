@@ -34,6 +34,13 @@ var _ = module.exports = {
     };
   },
 
+  midpoint: function (s) {
+    return {
+      x: (s.p1.x + s.p2.x) / 2,
+      y: (s.p1.y + s.p2.y) / 2
+    };
+  },
+
   contains: function (s, p) {
     if (s.p1.x !== s.p2.x) { // s is not vertical
       if (s.p1.x <= p.x && p.x <= s.p2.x) {

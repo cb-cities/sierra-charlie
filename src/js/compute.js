@@ -4,10 +4,6 @@ var defs = require("./defs");
 
 
 var _ = module.exports = {
-  clamp: function (value) {
-    return (Math.max(0, Math.min(value, 1)));
-  },
-
   clampX: function (x) {
     return (
       Math.max(defs.firstTileX,
@@ -18,6 +14,13 @@ var _ = module.exports = {
     return (
       Math.max(defs.firstTileY,
         Math.min(y, defs.lastTileY + defs.tileSize)));
+  },
+
+  clampPoint: function (p) {
+    return {
+      x: _.clampX(p.x),
+      y: _.clampY(p.y)
+    };
   },
 
   clampZoom: function (zoom) {

@@ -2,6 +2,7 @@
 
 var rect = require("./rect");
 var segment = require("./segment");
+var vector = require("./vector");
 
 
 var _ = module.exports = {
@@ -30,6 +31,28 @@ var _ = module.exports = {
     return result;
   },
 
+  bounds: function (margin, ps) {
+    var result = rect.invalid;
+    for (var i = 0; i < ps.length - 1; i++) {
+      result = rect.union(result, segment.bounds(margin, {
+          p1: ps[i],
+          p2: ps[i + 1]
+        }));
+    }
+    return result;
+  },
+
+  approximateMidpoint: function (ps) {
+    if (ps.length < 2) {
+      return undefined;
+    } else {
+      return segment.midpoint({
+          p1: ps[0],
+          p2: ps[ps.length - 1]
+        });
+    }
+  },
+
   intersects: function (ps1, ps2) {
     if (!rect.intersects(_.bounds(0, ps1), _.bounds(0, ps2))) {
       return false;
@@ -51,16 +74,5 @@ var _ = module.exports = {
       }
       return false;
     }
-  },
-
-  bounds: function (margin, ps) {
-    var result = rect.invalid;
-    for (var i = 0; i < ps.length - 1; i++) {
-      result = rect.union(result, segment.bounds(margin, {
-          p1: ps[i],
-          p2: ps[i + 1]
-        }));
-    }
-    return result;
   }
 };
