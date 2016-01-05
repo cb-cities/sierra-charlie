@@ -144,12 +144,17 @@ Controller.prototype = {
       this.selectedRoadNode = this.hoveredRoadNode;
       this.selectedRoadNodeIndices.copy(this.hoveredRoadNodeIndices);
       UI.ports.setSelectedToid.send(this.selectedRoadNode.toid);
+      var p = this.geometry.getRoadNodePoint(this.selectedRoadNode);
+      UI.ports.setSelectedLocation.send([p]);
     } else if (this.hoveredRoadLink) {
       this.selectedRoadLink = this.hoveredRoadLink;
       this.selectedRoadLinkIndices.copy(this.hoveredRoadLinkIndices);
       UI.ports.setSelectedToid.send(this.selectedRoadLink.toid);
+      var ps = this.geometry.getRoadLinkPoints(this.selectedRoadLink);
+      UI.ports.setSelectedLocation.send([ps[0], ps[ps.length - 1]]);
     } else {
       UI.ports.setSelectedToid.send(null);
+      UI.ports.setSelectedLocation.send([]);
     }
 
     var gl = App.drawingContext.gl; // TODO

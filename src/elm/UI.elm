@@ -18,6 +18,7 @@ type alias Model =
   , hoveredLocation : Point
   , hoveredToid : Maybe String
   , selectedToid : Maybe String
+  , selectedLocation : List Point
   }
 
 
@@ -27,6 +28,7 @@ defaultModel =
   , hoveredLocation = {x = 0, y = 0}
   , hoveredToid = Nothing
   , selectedToid = Nothing
+  , selectedLocation = []
   }
 
 
@@ -36,6 +38,7 @@ type Action =
   | SetHoveredLocation Point
   | SetHoveredToid (Maybe String)
   | SetSelectedToid (Maybe String)
+  | SetSelectedLocation (List Point)
 
 
 noEffect : Model -> (Model, Effects Action)
@@ -60,6 +63,14 @@ update action model =
       SetSelectedToid newToid ->
         {model | selectedToid = newToid}
           |> noEffect
+      SetSelectedLocation newLocation ->
+        {model | selectedLocation = newLocation}
+          |> noEffect
+
+
+viewPoint : Point -> String
+viewPoint p =
+    toString (round p.x) ++ " " ++ toString (round p.y)
 
 
 view : Address Action -> Model -> Html
@@ -84,9 +95,7 @@ view address model =
           ]
           [ span [id "ui-status-left"]
               [ let
-                  location =
-                    toString (round model.hoveredLocation.x) ++ " " ++
-                    toString (round model.hoveredLocation.y)
+                  location = viewPoint (model.hoveredLocation)
                   toid =
                     case model.hoveredToid of
                       Nothing ->
@@ -97,11 +106,16 @@ view address model =
                   text (location ++ " " ++ toid)
               ]
           , span [id "ui-status-right"]
-              [ case model.selectedToid of
-                  Nothing ->
-                    text ""
-                  Just toid ->
-                    text toid
+              [ let
+                  location = List.foldl (\p s -> viewPoint p ++ "\n" ++ s) "" model.selectedLocation
+                  toid =
+                    case model.selectedToid of
+                      Nothing ->
+                        ""
+                      Just toid ->
+                        toid
+                in
+                  text (location ++ " " ++ toid)
               ]
           ]
       ]
@@ -116,6 +130,7 @@ port setLoadingProgress : Signal Float
 port setHoveredLocation : Signal Point
 port setHoveredToid : Signal (Maybe String)
 port setSelectedToid : Signal (Maybe String)
+port setSelectedLocation : Signal (List Point)
 
 
 app : App Model
@@ -129,6 +144,7 @@ app =
           , Signal.map SetHoveredLocation setHoveredLocation
           , Signal.map SetHoveredToid setHoveredToid
           , Signal.map SetSelectedToid setSelectedToid
+          , Signal.map SetSelectedLocation setSelectedLocation
           ]
       }
 
