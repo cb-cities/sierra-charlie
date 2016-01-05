@@ -16,6 +16,7 @@ var vector = require("./vector");
 function Controller() {
   this.prevClientX = 0;
   this.prevClientY = 0;
+  this.prevClickDate = 0;
   window.Geometry = this.geometry = new Geometry({ // TODO
       onRoadNodesLoaded: this.onRoadNodesLoaded.bind(this),
       onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this)
@@ -66,6 +67,15 @@ Controller.prototype = {
     return compute.fromClientPoint(clientP, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
+  fromClientRect: function (clientR) {
+    var clientWidth = this.getClientWidth();
+    var clientHeight = this.getClientHeight();
+    var centerX = App.getCenterX();
+    var centerY = App.getCenterY();
+    var zoom = App.getZoom();
+    return compute.fromClientRect(clientR, clientWidth, clientHeight, centerX, centerY, zoom);
+  },
+
   toClientPoint: function (p) {
     var clientWidth = this.getClientWidth();
     var clientHeight = this.getClientHeight();
@@ -77,7 +87,7 @@ Controller.prototype = {
 
   findClosestFeature: function (clientP) {
     var cursorP = this.fromClientPoint(clientP);
-    var cursorR = vector.bounds(100, cursorP);
+    var cursorR = this.fromClientRect(vector.bounds(16, clientP));
     var roadNodes = this.roadNodeTree.select(cursorR);
     var closestRoadNodeDistance = Infinity;
     var closestRoadNode = null;
@@ -231,27 +241,37 @@ Controller.prototype = {
   },
 
   onMouseClicked: function (event) {
-    var duration = event.shiftKey ? 2500 : 500;
-    this.updateSelected(this.clientX, event.clientY);
-    if (this.selectedRoadNode) {
-      var p = this.geometry.getRoadNodePoint(this.selectedRoadNode);
-      App.setCenter(p, duration);
-    } else if (this.selectedRoadLink) {
-      var ps = this.geometry.getRoadLinkPoints(this.selectedRoadLink);
-      App.setCenter(polyline.approximateMidpoint(ps), duration);
+    if (this.prevClickDate + 250 < Date.now()) {
+      // console.log("click", event.clientX, event.clientY, Date.now() - this.prevClickDate);
+      this.prevClickDate = Date.now();
+      var duration = event.shiftKey ? 2500 : 500;
+      this.updateSelected(this.clientX, event.clientY);
+      this.prevClientX = event.clientX;
+      this.prevClientY = event.clientY;
+      if (this.selectedRoadNode) {
+        var p = this.geometry.getRoadNodePoint(this.selectedRoadNode);
+        App.setCenter(p, duration);
+      } else if (this.selectedRoadLink) {
+        var ps = this.geometry.getRoadLinkPoints(this.selectedRoadLink);
+        App.setCenter(polyline.approximateMidpoint(ps), duration);
+      }
+    } else {
+      // console.log("no click", event.clientX, event.clientY, Date.now() - this.prevClickDate);
     }
   },
 
   onMouseDoubleClicked: function (event) {
     // console.log("doubleClick", event.clientX, event.clientY);
-    var zoom = App.getZoom();
     var duration = event.shiftKey ? 2500 : 500;
-    var newCenter = compute.clampPoint(this.fromClientPoint({
-        x: event.clientX,
-        y: event.clientY
-      }));
+    if (!this.selectedRoadNode && !this.selectedRoadLink) {
+      var newCenter = compute.clampPoint(this.fromClientPoint({
+          x: event.clientX,
+          y: event.clientY
+        }));
+      App.setCenter(newCenter, duration);
+    }
+    var zoom = App.getZoom();
     var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
-    App.setCenter(newCenter, duration);
     App.setZoom(newZoom, duration);
   },
 
