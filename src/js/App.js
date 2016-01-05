@@ -170,7 +170,7 @@ module.exports = {
       var program = glUtils.createProgram(gl, vertexShader, fragmentShader);
       gl.useProgram(program);
       var vertexLoc = gl.getAttribLocation(program, "vertex");
-      var clientSizeLoc = gl.getUniformLocation(program, "clientSize");
+      var pixelFitLoc = gl.getUniformLocation(program, "pixelFit");
       var scaleRatioLoc = gl.getUniformLocation(program, "scaleRatio");
       var centerLoc = gl.getUniformLocation(program, "center");
       var pointSizeLoc = gl.getUniformLocation(program, "pointSize");
@@ -180,7 +180,7 @@ module.exports = {
         program: program,
         pixelRatio: devicePixelRatio,
         vertexLoc: vertexLoc,
-        clientSizeLoc: clientSizeLoc,
+        pixelFitLoc: pixelFitLoc,
         scaleRatioLoc: scaleRatioLoc,
         centerLoc: centerLoc,
         pointSizeLoc: pointSizeLoc,
@@ -230,10 +230,10 @@ module.exports = {
       var zoomLevel = compute.zoomLevel(zoom);
 
       var gl = cx.gl;
-      gl.uniform2f(cx.clientSizeLoc, clientWidth, clientHeight);
+      gl.uniform2f(cx.pixelFitLoc, 1 / (clientWidth * 2), 1 / (clientHeight * 2));
       gl.uniform2f(cx.scaleRatioLoc,
-        defs.tileSize / defs.baseClientTileSize * clientWidth / 2 * zoomLevel,
-        defs.tileSize / defs.baseClientTileSize * clientHeight / 2 * zoomLevel);
+        defs.baseClientTileSize / (zoomLevel * defs.tileSize) / (clientWidth / 2),
+        defs.baseClientTileSize / (zoomLevel * defs.tileSize) / (clientHeight / 2));
       gl.uniform2f(cx.centerLoc, centerX, centerY);
 
       gl.clear(gl.COLOR_BUFFER_BIT);
