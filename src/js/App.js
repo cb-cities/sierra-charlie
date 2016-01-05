@@ -57,6 +57,11 @@ module.exports = {
       }.bind(this));
   },
 
+  setCenter: function (p, duration) {
+    this.setCenterX(p.x, duration);
+    this.setCenterY(p.y, duration);
+  },
+
   setZoom: function (zoom, duration) {
     this.isEasingZoom = true;
     this.setEasedState("zoom", zoom, duration, function () {

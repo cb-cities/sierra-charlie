@@ -17,7 +17,9 @@ window.App = r.render(App(), document.getElementById("app"));
 window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
     setLoadingProgress: 0,
     setHoveredLocation: {x: 0, y: 0},
+    setHoveredAnchor: null,
     setHoveredToid: null,
     setSelectedToid: null,
-    setSelectedLocation: []
+    setSelectedLocation: [],
+    setSelectedAnchor: null
   });
