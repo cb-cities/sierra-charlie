@@ -11,14 +11,14 @@ var _ = module.exports = {
   project: function (v, s) {
     var w = vector.subtract(s.p2, s.p1);
     var len = vector.length(w);
-    var scale =
+    var ratio =
       Math.max(0,
         Math.min(
           vector.project(
             vector.subtract(v, s.p1),
             w),
           len)) / len;
-    return vector.add(vector.dilate(scale, w), s.p1);
+    return vector.add(vector.scale(ratio, w), s.p1);
   },
 
   distance: function (v, s) {
@@ -198,14 +198,14 @@ var _ = module.exports = {
             if (t0 === t1) { // s1 and s2 overlap in a point
               return {
                 result: "point",
-                p: vector.add(s2.p1, vector.dilate(t0, v))
+                p: vector.add(s2.p1, vector.scale(t0, v))
               };
             } else { // s1 and s2 overlap in a subsegment
               return {
                 result: "segment",
                 s: {
-                  p1: vector.add(s2.p1, vector.dilate(t0, v)),
-                  p2: vector.add(s2.p1, vector.dilate(t1, v))
+                  p1: vector.add(s2.p1, vector.scale(t0, v)),
+                  p2: vector.add(s2.p1, vector.scale(t1, v))
                 }
               };
             }
@@ -227,7 +227,7 @@ var _ = module.exports = {
         } else {
           return {
             result: "point",
-            p: vector.add(s1.p1, vector.dilate(si, u))
+            p: vector.add(s1.p1, vector.scale(si, u))
           };
         }
       }

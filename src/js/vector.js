@@ -24,10 +24,10 @@ var _ = module.exports = {
     return v1.x * v2.y - v1.y * v2.x;
   },
 
-  dilate: function (scale, v) {
+  scale: function (ratio, v) {
     return {
-      x: scale * v.x,
-      y: scale * v.y
+      x: ratio * v.x,
+      y: ratio * v.y
     };
   },
 
