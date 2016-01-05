@@ -78,6 +78,10 @@ body {
   color: #fff;
   vertical-align: bottom;
   pointer-events: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #ui-status-left {
@@ -106,6 +110,10 @@ body {
   color: #fff;
   overflow: hidden;
   pointer-events: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #ui-selected-legend {
@@ -119,4 +127,8 @@ body {
   background: rgba(0, 0, 0, 0.6);
   color: #f60;
   overflow: hidden;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }

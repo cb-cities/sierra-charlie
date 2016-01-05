@@ -326,8 +326,9 @@ Controller.prototype = {
         App.setZoom(newZoom, duration);
         break;
       default: // 1-8
-        if (event.keyCode >= 49 && event.keyCode <= 57) {
-          var newZoom = compute.clampZoom(event.keyCode - 49);
+        if (event.keyCode >= 49 && event.keyCode <= 57 || event.keyCode === 48) {
+          var newZoom = compute.clampZoom(
+              event.keyCode === 48 ? 7 : event.keyCode - 49 - 2);
           App.setZoom(newZoom, duration);
         }
     }
