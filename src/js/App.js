@@ -108,6 +108,11 @@ module.exports = {
   },
 
   componentDidMount: function () {
+    this.hoveredRoadNodeIndices = Controller.hoveredRoadNodeIndices; // TODO
+    this.hoveredRoadLinkIndices = Controller.hoveredRoadLinkIndices; // TODO
+    this.selectedRoadNodeIndices = Controller.selectedRoadNodeIndices; // TODO
+    this.selectedRoadLinkIndices = Controller.selectedRoadLinkIndices; // TODO
+
     this.updateFrameSpace();
     this.startDrawing();
   },
@@ -194,7 +199,7 @@ module.exports = {
     }
     var cx = this.drawingContext;
     var gl = cx.gl;
-    if (Geometry.render(gl)) { // OMG TODO
+    if (Geometry.render(gl)) { // TODO
       this.isDrawingNeeded = true;
     }
     if (cx.pixelRatio !== devicePixelRatio) { // TODO
@@ -255,6 +260,8 @@ module.exports = {
         Geometry.drawRoadLinks(gl); // TODO
         gl.uniform4f(cx.colorLoc, 1, 1, 1, roadLinkAlpha);
         this.hoveredRoadLinkIndices.draw(gl, gl.LINES); // TODO
+        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, roadLinkAlpha);
+        this.selectedRoadLinkIndices.draw(gl, gl.LINES); // TODO
 
         // Draw road nodes
         var roadNodeSize = 8 * Math.cbrt(zoomLevel) * cx.pixelRatio / zoomLevel;
@@ -264,6 +271,8 @@ module.exports = {
         Geometry.drawRoadNodes(gl); // TODO
         gl.uniform4f(cx.colorLoc, 1, 1, 1, roadNodeAlpha);
         this.hoveredRoadNodeIndices.draw(gl, gl.POINTS); // TODO
+        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, roadNodeAlpha);
+        this.selectedRoadNodeIndices.draw(gl, gl.POINTS); // TODO
       }
     }
   }
