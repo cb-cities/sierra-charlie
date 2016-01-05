@@ -126,8 +126,8 @@ module.exports = {
   },
 
   updateFrame: function (centerX, centerY, zoom) {
-    var newScrollLeft = compute.scrollLeft(centerX, zoom);
-    var newScrollTop = compute.scrollTop(centerY, zoom);
+    var newScrollLeft = compute.scrollLeftFromCenterX(centerX, zoom);
+    var newScrollTop = compute.scrollTopFromCenterY(centerY, zoom);
     if (this.prevScrollLeft !== newScrollLeft || this.prevScrollTop !== newScrollTop) {
       var frame = document.getElementById("map-frame");
       frame.scrollLeft = newScrollLeft;
