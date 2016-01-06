@@ -69,15 +69,14 @@ GeometryLoader.prototype = {
   },
 
   loadRoadNodes: function (origin) {
-    oboe(origin + "/json/roadnodes.json.gz")
-      .node("!.*", function (arr, path) {
-          var toid = path[0];
+    oboe(origin + "/json/roadnodes1.json.gz")
+      .node("!.*", function (obj) {
           var p = {
-            x: parseFloat(arr[0]),
-            y: parseFloat(arr[1])
+            x: parseFloat(obj.point[0]),
+            y: parseFloat(obj.point[1])
           };
           this.roadNodes.push({
-              toid: toid,
+              toid: obj.toid,
               vertexOffset: this.vertexCount,
               indexOffset: this.roadNodeIndexCount
             });
@@ -94,22 +93,23 @@ GeometryLoader.prototype = {
 
   loadRoadLinks: function (origin, partIndex) {
     oboe(origin + "/json/roadlinks" + partIndex + ".json.gz")
-      .node("!.*", function (obj, path) {
-          var toid = path[0];
-          var pointCount = obj.ps.length / 2;
+      .node("!.*", function (obj) {
+          var pointCount = obj.polyline.length / 2;
           var ps = [];
           var vertices = [];
           for (var i = 0; i < pointCount; i++) {
             ps.push({
-                x: parseFloat(obj.ps[2 * i]),
-                y: parseFloat(obj.ps[2 * i + 1])
+                x: parseFloat(obj.polyline[2 * i]),
+                y: parseFloat(obj.polyline[2 * i + 1])
               });
             vertices.push(ps[i].x, ps[i].y);
           }
           this.roadLinks.push({
-              toid: toid,
-              negativeNode: obj.neg,
-              positiveNode: obj.pos,
+              toid: obj.toid,
+              term: obj.term,
+              nature: obj.nature,
+              negativeNode: obj.negativeNode,
+              positiveNode: obj.positiveNode,
               pointCount: pointCount,
               vertexOffset: this.vertexCount,
               indexOffset: this.roadLinkIndexCount
