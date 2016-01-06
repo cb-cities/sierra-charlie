@@ -4,22 +4,9 @@ var r = require("react-wrapper");
 
 var EasedStateMixin = require("./EasedStateMixin");
 var compute = require("./compute");
-
-
-
-
-
-var Indexset = require("./Indexset");
-var Lineset = require("./lineset");
-var Quadtree = require("./Quadtree");
-var Polyquadtree = require("./Polyquadtree");
 var defs = require("./defs");
-var glUtils = require("./gl-utils"); // TODO
-var polyline = require("./polyline");
-var vector = require("./vector");
-var stats = require("./stats");
-var rect = require("./rect");
 
+var glUtils = require("./gl-utils"); // TODO
 var fragmentShader = require("../glsl/fragment-shader.glsl");
 var vertexShader = require("../glsl/vertex-shader.glsl");
 
@@ -188,7 +175,7 @@ module.exports = {
       this.drawingContext = {
         gl: gl,
         program: program,
-        pixelRatio: devicePixelRatio,
+        pixelRatio: window.devicePixelRatio,
         vertexLoc: vertexLoc,
         pixelFitLoc: pixelFitLoc,
         scaleRatioLoc: scaleRatioLoc,
@@ -207,9 +194,9 @@ module.exports = {
     if (Geometry.render(gl)) { // TODO
       this.isDrawingNeeded = true;
     }
-    if (cx.pixelRatio !== devicePixelRatio) { // TODO
+    if (cx.pixelRatio !== window.devicePixelRatio) { // TODO
       this.isDrawingNeeded = true;
-      cx.pixelRatio = devicePixelRatio;
+      cx.pixelRatio = window.devicePixelRatio;
     }
   },
 

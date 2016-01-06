@@ -51,6 +51,6 @@ AddressBook.prototype = {
       this.props.onAddressesLoaded(data.addresses, this.addressCount);
     }
   }
-}
+};
 
 module.exports = AddressBook;

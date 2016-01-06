@@ -2,8 +2,6 @@
 
 var oboe = require("oboe");
 
-var defs = require("./defs");
-
 
 function AddressBookLoader() {
   this.addresses = [];

@@ -42,7 +42,7 @@ Geometry.prototype = {
   },
 
   getRoadLinkPoints: function (roadLink) {
-    var results = []
+    var results = [];
     for (var i = 0; i < roadLink.pointCount; i++) {
       var k = roadLink.vertexOffset + i;
       results.push({
@@ -157,6 +157,6 @@ Geometry.prototype = {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexBuf);
     gl.drawElements(gl.LINES, this.roadLinkIndexCount, gl.UNSIGNED_INT, 0);
   }
-}
+};
 
 module.exports = Geometry;

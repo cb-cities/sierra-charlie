@@ -5,7 +5,7 @@ var GeometryLoader = require("./GeometryLoader");
 
 var loader = new GeometryLoader();
 
-onmessage = function (event) {
+self.onmessage = function (event) {
   switch (event.data.message) {
     case "startLoading":
       loader.loadRoadNodes(event.data.origin);

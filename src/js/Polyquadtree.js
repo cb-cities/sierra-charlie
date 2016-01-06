@@ -1,6 +1,5 @@
 "use strict";
 
-var polyline = require("./polyline");
 var rect = require("./rect");
 
 

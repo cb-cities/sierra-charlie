@@ -23,7 +23,7 @@ Lineset.prototype = {
   insertPolyline: function (ps) {
     var baseIndex = this.vertexArr.length / 2;
     for (var i = 0; i < ps.length; i++) {
-      this.vertexArr.push(ps[i].x, ps[i].y)
+      this.vertexArr.push(ps[i].x, ps[i].y);
       if (i > 0 && i < ps.length - 1) {
         this.indexArr.push(baseIndex + i, baseIndex + i);
       } else {

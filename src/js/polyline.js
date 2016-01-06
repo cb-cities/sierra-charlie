@@ -2,7 +2,6 @@
 
 var rect = require("./rect");
 var segment = require("./segment");
-var vector = require("./vector");
 
 
 var _ = module.exports = {
