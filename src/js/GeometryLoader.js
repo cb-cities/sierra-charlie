@@ -98,11 +98,13 @@ GeometryLoader.prototype = {
           var toid = path[0];
           var pointCount = obj.ps.length / 2;
           var ps = [];
+          var vertices = [];
           for (var i = 0; i < pointCount; i++) {
             ps.push({
                 x: parseFloat(obj.ps[2 * i]),
                 y: parseFloat(obj.ps[2 * i + 1])
               });
+            vertices.push(ps[i].x, ps[i].y);
           }
           this.roadLinks.push({
               toid: toid,
@@ -118,7 +120,7 @@ GeometryLoader.prototype = {
               this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + i;
             }
           }
-          this.vertexArr.set(obj.ps, this.vertexCount * 2)
+          this.vertexArr.set(vertices, this.vertexCount * 2)
           this.vertexCount += pointCount;
           this.postRoadLinks();
           return oboe.drop;
