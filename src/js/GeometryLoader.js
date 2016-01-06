@@ -120,7 +120,7 @@ GeometryLoader.prototype = {
               this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + i;
             }
           }
-          this.vertexArr.set(vertices, this.vertexCount * 2)
+          this.vertexArr.set(vertices, this.vertexCount * 2);
           this.vertexCount += pointCount;
           this.postRoadLinks();
           return oboe.drop;

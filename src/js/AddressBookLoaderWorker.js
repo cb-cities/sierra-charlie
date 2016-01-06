@@ -5,7 +5,7 @@ var AddressBookLoader = require("./AddressBookLoader");
 
 var loader = new AddressBookLoader();
 
-onmessage = function (event) {
+self.onmessage = function (event) {
   switch (event.data.message) {
     case "startLoading":
       for (var i = 1; i <= 2; i++) {

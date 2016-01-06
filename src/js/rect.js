@@ -38,7 +38,7 @@ module.exports = {
       left: r.left - margin,
       top: r.top - margin,
       right: r.right + margin,
-      bottom: ri.bottom + margin
+      bottom: r.bottom + margin
     };
   },
 

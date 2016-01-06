@@ -29,6 +29,14 @@ module.exports = {
   },
 
   module: {
+    preLoaders: [
+      {
+        test: /\.js$/,
+        loader: "jshint-loader",
+        exclude: [/elm-stuff/, /node_modules/]
+      }
+    ],
+
     loaders: [
       {
         test: /\.(appcache|html)$/,

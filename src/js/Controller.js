@@ -10,7 +10,6 @@ var Quadtree = require("./Quadtree");
 var compute = require("./compute");
 var defs = require("./defs");
 var polyline = require("./polyline");
-var rect = require("./rect");
 var vector = require("./vector");
 
 
@@ -100,7 +99,7 @@ Controller.prototype = {
     var closestRoadNodeDistance = Infinity;
     var closestRoadNode = null;
     for (var i = 0; i < roadNodes.length; i++) {
-      var p = this.geometry.getRoadNodePoint(roadNodes[i])
+      var p = this.geometry.getRoadNodePoint(roadNodes[i]);
       var distance = vector.distance(cursorP, p);
       if (distance < closestRoadNodeDistance) {
         closestRoadNodeDistance = distance;
@@ -293,7 +292,6 @@ Controller.prototype = {
   },
 
   onMouseMoved: function (event) {
-    // console.log("mouseMove", event.clientX, event.clientY);
     this.updateHoveredGeometry(event.clientX, event.clientY);
     this.prevClientX = event.clientX;
     this.prevClientY = event.clientY;
@@ -301,7 +299,6 @@ Controller.prototype = {
 
   onMouseClicked: function (event) {
     if (this.prevClickDate + 250 < Date.now()) {
-      // console.log("click", event.clientX, event.clientY, Date.now() - this.prevClickDate);
       this.prevClickDate = Date.now();
       var duration = event.shiftKey ? 2500 : 500;
       this.updateSelectedGeometry(this.clientX, event.clientY);
@@ -314,13 +311,10 @@ Controller.prototype = {
         var ps = this.geometry.getRoadLinkPoints(this.selectedRoadLink);
         App.setCenter(polyline.approximateMidpoint(ps), duration);
       }
-    } else {
-      // console.log("no click", event.clientX, event.clientY, Date.now() - this.prevClickDate);
     }
   },
 
   onMouseDoubleClicked: function (event) {
-    // console.log("doubleClick", event.clientX, event.clientY);
     var duration = event.shiftKey ? 2500 : 500;
     if (!this.selectedRoadNode && !this.selectedRoadLink) {
       var newCenter = compute.clampPoint(this.fromClientPoint({
@@ -335,12 +329,11 @@ Controller.prototype = {
   },
 
   onKeyPressed: function (event) {
-    // console.log("keyDown", event.keyCode);
     var clientWidth = this.getClientWidth();
     var clientHeight = this.getClientHeight();
     var centerX = App.getStaticCenterX();
     var centerY = App.getStaticCenterY();
-    var rawTime = App.getStaticRawTime();
+    // var rawTime = App.getStaticRawTime();
     var zoom = App.getStaticZoom();
     var pageWidth = compute.fromClientWidth(clientWidth, zoom);
     var pageHeight = compute.fromClientHeight(clientHeight, zoom);
