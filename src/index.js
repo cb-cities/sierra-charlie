@@ -20,8 +20,10 @@ window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
     setHoveredAnchor: null,
     setHoveredToid: null,
     setHoveredAddress: null,
+    setHoveredRoadLink: null,
     setSelectedToid: null,
     setSelectedLocation: [],
     setSelectedAnchor: null,
-    setSelectedAddress: null
+    setSelectedAddress: null,
+    setSelectedRoadLink: null
   });

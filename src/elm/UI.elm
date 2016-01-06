@@ -19,16 +19,26 @@ type alias Address =
   , addr : String
   }
 
+type alias RoadLink =
+  { toid : String
+  , term : String
+  , nature : String
+  , negativeNode : String
+  , positiveNode : String
+  }
+
 type alias Model =
   { loadingProgress : Float
   , hoveredLocation : Point
   , hoveredAnchor : Maybe Point
   , hoveredToid : Maybe String
   , hoveredAddress : Maybe Address
+  , hoveredRoadLink : Maybe RoadLink
   , selectedLocation : List Point
   , selectedAnchor : Maybe Point
   , selectedToid : Maybe String
   , selectedAddress : Maybe Address
+  , selectedRoadLink : Maybe RoadLink
   }
 
 
@@ -39,10 +49,12 @@ defaultModel =
   , hoveredAnchor = Nothing
   , hoveredToid = Nothing
   , hoveredAddress = Nothing
+  , hoveredRoadLink = Nothing
   , selectedLocation = []
   , selectedAnchor = Nothing
   , selectedToid = Nothing
   , selectedAddress = Nothing
+  , selectedRoadLink = Nothing
   }
 
 
@@ -53,10 +65,12 @@ type Action =
   | SetHoveredAnchor (Maybe Point)
   | SetHoveredToid (Maybe String)
   | SetHoveredAddress (Maybe Address)
+  | SetHoveredRoadLink (Maybe RoadLink)
   | SetSelectedLocation (List Point)
   | SetSelectedAnchor (Maybe Point)
   | SetSelectedToid (Maybe String)
   | SetSelectedAddress (Maybe Address)
+  | SetSelectedRoadLink (Maybe RoadLink)
 
 
 noEffect : Model -> (Model, Effects Action)
@@ -84,6 +98,9 @@ update action model =
       SetHoveredAddress newAddress ->
         {model | hoveredAddress = newAddress}
           |> noEffect
+      SetHoveredRoadLink newRoadLink ->
+        {model | hoveredRoadLink = newRoadLink}
+          |> noEffect
       SetSelectedLocation newLocation ->
         {model | selectedLocation = newLocation}
           |> noEffect
@@ -96,6 +113,9 @@ update action model =
       SetSelectedAddress newAddress ->
         {model | selectedAddress = newAddress}
           |> noEffect
+      SetSelectedRoadLink newRoadLink ->
+        {model | selectedRoadLink = newRoadLink}
+          |> noEffect
 
 
 viewPoint : Point -> String
@@ -103,8 +123,8 @@ viewPoint p =
     toString (round p.x) ++ " " ++ toString (round p.y)
 
 
-viewLegend : String -> Maybe String -> Maybe Address -> Html
-viewLegend legendId maybeToid maybeAddress =
+viewLegend : String -> Maybe String -> Maybe Address -> Maybe RoadLink -> Html
+viewLegend legendId maybeToid maybeAddress maybeRoadLink =
     let
       toidPart =
         case maybeToid of
@@ -120,12 +140,20 @@ viewLegend legendId maybeToid maybeAddress =
             [ div [] [text (toString address.lat ++ " " ++ toString address.lng)]
             , div [] [text address.addr]
             ]
+      roadLinkPart =
+        case maybeRoadLink of
+          Nothing ->
+            []
+          Just roadLink ->
+            [ div [] [text roadLink.term]
+            , div [] [text roadLink.nature]
+            ]
     in
       div
         [ id legendId
         , style [("opacity", if maybeToid == Nothing then "0" else "1")]
         ]
-        (toidPart ++ addressPart)
+        (toidPart ++ addressPart ++ roadLinkPart)
 
 
 view : Signal.Address Action -> Model -> Html
@@ -149,8 +177,8 @@ view address model =
           , span [id "ui-status-right"]
               []
           ]
-      , viewLegend "ui-hovered-legend" model.hoveredToid model.hoveredAddress
-      , viewLegend "ui-selected-legend" model.selectedToid model.selectedAddress
+      , viewLegend "ui-hovered-legend" model.hoveredToid model.hoveredAddress model.hoveredRoadLink
+      , viewLegend "ui-selected-legend" model.selectedToid model.selectedAddress model.selectedRoadLink
       ]
 
 
@@ -164,10 +192,12 @@ port setHoveredLocation : Signal Point
 port setHoveredAnchor : Signal (Maybe Point)
 port setHoveredToid : Signal (Maybe String)
 port setHoveredAddress : Signal (Maybe Address)
+port setHoveredRoadLink : Signal (Maybe RoadLink)
 port setSelectedLocation : Signal (List Point)
 port setSelectedAnchor : Signal (Maybe Point)
 port setSelectedToid : Signal (Maybe String)
 port setSelectedAddress : Signal (Maybe Address)
+port setSelectedRoadLink : Signal (Maybe RoadLink)
 
 
 app : App Model
@@ -182,10 +212,12 @@ app =
           , Signal.map SetHoveredAnchor setHoveredAnchor
           , Signal.map SetHoveredToid setHoveredToid
           , Signal.map SetHoveredAddress setHoveredAddress
+          , Signal.map SetHoveredRoadLink setHoveredRoadLink
           , Signal.map SetSelectedLocation setSelectedLocation
           , Signal.map SetSelectedAnchor setSelectedAnchor
           , Signal.map SetSelectedToid setSelectedToid
           , Signal.map SetSelectedAddress setSelectedAddress
+          , Signal.map SetSelectedRoadLink setSelectedRoadLink
           ]
       }
 

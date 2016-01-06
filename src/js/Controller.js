@@ -137,21 +137,31 @@ Controller.prototype = {
     }
   },
 
-  updateHoveredAddress: function () {
+  updateHoveredAddress: function () { // TODO
     if (this.hoveredRoadNode) {
       var address = this.addressBook.getRoadNodeAddress(this.hoveredRoadNode);
       UI.ports.setHoveredAddress.send(address);
+      UI.ports.setHoveredRoadLink.send(null);
+    } else if (this.hoveredRoadLink) {
+      UI.ports.setHoveredAddress.send(null);
+      UI.ports.setHoveredRoadLink.send(this.hoveredRoadLink);
     } else {
       UI.ports.setHoveredAddress.send(null);
+      UI.ports.setHoveredRoadLink.send(null);
     }
   },
 
-  updateSelectedAddress: function () {
+  updateSelectedAddress: function () { // TODO
     if (this.selectedRoadNode) {
       var address = this.addressBook.getRoadNodeAddress(this.selectedRoadNode);
       UI.ports.setSelectedAddress.send(address);
+      UI.ports.setSelectedRoadLink.send(null);
+    } else if (this.selectedRoadLink) {
+      UI.ports.setSelectedAddress.send(null);
+      UI.ports.setSelectedRoadLink.send(this.selectedRoadLink);
     } else {
       UI.ports.setSelectedAddress.send(null);
+      UI.ports.setSelectedRoadLink.send(null);
     }
   },
 
