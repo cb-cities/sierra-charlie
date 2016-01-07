@@ -112,10 +112,10 @@ Geometry.prototype = {
     for (var i = 0; i < roadLinkToids.length; i++) {
       var roadLink = this.roadLinks[roadLinkToids[i]];
       if (!(roadLink.negativeNode in this.roadNodes)) {
-        delete roadLink.negativeNode;
+        roadLink.negativeNode = null;
       }
       if (!(roadLink.positiveNode in this.roadNodes)) {
-        delete roadLink.positiveNode;
+        roadLink.positiveNode = null;
       }
     }
     var roadToids = Object.keys(this.roads);
