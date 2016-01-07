@@ -16,14 +16,6 @@ window.Controller = new Controller();
 window.App = r.render(app(), document.getElementById("app"));
 window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
     setLoadingProgress: 0,
-    setHoveredLocation: {x: 0, y: 0},
-    setHoveredAnchor: null,
-    setHoveredToid: null,
-    setHoveredAddress: null,
-    setHoveredRoadLink: null,
-    setSelectedToid: null,
-    setSelectedLocation: [],
-    setSelectedAnchor: null,
-    setSelectedAddress: null,
-    setSelectedRoadLink: null
+    setHoveredFeature: null,
+    setSelectedFeature: null
   });
