@@ -96,6 +96,7 @@ GeometryLoader.prototype = {
           };
           this.roadNodes.push({
               toid: obj.toid,
+              address: null, // TODO: Fill in from address book
               vertexOffset: this.vertexCount,
               indexOffset: this.roadNodeIndexCount
             });

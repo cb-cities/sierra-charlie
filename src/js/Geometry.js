@@ -19,6 +19,8 @@ function Geometry(props) {
   this.roadLinkIndexArr = new Uint32Array(defs.maxRoadLinkIndexCount);
   this.roadLinkIndexCount = 0;
   this.roads = {};
+  this.tmpRoadLinksOfRoadNode = {};
+  this.tmpRoadsOfRoadLink = {};
   this.worker = new GeometryLoaderWorker();
   this.worker.addEventListener("message", this.onMessage.bind(this));
   this.worker.postMessage({
@@ -93,7 +95,35 @@ Geometry.prototype = {
         break;
     }
     if (this.isLoadingFinished()) {
-      this.worker.terminate();
+      this.onLoadingFinished();
+    }
+  },
+
+  onLoadingFinished: function () {
+    this.worker.terminate();
+    delete this.tmpRoadLinksOfRoadNode;
+    delete this.tmpRoadsOfRoadLink;
+    for (var i = 0; i < this.roadLinks.length; i++) {
+      var roadLink = this.roadLinks[i];
+      if (!(roadLink.negativeNode in this.roadNodes)) {
+        delete roadLink.negativeNode;
+      }
+      if (!(roadLink.positiveNode in this.roadNodes)) {
+        delete roadLink.positiveNode;
+      }
+    }
+    for (var i = 0; i < this.roads.length; i++) {
+      var road = this.roads[i];
+      var members = [];
+      for (var j = 0; j < road.members.length; j++) {
+        if (road.members[j] in this.roadLinks) {
+          members.push(road.members[j]);
+        }
+      }
+      road.members = members;
+    }
+    if (this.props.onLoadingFinished) {
+      this.props.onLoadingFinished();
     }
   },
 
@@ -106,7 +136,14 @@ Geometry.prototype = {
     this.roadNodeIndexCount += data.roadNodeIndexArr.length;
     for (var i = 0; i < data.roadNodes.length; i++) {
       var roadNode = data.roadNodes[i];
-      this.roadNodes[roadNode.toid] = roadNode;
+      var toid = roadNode.toid;
+      if (toid in this.tmpRoadLinksOfRoadNode) {
+        roadNode.roadLinks = this.tmpRoadLinksOfRoadNode[toid];
+        delete this.tmpRoadLinksOfRoadNode[toid];
+      } else {
+        roadNode.roadLinks = [];
+      }
+      this.roadNodes[toid] = roadNode;
     }
     if (this.props.onRoadNodesLoaded) {
       this.props.onRoadNodesLoaded(data.roadNodes);
@@ -122,7 +159,30 @@ Geometry.prototype = {
     this.roadLinkIndexCount += data.roadLinkIndexArr.length;
     for (var i = 0; i < data.roadLinks.length; i++) {
       var roadLink = data.roadLinks[i];
-      this.roadLinks[roadLink.toid] = roadLink;
+      var toid = roadLink.toid;
+      if (toid in this.tmpRoadsOfRoadLink) {
+        roadLink.roads = this.tmpRoadsOfRoadLink[toid];
+        delete this.tmpRoadsOfRoadLink[toid];
+      } else {
+        roadLink.roads = [];
+      }
+      if (roadLink.negativeNode in this.roadNodes) {
+        this.roadNodes[roadLink.negativeNode].roadLinks.push(toid);
+      } else {
+        if (!(roadLink.negativeNode in this.tmpRoadLinksOfRoadNode)) {
+          this.tmpRoadLinksOfRoadNode[roadLink.negativeNode] = [];
+        }
+        this.tmpRoadLinksOfRoadNode[roadLink.negativeNode].push(toid);
+      }
+      if (roadLink.positiveNode in this.roadNodes) {
+        this.roadNodes[roadLink.positiveNode].roadLinks.push(toid);
+      } else {
+        if (!(roadLink.positiveNode in this.tmpRoadLinksOfRoadNode)) {
+          this.tmpRoadLinksOfRoadNode[roadLink.positiveNode] = [];
+        }
+        this.tmpRoadLinksOfRoadNode[roadLink.positiveNode].push(toid);
+      }
+      this.roadLinks[toid] = roadLink;
     }
     if (this.props.onRoadLinksLoaded) {
       this.props.onRoadLinksLoaded(data.roadLinks);
@@ -133,7 +193,19 @@ Geometry.prototype = {
     this.itemCount += data.roads.length;
     for (var i = 0; i < data.roads.length; i++) {
       var road = data.roads[i];
-      this.roads[road.toid] = road;
+      var toid = road.toid;
+      for (var j = 0; j < road.members.length; j++) {
+        var member = road.members[j];
+        if (member in this.roadLinks) {
+          this.roadLinks[member].roads.push(toid);
+        } else {
+          if (!(member in this.tmpRoadsOfRoadLink)) {
+            this.tmpRoadsOfRoadLink[member] = [];
+          }
+          this.tmpRoadsOfRoadLink[member].push(toid);
+        }
+      }
+      this.roads[toid] = road;
     }
     if (this.props.onRoadsLoaded) {
       this.props.onRoadsLoaded(data.roads);
