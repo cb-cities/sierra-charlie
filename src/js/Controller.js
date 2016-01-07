@@ -19,15 +19,12 @@ function Controller() {
   this.prevClickDate = 0;
   window.Geometry = this.geometry = new Geometry({ // TODO
       onRoadNodesLoaded: this.onRoadNodesLoaded.bind(this),
-      onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this)
+      onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this),
+      onRoadsLoaded: this.onRoadsLoaded.bind(this)
     });
   window.AddressBook = this.addressBook = new AddressBook({ // TODO
       onAddressesLoaded: this.onAddressesLoaded.bind(this)
     });
-  this.loadingProgress = {
-    geometry: 0,
-    addressBook: 0
-  };
   window.Grid = this.grid = new Grid(); // TODO
   window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
   window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
@@ -232,40 +229,40 @@ Controller.prototype = {
     App.isDrawingNeeded = true; // TODO
   },
 
-  updateLoadingProgress: function (source, loadedCount) {
-    switch (source) {
-      case "geometry":
-        this.loadingProgress.geometry = loadedCount;
-        break;
-      case "addressBook":
-        this.loadingProgress.addressBook = loadedCount;
-        break;
-    }
-    var count = this.loadingProgress.geometry + this.loadingProgress.addressBook;
-    var maxCount = defs.maxVertexCount + defs.maxAddressCount; // TODO;
+  updateLoadingProgress: function () {
+    var count = this.geometry.getItemCount() + this.addressBook.getItemCount();
+    var maxCount = defs.maxGeometryItemCount + defs.maxAddressCount;
     UI.ports.setLoadingProgress.send(count / maxCount * 100);
   },
 
-  onRoadNodesLoaded: function (roadNodes, vertexCount) {
+  onRoadNodesLoaded: function (roadNodes) {
     for (var i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
     }
     App.updateDrawingContext(); // TODO
-    this.updateLoadingProgress("geometry", vertexCount);
+    this.updateLoadingProgress();
     this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
   },
 
-  onRoadLinksLoaded: function (roadLinks, vertexCount) {
+  onRoadLinksLoaded: function (roadLinks) {
     for (var i = 0; i < roadLinks.length; i++) {
       this.roadLinkTree.insert(roadLinks[i]);
     }
     App.updateDrawingContext(); // TODO
-    this.updateLoadingProgress("geometry", vertexCount);
+    this.updateLoadingProgress();
     this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
   },
 
-  onAddressesLoaded: function (addresses, addressCount) {
-    this.updateLoadingProgress("addressBook", addressCount);
+  onRoadsLoaded: function (roads) {
+    // TODO
+    this.updateLoadingProgress();
+    this.updateHoveredAddress();
+    this.updateSelectedAddress();
+  },
+
+  onAddressesLoaded: function (addresses) {
+    this.updateLoadingProgress();
+    this.updateHoveredAddress();
     this.updateSelectedAddress();
   },
 

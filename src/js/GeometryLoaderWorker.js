@@ -12,6 +12,7 @@ self.onmessage = function (event) {
       for (var i = 1; i <= 4; i++) {
         loader.loadRoadLinks(event.data.origin, i);
       }
+      loader.loadRoads(event.data.origin);
       break;
   }
 };

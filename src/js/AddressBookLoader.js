@@ -2,6 +2,8 @@
 
 var oboe = require("oboe");
 
+var defs = require("./defs");
+
 
 function AddressBookLoader() {
   this.addresses = [];
@@ -10,7 +12,7 @@ function AddressBookLoader() {
 
 AddressBookLoader.prototype = {
   post: function (data, isForced) {
-    if (isForced || this.addresses.length > 512 && this.prevPostDate + 100 < Date.now()) {
+    if (isForced || this.addresses.length > defs.maxLoaderPostCount && this.prevPostDate + defs.maxLoaderPostDelay < Date.now()) {
       this.prevPostDate = Date.now();
       postMessage(data);
       return true;

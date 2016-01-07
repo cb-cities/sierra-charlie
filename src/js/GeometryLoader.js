@@ -16,6 +16,8 @@ function sliceUint32Array(array, offset, count) {
 
 
 function GeometryLoader() {
+  this.itemCount = 0;
+  this.itemOffset = 0;
   this.vertexArr = new Float32Array(defs.maxVertexCount * 2);
   this.vertexCount = 0;
   this.vertexOffset = 0;
@@ -27,12 +29,13 @@ function GeometryLoader() {
   this.roadLinkIndexCount = 0;
   this.roadLinkIndexOffset = 0;
   this.roadLinks = [];
+  this.roads = [];
   this.prevPostDate = 0;
 }
 
 GeometryLoader.prototype = {
   post: function (data, isForced) {
-    if (isForced || this.vertexCount - this.vertexOffset > 512 && this.prevPostDate + 100 < Date.now()) {
+    if (isForced || this.itemCount - this.itemOffset > defs.maxLoaderPostCount && this.prevPostDate + defs.maxLoaderPostDelay < Date.now()) {
       this.prevPostDate = Date.now();
       postMessage(data);
       return true;
@@ -48,6 +51,7 @@ GeometryLoader.prototype = {
       roadNodes: this.roadNodes
     };
     if (this.post(data, isForced)) {
+      this.itemOffset = this.itemCount;
       this.vertexOffset = this.vertexCount;
       this.roadNodeIndexOffset = this.roadNodeIndexCount;
       this.roadNodes = [];
@@ -62,15 +66,28 @@ GeometryLoader.prototype = {
       roadLinks: this.roadLinks
     };
     if (this.post(data, isForced)) {
+      this.itemOffset = this.itemCount;
       this.vertexOffset = this.vertexCount;
       this.roadLinkIndexOffset = this.roadLinkIndexCount;
       this.roadLinks = [];
     }
   },
 
+  postRoads: function (isForced) {
+    var data = {
+      message: "roadsLoaded",
+      roads: this.roads
+    };
+    if (this.post(data, isForced)) {
+      this.itemOffset = this.itemCount;
+      this.roads = [];
+    }
+  },
+
   loadRoadNodes: function (origin) {
     oboe(origin + "/json/roadnodes1.json.gz")
       .node("!.*", function (obj) {
+          this.itemCount++;
           var p = {
             x: parseFloat(obj.point[0]),
             y: parseFloat(obj.point[1])
@@ -94,6 +111,7 @@ GeometryLoader.prototype = {
   loadRoadLinks: function (origin, partIndex) {
     oboe(origin + "/json/roadlinks" + partIndex + ".json.gz")
       .node("!.*", function (obj) {
+          this.itemCount++;
           var pointCount = obj.polyline.length / 2;
           var ps = [];
           var vertices = [];
@@ -127,6 +145,25 @@ GeometryLoader.prototype = {
         }.bind(this))
       .done(function () {
           this.postRoadLinks(true);
+        }.bind(this));
+  },
+
+  loadRoads: function (origin) {
+    oboe(origin + "/json/roads1.json.gz")
+      .node("!.*", function (obj) {
+          this.itemCount++;
+          this.roads.push({
+              toid: obj.toid,
+              group: obj.group,
+              term: obj.term,
+              name: obj.name,
+              members: obj.members
+            });
+          this.postRoads();
+          return oboe.drop;
+        }.bind(this))
+      .done(function () {
+          this.postRoads(true);
         }.bind(this));
   }
 };

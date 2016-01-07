@@ -18,6 +18,10 @@ function AddressBook(props) {
 }
 
 AddressBook.prototype = {
+  getItemCount: function () {
+    return this.addressCount;
+  },
+
   isLoadingFinished: function () {
     return this.addressCount === defs.maxAddressCount;
   },
@@ -48,7 +52,7 @@ AddressBook.prototype = {
     }
     this.addressCount += data.addresses.length;
     if (this.props.onAddressesLoaded) {
-      this.props.onAddressesLoaded(data.addresses, this.addressCount);
+      this.props.onAddressesLoaded(data.addresses);
     }
   }
 };
