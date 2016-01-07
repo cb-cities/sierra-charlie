@@ -9,6 +9,7 @@ var rect = require("./rect");
 function Geometry(props) {
   this.props = props;
   this.isRenderingNeeded = false;
+  this.itemCount = 0;
   this.vertexArr = new Float32Array(defs.maxVertexCount * 2);
   this.vertexCount = 0;
   this.roadNodes = {};
@@ -17,6 +18,7 @@ function Geometry(props) {
   this.roadLinks = {};
   this.roadLinkIndexArr = new Uint32Array(defs.maxRoadLinkIndexCount);
   this.roadLinkIndexCount = 0;
+  this.roads = {};
   this.worker = new GeometryLoaderWorker();
   this.worker.addEventListener("message", this.onMessage.bind(this));
   this.worker.postMessage({
@@ -26,8 +28,12 @@ function Geometry(props) {
 }
 
 Geometry.prototype = {
+  getItemCount: function () {
+    return this.itemCount;
+  },
+
   isLoadingFinished: function () {
-    return this.vertexCount === defs.maxVertexCount;
+    return this.itemCount === defs.maxGeometryItemCount;
   },
 
   getRoadNodePoint: function (roadNode) {
@@ -82,6 +88,9 @@ Geometry.prototype = {
       case "roadLinksLoaded":
         this.onRoadLinksLoaded(event.data);
         break;
+      case "roadsLoaded":
+        this.onRoadsLoaded(event.data);
+        break;
     }
     if (this.isLoadingFinished()) {
       this.worker.terminate();
@@ -90,6 +99,7 @@ Geometry.prototype = {
 
   onRoadNodesLoaded: function (data) {
     this.isRenderingNeeded = true;
+    this.itemCount += data.roadNodes.length;
     this.vertexArr.set(data.vertexArr, this.vertexCount * 2);
     this.vertexCount += data.vertexArr.length / 2;
     this.roadNodeIndexArr.set(data.roadNodeIndexArr, this.roadNodeIndexCount);
@@ -99,12 +109,13 @@ Geometry.prototype = {
       this.roadNodes[roadNode.toid] = roadNode;
     }
     if (this.props.onRoadNodesLoaded) {
-      this.props.onRoadNodesLoaded(data.roadNodes, this.vertexCount);
+      this.props.onRoadNodesLoaded(data.roadNodes);
     }
   },
 
   onRoadLinksLoaded: function (data) {
     this.isRenderingNeeded = true;
+    this.itemCount += data.roadLinks.length;
     this.vertexArr.set(data.vertexArr, this.vertexCount * 2);
     this.vertexCount += data.vertexArr.length / 2;
     this.roadLinkIndexArr.set(data.roadLinkIndexArr, this.roadLinkIndexCount);
@@ -114,7 +125,18 @@ Geometry.prototype = {
       this.roadLinks[roadLink.toid] = roadLink;
     }
     if (this.props.onRoadLinksLoaded) {
-      this.props.onRoadLinksLoaded(data.roadLinks, this.vertexCount);
+      this.props.onRoadLinksLoaded(data.roadLinks);
+    }
+  },
+
+  onRoadsLoaded: function (data) {
+    this.itemCount += data.roads.length;
+    for (var i = 0; i < data.roads.length; i++) {
+      var road = data.roads[i];
+      this.roads[road.toid] = road;
+    }
+    if (this.props.onRoadsLoaded) {
+      this.props.onRoadsLoaded(data.roads);
     }
   },
 

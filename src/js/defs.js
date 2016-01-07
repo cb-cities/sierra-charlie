@@ -16,6 +16,7 @@ var maxRoadNodeCount = 343724;
 var maxRoadLinkCount = 423541;
 var maxRoadLinkPointCount = 2267772;
 var maxRoadLinkIndexCount = 3688462;
+var maxRoadCount = 85237;
 
 var maxAddressCount = 343443;
 
@@ -44,11 +45,10 @@ module.exports = {
   totalBaseClientWidth: tileCountX * baseClientTileSize,
   totalBaseClientHeight: tileCountY * baseClientTileSize,
 
+  maxGeometryItemCount: maxRoadNodeCount + maxRoadLinkCount + maxRoadCount,
   maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
-
   maxRoadNodeCount: maxRoadNodeCount,
   maxRoadNodeIndexCount: maxRoadNodeCount,
-
   maxRoadLinkCount: maxRoadLinkCount,
   maxRoadLinkPointCount: maxRoadLinkPointCount,
   maxRoadLinkIndexCount: maxRoadLinkIndexCount,
@@ -60,5 +60,8 @@ module.exports = {
   quadtreeSize: quadtreeSize,
 
   minZoom: minZoom,
-  maxZoom: maxZoom
+  maxZoom: maxZoom,
+
+  maxLoaderPostCount: 256,
+  maxLoaderPostDelay: 100
 };
