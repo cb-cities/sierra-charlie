@@ -14,8 +14,8 @@ var tileCountY = (lastTileY - firstTileY) / tileSize + 1;
 
 var maxRoadNodeCount = 343724;
 var maxRoadLinkCount = 423541;
-var maxRoadLinkPointCount = 2267772;
-var maxRoadLinkIndexCount = 3688462;
+var maxRoadLinkPointCount = 1433365; // simplified from 2267772
+var maxRoadLinkIndexCount = 2019648; // simplified from 3688462
 var maxRoadCount = 85237;
 
 var maxAddressCount = 343443;

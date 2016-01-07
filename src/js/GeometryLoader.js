@@ -1,6 +1,7 @@
 "use strict";
 
 var oboe = require("oboe");
+var simplify = require("simplify-js");
 
 var defs = require("./defs");
 
@@ -28,6 +29,7 @@ function GeometryLoader() {
   this.roadLinkIndexArr = new Uint32Array(defs.maxRoadLinkIndexCount);
   this.roadLinkIndexCount = 0;
   this.roadLinkIndexOffset = 0;
+  this.roadLinkPointCount = 0;
   this.roadLinks = [];
   this.roads = [];
   this.prevPostDate = 0;
@@ -112,14 +114,18 @@ GeometryLoader.prototype = {
     oboe(origin + "/json/roadlinks" + partIndex + ".json.gz")
       .node("!.*", function (obj) {
           this.itemCount++;
-          var pointCount = obj.polyline.length / 2;
           var ps = [];
-          var vertices = [];
-          for (var i = 0; i < pointCount; i++) {
+          for (var i = 0; i < obj.polyline.length / 2; i++) {
             ps.push({
                 x: parseFloat(obj.polyline[2 * i]),
                 y: parseFloat(obj.polyline[2 * i + 1])
               });
+          }
+          if (obj.polyline.length > 4) {
+            ps = simplify(ps);
+          }
+          var vertices = [];
+          for (var i = 0; i < ps.length; i++) {
             vertices.push(ps[i].x, ps[i].y);
           }
           this.roadLinks.push({
@@ -128,18 +134,19 @@ GeometryLoader.prototype = {
               nature: obj.nature,
               negativeNode: obj.negativeNode,
               positiveNode: obj.positiveNode,
-              pointCount: pointCount,
+              pointCount: ps.length,
               vertexOffset: this.vertexCount,
               indexOffset: this.roadLinkIndexCount
             });
-          for (var i = 0; i < pointCount; i++) {
+          for (var i = 0; i < ps.length; i++) {
             this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + i;
-            if (i !== 0 && i !== pointCount - 1) {
+            if (i !== 0 && i !== ps.length - 1) {
               this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + i;
             }
           }
           this.vertexArr.set(vertices, this.vertexCount * 2);
-          this.vertexCount += pointCount;
+          this.vertexCount += ps.length;
+          this.roadLinkPointCount += ps.length;
           this.postRoadLinks();
           return oboe.drop;
         }.bind(this))
