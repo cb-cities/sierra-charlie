@@ -86,6 +86,17 @@ GeometryLoader.prototype = {
     }
   },
 
+  postAddresses: function (isForced) {
+    var data = {
+      message: "addressesLoaded",
+      addresses: this.addresses
+    };
+    if (this.post(data, isForced)) {
+      this.postedItemCount += this.addresses.length;
+      this.addresses = [];
+    }
+  },
+
   loadRoadNodes: function (origin) {
     oboe(origin + "/json/roadnodes1.json.gz")
       .node("!.*", function (obj) {
@@ -96,7 +107,7 @@ GeometryLoader.prototype = {
           };
           this.roadNodes.push({
               toid: obj.toid,
-              address: null, // TODO: Fill in from address book
+              address: null,
               vertexOffset: this.vertexCount,
               indexOffset: this.roadNodeIndexCount
             });
@@ -172,6 +183,22 @@ GeometryLoader.prototype = {
         }.bind(this))
       .done(function () {
           this.postRoads(true);
+        }.bind(this));
+  },
+
+  loadAddresses: function (origin) {
+    oboe(origin + "/json/addresses1.json.gz")
+      .node("!.*", function (obj) {
+          this.itemCount++;
+          this.addresses.push({
+              toid: obj.toid,
+              text: obj.text
+            });
+          this.postAddresses();
+          return oboe.drop;
+        }.bind(this))
+      .done(function () {
+          this.postAddresses(true);
         }.bind(this));
   }
 };
