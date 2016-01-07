@@ -28,13 +28,11 @@ function Controller() {
   window.Grid = this.grid = new Grid(); // TODO
   window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
   window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
-  this.hoveredRoadNode = null;
+  this.hoveredFeature = null;
   this.hoveredRoadNodeIndices = new Indexset();
-  this.hoveredRoadLink = null;
   this.hoveredRoadLinkIndices = new Indexset();
-  this.selectedRoadNode = null;
+  this.selectedFeature = null;
   this.selectedRoadNodeIndices = new Indexset();
-  this.selectedRoadLink = null;
   this.selectedRoadLinkIndices = new Indexset();
   var frame = document.getElementById("map-frame");
   frame.addEventListener("scroll", this.onFrameScrolled.bind(this));
@@ -89,9 +87,7 @@ Controller.prototype = {
     return compute.toClientPoint(p, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
-  findClosestFeature: function (clientP) {
-    var cursorP = this.fromClientPoint(clientP);
-    var cursorR = this.fromClientRect(vector.bounds(16, clientP));
+  findClosestFeature: function (cursorP, cursorR) {
     var roadNodes = this.roadNodeTree.select(cursorR);
     var closestRoadNodeDistance = Infinity;
     var closestRoadNode = null;
@@ -116,80 +112,66 @@ Controller.prototype = {
     }
     if (closestRoadNode && closestRoadNodeDistance <= closestRoadLinkDistance + 4) {
       return {
-        key: "roadNode",
+        tag: "roadNode",
         roadNode: closestRoadNode,
-        cursorP: cursorP
+        roadLink: null
       };
     } else if (closestRoadLink) {
       return {
-        key: "roadLink",
+        tag: "roadLink",
         roadLink: closestRoadLink,
-        cursorP: cursorP
+        roadNode: null
       };
     } else {
-      return {
-        cursorP: cursorP
-      };
+      return null;
     }
   },
 
-  updateHoveredAddress: function () { // TODO
-    if (this.hoveredRoadNode) {
-      var address = this.addressBook.getRoadNodeAddress(this.hoveredRoadNode);
-      UI.ports.setHoveredAddress.send(address);
-      UI.ports.setHoveredRoadLink.send(null);
-    } else if (this.hoveredRoadLink) {
-      UI.ports.setHoveredAddress.send(null);
-      UI.ports.setHoveredRoadLink.send(this.hoveredRoadLink);
-    } else {
-      UI.ports.setHoveredAddress.send(null);
-      UI.ports.setHoveredRoadLink.send(null);
+  updateFeatureUI: function () {
+    var hoveredFeatureToSend = this.hoveredFeature;
+    if (this.hoveredFeature && this.selectedFeature) {
+      if (this.hoveredFeature.tag === this.selectedFeature.tag) {
+        switch (this.hoveredFeature.tag) {
+          case "roadNode":
+            if (this.hoveredFeature.roadNode.toid === this.selectedFeature.roadNode.toid) {
+              hoveredFeatureToSend = null;
+            }
+            break;
+          case "roadLink":
+            if (this.hoveredFeature.roadLink.toid === this.selectedFeature.roadLink.toid) {
+              hoveredFeatureToSend = null;
+            }
+            break;
+        }
+      }
     }
-  },
-
-  updateSelectedAddress: function () { // TODO
-    if (this.selectedRoadNode) {
-      var address = this.addressBook.getRoadNodeAddress(this.selectedRoadNode);
-      UI.ports.setSelectedAddress.send(address);
-      UI.ports.setSelectedRoadLink.send(null);
-    } else if (this.selectedRoadLink) {
-      UI.ports.setSelectedAddress.send(null);
-      UI.ports.setSelectedRoadLink.send(this.selectedRoadLink);
-    } else {
-      UI.ports.setSelectedAddress.send(null);
-      UI.ports.setSelectedRoadLink.send(null);
-    }
+    UI.ports.setHoveredFeature.send(hoveredFeatureToSend);
+    UI.ports.setSelectedFeature.send(this.selectedFeature);
   },
 
   updateHoveredGeometry: function (clientX, clientY) {
-    var result = this.findClosestFeature({
-        x: clientX,
-        y: clientY
-      });
-    this.hoveredRoadNode = null;
+    var clientP = {
+      x: clientX,
+      y: clientY
+    };
+    var cursorP = this.fromClientPoint(clientP);
+    var cursorR = this.fromClientRect(vector.bounds(16, clientP));
+    this.hoveredFeature = this.findClosestFeature(cursorP, cursorR);
     this.hoveredRoadNodeIndices.clear();
-    this.hoveredRoadLink = null;
     this.hoveredRoadLinkIndices.clear();
-    UI.ports.setHoveredLocation.send(result.cursorP);
-    if (result.key === "roadNode") {
-      this.hoveredRoadNode = result.roadNode;
-      var index = this.geometry.getRoadNodeIndex(this.hoveredRoadNode);
-      this.hoveredRoadNodeIndices.insertPoint(index);
-      var p = this.geometry.getRoadNodePoint(this.hoveredRoadNode);
-      UI.ports.setHoveredAnchor.send(this.toClientPoint(p));
-      UI.ports.setHoveredToid.send(this.hoveredRoadNode.toid);
-    } else if (result.key === "roadLink") {
-      this.hoveredRoadLink = result.roadLink;
-      var indices = this.geometry.getRoadLinkIndices(this.hoveredRoadLink);
-      this.hoveredRoadLinkIndices.insertLine(indices);
-      var ps = this.geometry.getRoadLinkPoints(this.hoveredRoadLink);
-      UI.ports.setHoveredAnchor.send(polyline.approximateMidpoint(ps));
-      UI.ports.setHoveredToid.send(this.hoveredRoadLink.toid);
-    } else {
-      UI.ports.setHoveredAnchor.send(null);
-      UI.ports.setHoveredToid.send(null);
+    if (this.hoveredFeature) {
+      switch (this.hoveredFeature.tag) {
+        case "roadNode":
+          var index = this.geometry.getRoadNodeIndex(this.hoveredFeature.roadNode);
+          this.hoveredRoadNodeIndices.insertPoint(index);
+          break;
+        case "roadLink":
+          var indices = this.geometry.getRoadLinkIndices(this.hoveredFeature.roadLink);
+          this.hoveredRoadLinkIndices.insertLine(indices);
+          break;
+      }
     }
-    this.updateHoveredAddress();
+    this.updateFeatureUI();
 
     var gl = App.drawingContext.gl; // TODO
     this.hoveredRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
@@ -198,30 +180,20 @@ Controller.prototype = {
   },
 
   updateSelectedGeometry: function (clientX, clientY) {
-    this.selectedRoadNode = null;
+    this.selectedFeature = this.hoveredFeature;
     this.selectedRoadNodeIndices.clear();
-    this.selectedRoadLink = null;
     this.selectedRoadLinkIndices.clear();
-    if (this.hoveredRoadNode) {
-      this.selectedRoadNode = this.hoveredRoadNode;
-      this.selectedRoadNodeIndices.copy(this.hoveredRoadNodeIndices);
-      var p = this.geometry.getRoadNodePoint(this.selectedRoadNode);
-      UI.ports.setSelectedToid.send(this.selectedRoadNode.toid);
-      UI.ports.setSelectedLocation.send([p]);
-      UI.ports.setSelectedAnchor.send(this.toClientPoint(p));
-    } else if (this.hoveredRoadLink) {
-      this.selectedRoadLink = this.hoveredRoadLink;
-      this.selectedRoadLinkIndices.copy(this.hoveredRoadLinkIndices);
-      var ps = this.geometry.getRoadLinkPoints(this.hoveredRoadLink);
-      UI.ports.setSelectedLocation.send([ps[0], ps[ps.length - 1]]);
-      UI.ports.setSelectedAnchor.send(polyline.approximateMidpoint(ps));
-      UI.ports.setSelectedToid.send(this.selectedRoadLink.toid);
-    } else {
-      UI.ports.setSelectedLocation.send([]);
-      UI.ports.setSelectedAnchor.send(null);
-      UI.ports.setSelectedToid.send(null);
+    if (this.selectedFeature) {
+      switch (this.selectedFeature.tag) {
+        case "roadNode":
+          this.selectedRoadNodeIndices.copy(this.hoveredRoadNodeIndices);
+          break;
+        case "roadLink":
+          this.selectedRoadLinkIndices.copy(this.hoveredRoadLinkIndices);
+          break;
+      }
     }
-    this.updateSelectedAddress();
+    this.updateFeatureUI();
 
     var gl = App.drawingContext.gl; // TODO
     this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
@@ -229,7 +201,7 @@ Controller.prototype = {
     App.isDrawingNeeded = true; // TODO
   },
 
-  updateLoadingProgress: function () {
+  updateLoadingProgressUI: function () {
     var count = this.geometry.getItemCount() + this.addressBook.getItemCount();
     var maxCount = defs.maxGeometryItemCount + defs.maxAddressCount;
     UI.ports.setLoadingProgress.send(count / maxCount * 100);
@@ -240,7 +212,7 @@ Controller.prototype = {
       this.roadNodeTree.insert(roadNodes[i]);
     }
     App.updateDrawingContext(); // TODO
-    this.updateLoadingProgress();
+    this.updateLoadingProgressUI();
     this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
   },
 
@@ -249,21 +221,18 @@ Controller.prototype = {
       this.roadLinkTree.insert(roadLinks[i]);
     }
     App.updateDrawingContext(); // TODO
-    this.updateLoadingProgress();
+    this.updateLoadingProgressUI();
     this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
   },
 
-  onRoadsLoaded: function (roads) {
-    // TODO
-    this.updateLoadingProgress();
-    this.updateHoveredAddress();
-    this.updateSelectedAddress();
+  onRoadsLoaded: function (roads) { // TODO: Attach road data to road links
+    this.updateLoadingProgressUI();
+    this.updateFeatureUI();
   },
 
-  onAddressesLoaded: function (addresses) {
-    this.updateLoadingProgress();
-    this.updateHoveredAddress();
-    this.updateSelectedAddress();
+  onAddressesLoaded: function (addresses) { // TODO: Attach addresses to road nodes
+    this.updateLoadingProgressUI();
+    this.updateFeatureUI();
   },
 
   onFrameScrolled: function (event) {
@@ -301,19 +270,24 @@ Controller.prototype = {
       this.updateSelectedGeometry(this.clientX, event.clientY);
       this.prevClientX = event.clientX;
       this.prevClientY = event.clientY;
-      if (this.selectedRoadNode) {
-        var p = this.geometry.getRoadNodePoint(this.selectedRoadNode);
-        App.setCenter(p, duration);
-      } else if (this.selectedRoadLink) {
-        var ps = this.geometry.getRoadLinkPoints(this.selectedRoadLink);
-        App.setCenter(polyline.approximateMidpoint(ps), duration);
+      if (this.selectedFeature) {
+        switch (this.selectedFeature.tag) {
+          case "roadNode":
+            var p = this.geometry.getRoadNodePoint(this.selectedFeature.roadNode);
+            App.setCenter(p, duration);
+            break;
+          case "roadLink":
+            var ps = this.geometry.getRoadLinkPoints(this.selectedFeature.roadLink);
+            App.setCenter(polyline.approximateMidpoint(ps), duration); // TODO: Set closest zoom that will fit polyline bounds
+            break;
+        }
       }
     }
   },
 
   onMouseDoubleClicked: function (event) {
     var duration = event.shiftKey ? 2500 : 500;
-    if (!this.selectedRoadNode && !this.selectedRoadLink) {
+    if (!this.selectedFeature) {
       var newCenter = compute.clampPoint(this.fromClientPoint({
           x: event.clientX,
           y: event.clientY

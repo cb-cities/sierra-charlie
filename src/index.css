@@ -84,29 +84,16 @@ body {
   user-select: none;
 }
 
-#ui-status-left {
+#ui-hovered-feature {
+  width: 200px;
+  height: 324px;
   position: absolute;
+  border-top: 1px rgba(255, 255, 255, 0.2) solid;
+  border-right: 1px rgba(255, 255, 255, 0.2) solid;
   padding: 2px;
   left: 0;
   bottom: 0;
-}
-
-#ui-status-right {
-  position: absolute;
-  padding: 2px;
-  right: 0;
-  bottom: 0;
-}
-
-#ui-hovered-legend {
-  width: 162px;
-  height: 100px;
-  position: absolute;
-  padding: 2px;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.8);
   color: #fff;
   overflow: hidden;
   pointer-events: none;
@@ -116,15 +103,17 @@ body {
   user-select: none;
 }
 
-#ui-selected-legend {
-  width: 162px;
-  height: 100px;
+#ui-selected-feature {
+  width: 200px;
+  height: 324px;
   position: absolute;
+  border-top: 1px rgba(255, 255, 255, 0.2) solid;
+  border-left: 1px rgba(255, 255, 255, 0.2) solid;
   padding: 2px;
   right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.6);
+  bottom: 0;
+  text-align: right;
+  background: rgba(0, 0, 0, 0.8);
   color: #f60;
   overflow: hidden;
   -moz-user-select: none;

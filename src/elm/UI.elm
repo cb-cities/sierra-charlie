@@ -7,70 +7,50 @@ import StartApp exposing (App)
 import Task exposing (Task)
 
 
-type alias Point =
-  { x : Float
-  , y : Float
+type alias RoadNode =
+  { toid : String
+  , address : Maybe String
+  , roadLinks : List String
   }
 
-type alias Address =
-  { toid : String
-  , lat : Float
-  , lng : Float
-  , addr : String
-  }
 
 type alias RoadLink =
   { toid : String
   , term : String
   , nature : String
-  , negativeNode : String
-  , positiveNode : String
+  , negativeNode : Maybe String
+  , positiveNode : Maybe String
+  , roads : List String
   }
+
+
+type alias Feature =
+  { tag : String
+  , roadNode : Maybe RoadNode
+  , roadLink : Maybe RoadLink
+  }
+
 
 type alias Model =
   { loadingProgress : Float
-  , hoveredLocation : Point
-  , hoveredAnchor : Maybe Point
-  , hoveredToid : Maybe String
-  , hoveredAddress : Maybe Address
-  , hoveredRoadLink : Maybe RoadLink
-  , selectedLocation : List Point
-  , selectedAnchor : Maybe Point
-  , selectedToid : Maybe String
-  , selectedAddress : Maybe Address
-  , selectedRoadLink : Maybe RoadLink
+  , hoveredFeature : Maybe Feature
+  , selectedFeature : Maybe Feature
   }
 
 
 defaultModel : Model
 defaultModel =
   { loadingProgress = 0
-  , hoveredLocation = {x = 0, y = 0}
-  , hoveredAnchor = Nothing
-  , hoveredToid = Nothing
-  , hoveredAddress = Nothing
-  , hoveredRoadLink = Nothing
-  , selectedLocation = []
-  , selectedAnchor = Nothing
-  , selectedToid = Nothing
-  , selectedAddress = Nothing
-  , selectedRoadLink = Nothing
+  , hoveredFeature = Nothing
+  , selectedFeature = Nothing
   }
 
 
 type Action =
     Idle
   | SetLoadingProgress Float
-  | SetHoveredLocation Point
-  | SetHoveredAnchor (Maybe Point)
-  | SetHoveredToid (Maybe String)
-  | SetHoveredAddress (Maybe Address)
-  | SetHoveredRoadLink (Maybe RoadLink)
-  | SetSelectedLocation (List Point)
-  | SetSelectedAnchor (Maybe Point)
-  | SetSelectedToid (Maybe String)
-  | SetSelectedAddress (Maybe Address)
-  | SetSelectedRoadLink (Maybe RoadLink)
+  | SetHoveredFeature (Maybe Feature)
+  | SetSelectedFeature (Maybe Feature)
 
 
 noEffect : Model -> (Model, Effects Action)
@@ -86,74 +66,83 @@ update action model =
       SetLoadingProgress newProgress ->
         {model | loadingProgress = max 0 newProgress}
           |> noEffect
-      SetHoveredLocation newLocation ->
-        {model | hoveredLocation = newLocation}
+      SetHoveredFeature newFeature ->
+        {model | hoveredFeature = newFeature}
           |> noEffect
-      SetHoveredAnchor newAnchor ->
-        {model | hoveredAnchor = newAnchor}
-          |> noEffect
-      SetHoveredToid newToid ->
-        {model | hoveredToid = newToid}
-          |> noEffect
-      SetHoveredAddress newAddress ->
-        {model | hoveredAddress = newAddress}
-          |> noEffect
-      SetHoveredRoadLink newRoadLink ->
-        {model | hoveredRoadLink = newRoadLink}
-          |> noEffect
-      SetSelectedLocation newLocation ->
-        {model | selectedLocation = newLocation}
-          |> noEffect
-      SetSelectedAnchor newAnchor ->
-        {model | selectedAnchor = newAnchor}
-          |> noEffect
-      SetSelectedToid newToid ->
-        {model | selectedToid = newToid}
-          |> noEffect
-      SetSelectedAddress newAddress ->
-        {model | selectedAddress = newAddress}
-          |> noEffect
-      SetSelectedRoadLink newRoadLink ->
-        {model | selectedRoadLink = newRoadLink}
+      SetSelectedFeature newFeature ->
+        {model | selectedFeature = newFeature}
           |> noEffect
 
 
-viewPoint : Point -> String
-viewPoint p =
-    toString (round p.x) ++ " " ++ toString (round p.y)
-
-
-viewLegend : String -> Maybe String -> Maybe Address -> Maybe RoadLink -> Html
-viewLegend legendId maybeToid maybeAddress maybeRoadLink =
+viewRoadNode : RoadNode -> Html
+viewRoadNode rn =
     let
-      toidPart =
-        case maybeToid of
+      tag =
+        [div [] [text "Road Node"]]
+      toid =
+        [div [] [text rn.toid]]
+      address =
+        case rn.address of
           Nothing ->
-            []
-          Just toid ->
-            [div [] [text toid]]
-      addressPart =
-        case maybeAddress of
-          Nothing ->
-            []
-          Just address ->
-            [ div [] [text (toString address.lat ++ " " ++ toString address.lng)]
-            , div [] [text address.addr]
-            ]
-      roadLinkPart =
-        case maybeRoadLink of
-          Nothing ->
-            []
-          Just roadLink ->
-            [ div [] [text roadLink.term]
-            , div [] [text roadLink.nature]
-            ]
+            [div [] [text "(no address)"]]
+          Just str ->
+            [div [] [text str]]
+      roadLinks =
+        case rn.roadLinks of
+          [] ->
+            [div [] [text "(no road links)"]]
+          _ ->
+            List.concatMap (\str -> [div [] [text str]]) rn.roadLinks
     in
-      div
-        [ id legendId
-        , style [("opacity", if maybeToid == Nothing then "0" else "1")]
-        ]
-        (toidPart ++ addressPart ++ roadLinkPart)
+      div [] (tag ++ toid ++ address ++ roadLinks)
+
+
+viewRoadLink : RoadLink -> Html
+viewRoadLink rl =
+    let
+      tag =
+        [div [] [text "Road Link"]]
+      toid =
+        [div [] [text rl.toid]]
+      term =
+        [div [] [text rl.term]]
+      nature =
+        [div [] [text rl.nature]]
+      negativeNode =
+        case rl.negativeNode of
+          Nothing ->
+            [div [] [text "(no negative node)"]]
+          Just str ->
+            [div [] [text str]]
+      positiveNode =
+        case rl.positiveNode of
+          Nothing ->
+            [div [] [text "(no positive node)"]]
+          Just str ->
+            [div [] [text str]]
+      roads =
+        List.concatMap (\str -> [div [] [text str]]) rl.roads
+    in
+      div [] (tag ++ toid ++ term ++ nature ++ negativeNode ++ positiveNode ++ roads)
+
+
+viewFeature : String -> Maybe Feature -> Html
+viewFeature featureId feature =
+    case feature of
+      Nothing ->
+        div [id featureId, style [("opacity", "0")]] []
+      Just f ->
+        let
+          contents =
+            case (f.tag, f.roadNode, f.roadLink) of
+              ("roadNode", Just rn, Nothing) ->
+                [viewRoadNode rn]
+              ("roadLink", Nothing, Just rl) ->
+                [viewRoadLink rl]
+              _ ->
+                []
+        in
+          div [id featureId, style [("opacity", "1")]] contents
 
 
 view : Signal.Address Action -> Model -> Html
@@ -169,16 +158,8 @@ view address model =
             ]
             []
           ]
-      , div
-          [ id "ui-status-area"
-          ]
-          [ span [id "ui-status-left"]
-              []
-          , span [id "ui-status-right"]
-              []
-          ]
-      , viewLegend "ui-hovered-legend" model.hoveredToid model.hoveredAddress model.hoveredRoadLink
-      , viewLegend "ui-selected-legend" model.selectedToid model.selectedAddress model.selectedRoadLink
+      , viewFeature "ui-hovered-feature" model.hoveredFeature
+      , viewFeature "ui-selected-feature" model.selectedFeature
       ]
 
 
@@ -188,16 +169,8 @@ init =
 
 
 port setLoadingProgress : Signal Float
-port setHoveredLocation : Signal Point
-port setHoveredAnchor : Signal (Maybe Point)
-port setHoveredToid : Signal (Maybe String)
-port setHoveredAddress : Signal (Maybe Address)
-port setHoveredRoadLink : Signal (Maybe RoadLink)
-port setSelectedLocation : Signal (List Point)
-port setSelectedAnchor : Signal (Maybe Point)
-port setSelectedToid : Signal (Maybe String)
-port setSelectedAddress : Signal (Maybe Address)
-port setSelectedRoadLink : Signal (Maybe RoadLink)
+port setHoveredFeature : Signal (Maybe Feature)
+port setSelectedFeature : Signal (Maybe Feature)
 
 
 app : App Model
@@ -208,16 +181,8 @@ app =
       , view = view
       , inputs =
           [ Signal.map SetLoadingProgress setLoadingProgress
-          , Signal.map SetHoveredLocation setHoveredLocation
-          , Signal.map SetHoveredAnchor setHoveredAnchor
-          , Signal.map SetHoveredToid setHoveredToid
-          , Signal.map SetHoveredAddress setHoveredAddress
-          , Signal.map SetHoveredRoadLink setHoveredRoadLink
-          , Signal.map SetSelectedLocation setSelectedLocation
-          , Signal.map SetSelectedAnchor setSelectedAnchor
-          , Signal.map SetSelectedToid setSelectedToid
-          , Signal.map SetSelectedAddress setSelectedAddress
-          , Signal.map SetSelectedRoadLink setSelectedRoadLink
+          , Signal.map SetHoveredFeature setHoveredFeature
+          , Signal.map SetSelectedFeature setSelectedFeature
           ]
       }
 
