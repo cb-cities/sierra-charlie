@@ -17,7 +17,6 @@ var maxRoadLinkCount = 423541;
 var maxRoadLinkPointCount = 1433365; // simplified from 2267772
 var maxRoadLinkIndexCount = 2019648; // simplified from 3688462
 var maxRoadCount = 85237;
-
 var maxAddressCount = 343443;
 
 var quadtreeLeft = 465464;
@@ -45,14 +44,14 @@ module.exports = {
   totalBaseClientWidth: tileCountX * baseClientTileSize,
   totalBaseClientHeight: tileCountY * baseClientTileSize,
 
-  maxGeometryItemCount: maxRoadNodeCount + maxRoadLinkCount + maxRoadCount,
+  maxGeometryItemCount: maxRoadNodeCount + maxRoadLinkCount + maxRoadCount + maxAddressCount,
   maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
   maxRoadNodeCount: maxRoadNodeCount,
   maxRoadNodeIndexCount: maxRoadNodeCount,
   maxRoadLinkCount: maxRoadLinkCount,
   maxRoadLinkPointCount: maxRoadLinkPointCount,
   maxRoadLinkIndexCount: maxRoadLinkIndexCount,
-
+  maxRoadCount: maxRoadCount,
   maxAddressCount: maxAddressCount,
 
   quadtreeLeft: quadtreeLeft,

@@ -21,6 +21,7 @@ function Geometry(props) {
   this.roads = {};
   this.tmpRoadLinksOfRoadNode = {};
   this.tmpRoadsOfRoadLink = {};
+  this.tmpAddressOfRoadNode = {};
   this.worker = new GeometryLoaderWorker();
   this.worker.addEventListener("message", this.onMessage.bind(this));
   this.worker.postMessage({
@@ -93,6 +94,9 @@ Geometry.prototype = {
       case "roadsLoaded":
         this.onRoadsLoaded(event.data);
         break;
+      case "addressesLoaded":
+        this.onAddressesLoaded(event.data);
+        break;
     }
     if (this.isLoadingFinished()) {
       this.onLoadingFinished();
@@ -103,8 +107,10 @@ Geometry.prototype = {
     this.worker.terminate();
     delete this.tmpRoadLinksOfRoadNode;
     delete this.tmpRoadsOfRoadLink;
-    for (var i = 0; i < this.roadLinks.length; i++) {
-      var roadLink = this.roadLinks[i];
+    delete this.tmpAddressOfRoadNode;
+    var roadLinkToids = Object.keys(this.roadLinks);
+    for (var i = 0; i < roadLinkToids.length; i++) {
+      var roadLink = this.roadLinks[roadLinkToids[i]];
       if (!(roadLink.negativeNode in this.roadNodes)) {
         delete roadLink.negativeNode;
       }
@@ -112,8 +118,9 @@ Geometry.prototype = {
         delete roadLink.positiveNode;
       }
     }
-    for (var i = 0; i < this.roads.length; i++) {
-      var road = this.roads[i];
+    var roadToids = Object.keys(this.roads);
+    for (var i = 0; i < roadToids.length; i++) {
+      var road = this.roads[roadToids[i]];
       var members = [];
       for (var j = 0; j < road.members.length; j++) {
         if (road.members[j] in this.roadLinks) {
@@ -139,9 +146,11 @@ Geometry.prototype = {
       var toid = roadNode.toid;
       if (toid in this.tmpRoadLinksOfRoadNode) {
         roadNode.roadLinks = this.tmpRoadLinksOfRoadNode[toid];
-        delete this.tmpRoadLinksOfRoadNode[toid];
       } else {
         roadNode.roadLinks = [];
+      }
+      if (toid in this.tmpAddressOfRoadNode) {
+        roadNode.address = this.tmpAddressOfRoadNode[toid];
       }
       this.roadNodes[toid] = roadNode;
     }
@@ -162,7 +171,6 @@ Geometry.prototype = {
       var toid = roadLink.toid;
       if (toid in this.tmpRoadsOfRoadLink) {
         roadLink.roads = this.tmpRoadsOfRoadLink[toid];
-        delete this.tmpRoadsOfRoadLink[toid];
       } else {
         roadLink.roads = [];
       }
@@ -197,18 +205,40 @@ Geometry.prototype = {
       for (var j = 0; j < road.members.length; j++) {
         var member = road.members[j];
         if (member in this.roadLinks) {
-          this.roadLinks[member].roads.push(toid);
+          // this.roadLinks[member].roads.push(toid); // TODO
+          if (this.roadLinks[member].roads.indexOf(road.name) === -1) {
+            this.roadLinks[member].roads.push(road.name)
+          }
         } else {
           if (!(member in this.tmpRoadsOfRoadLink)) {
             this.tmpRoadsOfRoadLink[member] = [];
           }
-          this.tmpRoadsOfRoadLink[member].push(toid);
+          // this.tmpRoadsOfRoadLink[member].push(toid); // TODO
+          if (this.tmpRoadsOfRoadLink[member].indexOf(road.name) === -1) {
+            this.tmpRoadsOfRoadLink[member].push(road.name);
+          }
         }
       }
       this.roads[toid] = road;
     }
     if (this.props.onRoadsLoaded) {
       this.props.onRoadsLoaded(data.roads);
+    }
+  },
+
+  onAddressesLoaded: function (data) {
+    this.itemCount += data.addresses.length;
+    for (var i = 0; i < data.addresses.length; i++) {
+      var address = data.addresses[i];
+      var toid = address.toid;
+      if (toid in this.roadNodes) {
+        this.roadNodes[toid].address = address.text;
+      } else {
+        this.tmpAddressOfRoadNode[toid] = address.text;
+      }
+    }
+    if (this.props.onAddressesLoaded) {
+      this.props.onAddressesLoaded(data.addresses);
     }
   },
 

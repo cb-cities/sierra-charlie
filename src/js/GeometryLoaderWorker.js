@@ -13,6 +13,7 @@ self.onmessage = function (event) {
         loader.loadRoadLinks(event.data.origin, i);
       }
       loader.loadRoads(event.data.origin);
+      loader.loadAddresses(event.data.origin);
       break;
   }
 };

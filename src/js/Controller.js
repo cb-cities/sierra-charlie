@@ -1,6 +1,5 @@
 "use strict";
 
-var AddressBook = require("./AddressBook");
 var Geometry = require("./Geometry");
 var Grid = require("./Grid");
 var Indexset = require("./Indexset");
@@ -21,9 +20,6 @@ function Controller() {
       onRoadNodesLoaded: this.onRoadNodesLoaded.bind(this),
       onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this),
       onRoadsLoaded: this.onRoadsLoaded.bind(this)
-    });
-  window.AddressBook = this.addressBook = new AddressBook({ // TODO
-      onAddressesLoaded: this.onAddressesLoaded.bind(this)
     });
   window.Grid = this.grid = new Grid(); // TODO
   window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
@@ -202,9 +198,7 @@ Controller.prototype = {
   },
 
   updateLoadingProgressUI: function () {
-    var count = this.geometry.getItemCount() + this.addressBook.getItemCount();
-    var maxCount = defs.maxGeometryItemCount + defs.maxAddressCount;
-    UI.ports.setLoadingProgress.send(count / maxCount * 100);
+    UI.ports.setLoadingProgress.send(this.geometry.getItemCount() / defs.maxGeometryItemCount * 100);
   },
 
   onRoadNodesLoaded: function (roadNodes) {
@@ -230,7 +224,7 @@ Controller.prototype = {
     this.updateFeatureUI();
   },
 
-  onAddressesLoaded: function (addresses) { // TODO: Attach addresses to road nodes
+  onAddressesLoaded: function (addresses) {
     this.updateLoadingProgressUI();
     this.updateFeatureUI();
   },
