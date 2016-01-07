@@ -112,7 +112,6 @@ body {
   padding: 2px;
   right: 0;
   bottom: 0;
-  text-align: right;
   background: rgba(0, 0, 0, 0.8);
   color: #f60;
   overflow: hidden;
@@ -120,4 +119,12 @@ body {
   -ms-user-select: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+.ui-feature-tag {
+  font-weight: bold;
+}
+
+.ui-feature-key {
+  opacity: 0.6;
 }
