@@ -83,7 +83,7 @@ Controller.prototype = {
     return compute.toClientPoint(p, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
-  findFeatureAtCursor: function (cursorP, cursorR) { // TODO: Refactor
+  getFeatureAtCursor: function (cursorP, cursorR) { // TODO: Refactor
     const roadNodes = this.roadNodeTree.select(cursorR);
     let closestRoadNodeDistance = Infinity;
     let closestRoadNode = null;
@@ -200,7 +200,7 @@ Controller.prototype = {
     if (this.prevCursor) {
       const cursorP = this.fromClientPoint(this.prevCursor);
       const cursorR = this.fromClientRect(vector.bounds(10, this.prevCursor));
-      this.hoverFeature(this.findFeatureAtCursor(cursorP, cursorR));
+      this.hoverFeature(this.getFeatureAtCursor(cursorP, cursorR));
     }
   },
 
