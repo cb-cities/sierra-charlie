@@ -257,53 +257,54 @@ Controller.prototype = {
     this.prevClientY = event.clientY;
   },
 
-  onMouseClicked: function (event) { // TODO: Refactor
+  displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) {
+    var duration = doSlowMotion ? 2500 : 500;
+    switch (feature.tag) {
+      case "roadNode":
+        var p = this.geometry.getRoadNodePoint(feature.roadNode);
+        App.setCenter(p, duration);
+        if (doZoom) { // double-click only
+          var zoom = App.getZoom();
+          var newZoom = compute.clampZoom(doReverseZoom ? zoom + 1 : defs.minZoom);
+          App.setZoom(newZoom, duration);
+        }
+        break;
+      case "roadLink":
+        var ps = this.geometry.getRoadLinkPoints(feature.roadLink);
+        App.setCenter(polyline.approximateMidpoint(ps), duration);
+        var clientWidth = this.getClientWidth();
+        var clientHeight = this.getClientHeight();
+        var zoom = App.getZoom();
+        var fittedZoom = compute.zoomForRect(polyline.bounds(10, ps), clientWidth, clientHeight);
+        var newZoom;
+        if (doZoom) {
+          newZoom = compute.clampZoom(doReverseZoom ? zoom + 1 : fittedZoom);
+        } else {
+          newZoom = Math.max(zoom, fittedZoom);
+        }
+        App.setZoom(newZoom, duration);
+        break;
+    }
+  },
+
+  onMouseClicked: function (event) {
     if (this.prevClickDate + 250 < Date.now()) {
       this.prevClickDate = Date.now();
-      var duration = event.shiftKey ? 2500 : 500;
       this.updateSelectedGeometry(this.clientX, event.clientY);
       this.prevClientX = event.clientX;
       this.prevClientY = event.clientY;
       if (this.selectedFeature) {
-        switch (this.selectedFeature.tag) {
-          case "roadNode":
-            var p = this.geometry.getRoadNodePoint(this.selectedFeature.roadNode);
-            App.setCenter(p, duration);
-            break;
-          case "roadLink":
-            var clientWidth = this.getClientWidth();
-            var clientHeight = this.getClientHeight();
-            var zoom = App.getZoom();
-            var ps = this.geometry.getRoadLinkPoints(this.selectedFeature.roadLink);
-            var r = polyline.bounds(10, ps);
-            var newZoom = compute.clampZoom(Math.max(zoom, compute.zoomForRect(r, clientWidth, clientHeight)));
-            App.setZoom(newZoom, duration);
-            App.setCenter(polyline.approximateMidpoint(ps), duration);
-            break;
-        }
+        this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
       }
     }
   },
 
-  onMouseDoubleClicked: function (event) { // TODO: Refactor
-    var duration = event.shiftKey ? 2500 : 500;
-    var zoom = App.getZoom();
+  onMouseDoubleClicked: function (event) {
     if (this.selectedFeature) {
-      switch (this.selectedFeature.tag) {
-        case "roadNode":
-          var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : Math.min(zoom - 1, 2));
-          App.setZoom(newZoom, duration);
-          break;
-        case "roadLink":
-          var clientWidth = this.getClientWidth();
-          var clientHeight = this.getClientHeight();
-          var ps = this.geometry.getRoadLinkPoints(this.selectedFeature.roadLink);
-          var r = polyline.bounds(10, ps);
-          var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : compute.zoomForRect(r, clientWidth, clientHeight));
-          App.setZoom(newZoom, duration);
-          break;
-      }
+      this.displayFeature(this.selectedFeature, !!event.shiftKey, true, !!event.altKey);
     } else {
+      var zoom = App.getZoom();
+      var duration = event.shiftKey ? 2500 : 500;
       var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
       var newCenter = compute.clampPoint(this.fromClientPoint({
           x: event.clientX,
