@@ -1,7 +1,7 @@
 "use strict";
 
 
-var _ = module.exports = {
+const _ = module.exports = {
   add: function (v1, v2) {
     return {
       x: v1.x + v2.x,

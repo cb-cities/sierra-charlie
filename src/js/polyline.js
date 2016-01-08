@@ -1,13 +1,13 @@
 "use strict";
 
-var rect = require("./rect");
-var segment = require("./segment");
+const rect = require("./rect");
+const segment = require("./segment");
 
 
-var _ = module.exports = {
+const _ = module.exports = {
   length: function (ps) {
-    var result = 0;
-    for (var i = 0; i < ps.length - 1; i++) {
+    let result = 0;
+    for (let i = 0; i < ps.length - 1; i++) {
       result += segment.length({
           p1: ps[i],
           p2: ps[i + 1]
@@ -17,9 +17,9 @@ var _ = module.exports = {
   },
 
   distance: function (v, ps) {
-    var result = Infinity;
-    for (var i = 0; i < ps.length - 1; i++) {
-      var d = segment.distance(v, {
+    let result = Infinity;
+    for (let i = 0; i < ps.length - 1; i++) {
+      const d = segment.distance(v, {
           p1: ps[i],
           p2: ps[i + 1]
         });
@@ -31,8 +31,8 @@ var _ = module.exports = {
   },
 
   bounds: function (margin, ps) {
-    var result = rect.invalid;
-    for (var i = 0; i < ps.length - 1; i++) {
+    let result = rect.invalid;
+    for (let i = 0; i < ps.length - 1; i++) {
       result = rect.union(result, segment.bounds(margin, {
           p1: ps[i],
           p2: ps[i + 1]
@@ -56,13 +56,13 @@ var _ = module.exports = {
     if (!rect.intersects(_.bounds(0, ps1), _.bounds(0, ps2))) {
       return false;
     } else {
-      for (var i = 0; i < ps1.length - 1; i++) {
-        var s1 = {
+      for (let i = 0; i < ps1.length - 1; i++) {
+        const s1 = {
           p1: ps1[i],
           p2: ps1[i + 1]
         };
-        for (var j = 0; j < ps2.length - 1; j++) {
-          var s2 = {
+        for (let j = 0; j < ps2.length - 1; j++) {
+          const s2 = {
             p1: ps2[j],
             p2: ps2[j + 1]
           };

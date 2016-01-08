@@ -1,7 +1,7 @@
 "use strict";
 
-var easeTween = require("ease-tween");
-var reactTweenState = require("react-tween-state");
+const easeTween = require("ease-tween");
+const reactTweenState = require("react-tween-state");
 
 
 module.exports = {

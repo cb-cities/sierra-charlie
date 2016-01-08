@@ -33,8 +33,7 @@
   "maxcomplexity" : false,    // 8,  // {int} Max cyclomatic complexity per function
   "maxlen"        : false,    // 96, // {int} Max number of characters per line
   
-  // TODO
-  "varstmt"       : false,    // true: Disallow any var statements. Only `let` and `const` are allowed.
+  "varstmt"       : true,     // true: Disallow any var statements. Only `let` and `const` are allowed.
 
   // Relaxing
   "asi"           : false,    // true: Tolerate Automatic Semicolon Insertion (no semicolons)

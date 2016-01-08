@@ -1,9 +1,9 @@
 "use strict";
 
-var rect = require("./rect");
+const rect = require("./rect");
 
 
-var softMaxItemCount = 16;
+const softMaxItemCount = 16;
 
 function Polyquadtree(left, top, size, getItemBounds) {
   this.left = left;
@@ -15,7 +15,7 @@ function Polyquadtree(left, top, size, getItemBounds) {
 
 Polyquadtree.prototype = {
   insert: function (newItem) {
-    var newBounds = this.getItemBounds(newItem);
+    const newBounds = this.getItemBounds(newItem);
     if (this.items) {
       if (this.items.length < softMaxItemCount || this.someItemIntersects(newBounds)) {
         this.items.push(newItem);
@@ -40,7 +40,7 @@ Polyquadtree.prototype = {
   },
 
   someItemIntersects: function (r) {
-    for (var i = 0; i < this.items.length; i++) {
+    for (let i = 0; i < this.items.length; i++) {
       if (rect.intersects(r, this.getItemBounds(this.items[i]))) {
         return true;
       }
@@ -49,25 +49,25 @@ Polyquadtree.prototype = {
   },
 
   split: function () {
-    var halfSize = this.size / 2;
-    var midWidth = this.left + halfSize;
-    var midHeight = this.top + halfSize;
+    const halfSize = this.size / 2;
+    const midWidth = this.left + halfSize;
+    const midHeight = this.top + halfSize;
     this.topLeft = new Polyquadtree(this.left, this.top, halfSize, this.getItemBounds);
     this.topRight = new Polyquadtree(midWidth, this.top, halfSize, this.getItemBounds);
     this.bottomLeft = new Polyquadtree(this.left, midHeight, halfSize, this.getItemBounds);
     this.bottomRight = new Polyquadtree(midWidth, midHeight, halfSize, this.getItemBounds);
-    var items = this.items;
+    const items = this.items;
     delete this.items;
-    for (var i = 0; i < items.length; i++) {
+    for (let i = 0; i < items.length; i++) {
       this.insert(items[i]);
     }
   },
 
   select: function (r) {
-    var results = [];
+    let results = [];
     if (this.intersects(r)) {
       if (this.items) {
-        for (var i = 0; i < this.items.length; i++) {
+        for (let i = 0; i < this.items.length; i++) {
           if (rect.intersects(r, this.getItemBounds(this.items[i]))) {
             results.push(this.items[i]);
           }

@@ -1,9 +1,9 @@
 "use strict";
 
-var rect = require("./rect");
+const rect = require("./rect");
 
 
-var maxItemCount = 16;
+const maxItemCount = 16;
 
 function Quadtree(left, top, size, getItemPoint) {
   this.left = left;
@@ -36,25 +36,25 @@ Quadtree.prototype = {
   },
 
   split: function () {
-    var halfSize = this.size / 2;
-    var midWidth = this.left + halfSize;
-    var midHeight = this.top + halfSize;
+    const halfSize = this.size / 2;
+    const midWidth = this.left + halfSize;
+    const midHeight = this.top + halfSize;
     this.topLeft = new Quadtree(this.left, this.top, halfSize, this.getItemPoint);
     this.topRight = new Quadtree(midWidth, this.top, halfSize, this.getItemPoint);
     this.bottomLeft = new Quadtree(this.left, midHeight, halfSize, this.getItemPoint);
     this.bottomRight = new Quadtree(midWidth, midHeight, halfSize, this.getItemPoint);
-    var items = this.items;
+    const items = this.items;
     delete this.items;
-    for (var i = 0; i < items.length; i++) {
+    for (let i = 0; i < items.length; i++) {
       this.insert(items[i]);
     }
   },
 
   select: function (r) {
-    var results = [];
+    let results = [];
     if (this.intersects(r)) {
       if (this.items) {
-        for (var i = 0; i < this.items.length; i++) {
+        for (let i = 0; i < this.items.length; i++) {
           if (rect.contains(r, this.getItemPoint(this.items[i]))) {
             results.push(this.items[i]);
           }
