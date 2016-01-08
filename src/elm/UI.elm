@@ -1,13 +1,13 @@
 module UI where
 
-import Effects exposing (Effects, Never)
+import Effects exposing (Effects, Never, none)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, id, style)
 import Html.Events exposing (onMouseEnter, onMouseLeave, onClick)
 import Maybe exposing (withDefault)
-import Signal exposing (Address)
+import Signal exposing (Address, Mailbox)
 import StartApp exposing (App)
-import Task exposing (Task)
+import Task exposing (Task, andThen)
 
 
 type alias RoadNode =
@@ -38,8 +38,6 @@ type alias Model =
   { loadingProgress : Float
   , highlightedFeature : Maybe Feature
   , selectedFeature : Maybe Feature
-  , prevHoveredTOID : Maybe String
-  , prevClickedTOID : Maybe String
   }
 
 
@@ -48,8 +46,6 @@ defaultModel =
   { loadingProgress = 0
   , highlightedFeature = Nothing
   , selectedFeature = Nothing
-  , prevHoveredTOID = Nothing
-  , prevClickedTOID = Nothing
   }
 
 
@@ -58,38 +54,38 @@ type Action =
   | SetLoadingProgress Float
   | SetHighlightedFeature (Maybe Feature)
   | SetSelectedFeature (Maybe Feature)
-  | SetPrevHoveredTOID (Maybe String)
-  | SetPrevClickedTOID (Maybe String)
+  | SendHoveredTOID (Maybe String)
+  | SendClickedTOID (Maybe String)
 
 
-noEffect : Model -> (Model, Effects Action)
-noEffect model =
-    (model, Effects.none)
+send : Address a -> a -> Effects Action
+send address message =
+    Effects.task (Signal.send address message `andThen` \_ -> Task.succeed Idle)
 
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
     case action of
       Idle ->
-        noEffect model
+        (model, none)
       SetLoadingProgress newProgress ->
-        noEffect {model | loadingProgress = max 0 newProgress}
+        ({model | loadingProgress = max 0 newProgress}, none)
       SetHighlightedFeature newFeature ->
-        noEffect {model | highlightedFeature = newFeature}
+        ({model | highlightedFeature = newFeature}, none)
       SetSelectedFeature newFeature ->
-        noEffect {model | selectedFeature = newFeature}
-      SetPrevHoveredTOID newTOID ->
-        noEffect {model | prevHoveredTOID = newTOID}
-      SetPrevClickedTOID newTOID ->
-        noEffect {model | prevClickedTOID = newTOID}
+        ({model | selectedFeature = newFeature}, none)
+      SendHoveredTOID newTOID ->
+        (model, send hoveredTOIDMailbox.address newTOID)
+      SendClickedTOID newTOID ->
+        (model, send clickedTOIDMailbox.address newTOID)
 
 
 viewTOID : Address Action -> String -> Html
 viewTOID address toid =
     a
-      [ onClick address (SetPrevClickedTOID (Just toid))
-      , onMouseEnter address (SetPrevHoveredTOID (Just toid))
-      , onMouseLeave address (SetPrevHoveredTOID Nothing)
+      [ onClick address (SendClickedTOID (Just toid))
+      , onMouseEnter address (SendHoveredTOID (Just toid))
+      , onMouseLeave address (SendHoveredTOID Nothing)
       ]
       [text toid]
 
@@ -243,14 +239,24 @@ app =
       }
 
 
-port prevHoveredTOID : Signal (Maybe String)
-port prevHoveredTOID =
-    Signal.map .prevHoveredTOID app.model
+hoveredTOIDMailbox : Mailbox (Maybe String)
+hoveredTOIDMailbox =
+    Signal.mailbox Nothing
 
 
-port prevClickedTOID : Signal (Maybe String)
-port prevClickedTOID =
-    Signal.map .prevClickedTOID app.model
+clickedTOIDMailbox : Mailbox (Maybe String)
+clickedTOIDMailbox =
+    Signal.mailbox Nothing
+
+
+port hoveredTOID : Signal (Maybe String)
+port hoveredTOID =
+    hoveredTOIDMailbox.signal
+
+
+port clickedTOID : Signal (Maybe String)
+port clickedTOID =
+    clickedTOIDMailbox.signal
 
 
 port tasks : Signal (Task Never ())
