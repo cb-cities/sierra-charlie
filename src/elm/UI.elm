@@ -159,7 +159,7 @@ viewFeature : String -> Maybe Feature -> Html
 viewFeature featureId feature =
     case feature of
       Nothing ->
-        div [id featureId, style [("opacity", "0")]] []
+        div [id featureId, style [("display", "none")]] []
       Just f ->
         let
           contents =
@@ -171,7 +171,7 @@ viewFeature featureId feature =
               _ ->
                 []
         in
-          div [id featureId, style [("opacity", "1")]] contents
+          div [id featureId] contents
 
 
 view : Signal.Address Action -> Model -> Html
