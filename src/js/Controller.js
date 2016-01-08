@@ -145,16 +145,16 @@ Controller.prototype = {
     UI.ports.setSelectedFeature.send(this.selectedFeature);
   },
 
-  updateHoveredGeometry: function (clientX, clientY) {
+  hoverFeatureAtCursor: function (clientX, clientY) {
     const clientP = {
       x: clientX,
       y: clientY
     };
     const cursorP = this.fromClientPoint(clientP);
     const cursorR = this.fromClientRect(vector.bounds(10, clientP));
-    this.hoveredFeature = this.findClosestFeature(cursorP, cursorR);
     this.hoveredRoadNodeIndices.clear();
     this.hoveredRoadLinkIndices.clear();
+    this.hoveredFeature = this.findClosestFeature(cursorP, cursorR);
     if (this.hoveredFeature) {
       switch (this.hoveredFeature.tag) {
         case "roadNode":
@@ -175,10 +175,10 @@ Controller.prototype = {
     App.isDrawingNeeded = true; // TODO
   },
 
-  updateSelectedGeometry: function (clientX, clientY) {
-    this.selectedFeature = this.hoveredFeature;
+  selectHoveredFeature: function () {
     this.selectedRoadNodeIndices.clear();
     this.selectedRoadLinkIndices.clear();
+    this.selectedFeature = this.hoveredFeature;
     if (this.selectedFeature) {
       switch (this.selectedFeature.tag) {
         case "roadNode":
@@ -207,7 +207,7 @@ Controller.prototype = {
     }
     App.updateDrawingContext(); // TODO
     this.updateLoadingProgressUI();
-    this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
+    this.hoverFeatureAtCursor(this.prevClientX, this.prevClientY);
   },
 
   onRoadLinksLoaded: function (roadLinks) {
@@ -216,7 +216,7 @@ Controller.prototype = {
     }
     App.updateDrawingContext(); // TODO
     this.updateLoadingProgressUI();
-    this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
+    this.hoverFeatureAtCursor(this.prevClientX, this.prevClientY);
   },
 
   onRoadsLoaded: function (roads) { // TODO: Attach road data to road links
@@ -237,7 +237,7 @@ Controller.prototype = {
       const newCenterY = compute.centerYFromScrollTop(frame.scrollTop, zoom);
       App.setStaticCenter(newCenterX, newCenterY);
     }
-    this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
+    this.hoverFeatureAtCursor(this.prevClientX, this.prevClientY);
   },
 
   onCanvasContextLost: function (event) {
@@ -252,7 +252,7 @@ Controller.prototype = {
   },
 
   onMouseMoved: function (event) {
-    this.updateHoveredGeometry(event.clientX, event.clientY);
+    this.hoverFeatureAtCursor(event.clientX, event.clientY);
     this.prevClientX = event.clientX;
     this.prevClientY = event.clientY;
   },
@@ -286,9 +286,7 @@ Controller.prototype = {
   onMouseClicked: function (event) {
     if (this.prevClickDate + 250 < Date.now()) {
       this.prevClickDate = Date.now();
-      this.updateSelectedGeometry(this.clientX, event.clientY);
-      this.prevClientX = event.clientX;
-      this.prevClientY = event.clientY;
+      this.selectHoveredFeature();
       if (this.selectedFeature) {
         this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
       }
@@ -303,8 +301,8 @@ Controller.prototype = {
       const duration = event.shiftKey ? 2500 : 500;
       const newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
       const newCenter = compute.clampPoint(this.fromClientPoint({
-          x: event.clientX,
-          y: event.clientY
+          x: this.prevClientX,
+          y: this.prevClientY
         }));
       App.setZoom(newZoom, duration);
       App.setCenter(newCenter, duration);
