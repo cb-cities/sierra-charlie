@@ -83,27 +83,27 @@ Controller.prototype = {
     return compute.toClientPoint(p, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
-  findClosestFeature: function (cursorP, cursorR) {
+  findClosestFeature: function (cursorP, cursorR) { // TODO: Refactor
     var roadNodes = this.roadNodeTree.select(cursorR);
     var closestRoadNodeDistance = Infinity;
     var closestRoadNode = null;
     for (var i = 0; i < roadNodes.length; i++) {
       var p = this.geometry.getRoadNodePoint(roadNodes[i]);
-      var distance = vector.distance(cursorP, p);
-      if (distance < closestRoadNodeDistance) {
-        closestRoadNodeDistance = distance;
+      var d1 = vector.distance(cursorP, p);
+      if (d1 < closestRoadNodeDistance) {
+        closestRoadNodeDistance = d1;
         closestRoadNode = roadNodes[i];
       }
     }
     var roadLinks = this.roadLinkTree.select(cursorR);
     var closestRoadLinkDistance = Infinity;
     var closestRoadLink = null;
-    for (var i = 0; i < roadLinks.length; i++) {
-      var ps = this.geometry.getRoadLinkPoints(roadLinks[i]);
-      var distance = polyline.distance(cursorP, ps);
-      if (distance < closestRoadLinkDistance) {
-        closestRoadLinkDistance = distance;
-        closestRoadLink = roadLinks[i];
+    for (var j = 0; j < roadLinks.length; j++) {
+      var ps = this.geometry.getRoadLinkPoints(roadLinks[j]);
+      var d2 = polyline.distance(cursorP, ps);
+      if (d2 < closestRoadLinkDistance) {
+        closestRoadLinkDistance = d2;
+        closestRoadLink = roadLinks[j];
       }
     }
     if (closestRoadNode && closestRoadNodeDistance <= closestRoadLinkDistance + 4) {
@@ -258,15 +258,14 @@ Controller.prototype = {
   },
 
   displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) {
+    var zoom = App.getZoom();
     var duration = doSlowMotion ? 2500 : 500;
     switch (feature.tag) {
       case "roadNode":
         var p = this.geometry.getRoadNodePoint(feature.roadNode);
         App.setCenter(p, duration);
         if (doZoom) { // double-click only
-          var zoom = App.getZoom();
-          var newZoom = compute.clampZoom(doReverseZoom ? zoom + 1 : defs.minZoom);
-          App.setZoom(newZoom, duration);
+          App.setZoom(compute.clampZoom(doReverseZoom ? zoom + 1 : defs.minZoom), duration);
         }
         break;
       case "roadLink":
@@ -274,15 +273,12 @@ Controller.prototype = {
         App.setCenter(polyline.approximateMidpoint(ps), duration);
         var clientWidth = this.getClientWidth();
         var clientHeight = this.getClientHeight();
-        var zoom = App.getZoom();
         var fittedZoom = compute.zoomForRect(polyline.bounds(10, ps), clientWidth, clientHeight);
-        var newZoom;
-        if (doZoom) {
-          newZoom = compute.clampZoom(doReverseZoom ? zoom + 1 : fittedZoom);
-        } else {
-          newZoom = Math.max(zoom, fittedZoom);
-        }
-        App.setZoom(newZoom, duration);
+        App.setZoom(
+          doZoom ?
+            compute.clampZoom(doReverseZoom ? zoom + 1 : fittedZoom) :
+            Math.max(zoom, fittedZoom),
+          duration);
         break;
     }
   },
@@ -330,23 +326,19 @@ Controller.prototype = {
     switch (event.keyCode) {
       case 37: // left
       case 36: // home
-        var scale = event.keyCode === 36 ? 1 : 10;
-        App.setCenterX(compute.clampX(centerX - pageWidth / scale), duration);
+        App.setCenterX(compute.clampX(centerX - pageWidth / (event.keyCode === 36 ? 1 : 10)), duration);
         break;
       case 39: // right
       case 35: // end
-        var scale = event.keyCode === 35 ? 1 : 10;
-        App.setCenterX(compute.clampX(centerX + pageWidth / scale), duration);
+        App.setCenterX(compute.clampX(centerX + pageWidth / (event.keyCode === 35 ? 1 : 10)), duration);
         break;
       case 38: // up
       case 33: // page up
-        var scale = event.keyCode === 33 ? 1 : 10;
-        App.setCenterY(compute.clampY(centerY + pageHeight / scale), duration);
+        App.setCenterY(compute.clampY(centerY + pageHeight / (event.keyCode === 33 ? 1 : 10)), duration);
         break;
       case 40: // down
       case 34: // page down
-        var scale = event.keyCode === 34 ? 1 : 10;
-        App.setCenterY(compute.clampY(centerY - pageHeight / scale), duration);
+        App.setCenterY(compute.clampY(centerY - pageHeight / (event.keyCode === 34 ? 1 : 10)), duration);
         break;
       // case 219: // left bracket
       //   var newRawTime = Math.round((rawTime * 3600) - timeDelta) / 3600;
@@ -357,12 +349,10 @@ Controller.prototype = {
       //   App.setRawTime(newRawTime, duration);
       //   break;
       case 187: // plus
-        var newZoom = compute.clampZoom(Math.round((zoom * 10) - zoomDelta) / 10);
-        App.setZoom(newZoom, duration);
+        App.setZoom(compute.clampZoom(Math.round((zoom * 10) - zoomDelta) / 10), duration);
         break;
       case 189: // minus
-        var newZoom = compute.clampZoom(Math.round((zoom * 10) + zoomDelta) / 10);
-        App.setZoom(newZoom, duration);
+        App.setZoom(compute.clampZoom(Math.round((zoom * 10) + zoomDelta) / 10), duration);
         break;
       default: // 1-9, 0
         if (event.keyCode >= 49 && event.keyCode <= 57 || event.keyCode === 48) {

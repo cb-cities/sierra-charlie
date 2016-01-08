@@ -15,8 +15,8 @@ function Grid() {
     var x = defs.firstTileX + i * defs.tileSize;
     this.gridLines.insertLine(x, top, x, bottom);
   }
-  for (var i = 0; i <= defs.tileCountY; i++) {
-    var y = defs.firstTileY + i * defs.tileSize;
+  for (var j = 0; j <= defs.tileCountY; j++) {
+    var y = defs.firstTileY + j * defs.tileSize;
     this.gridLines.insertLine(left, y, right, y);
   }
 }

@@ -138,8 +138,8 @@ GeometryLoader.prototype = {
             ps = simplify(ps);
           }
           var vertices = [];
-          for (var i = 0; i < ps.length; i++) {
-            vertices.push(ps[i].x, ps[i].y);
+          for (var j = 0; j < ps.length; j++) {
+            vertices.push(ps[j].x, ps[j].y);
           }
           this.roadLinks.push({
               toid: obj.toid,
@@ -151,10 +151,10 @@ GeometryLoader.prototype = {
               vertexOffset: this.vertexCount,
               indexOffset: this.roadLinkIndexCount
             });
-          for (var i = 0; i < ps.length; i++) {
-            this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + i;
-            if (i !== 0 && i !== ps.length - 1) {
-              this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + i;
+          for (var k = 0; k < ps.length; k++) {
+            this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + k;
+            if (k !== 0 && k !== ps.length - 1) {
+              this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + k;
             }
           }
           this.vertexArr.set(vertices, this.vertexCount * 2);
