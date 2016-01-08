@@ -145,6 +145,57 @@ Controller.prototype = {
     UI.ports.setSelectedFeature.send(this.selectedFeature);
   },
 
+  hoverFeature: function (feature) { // TODO: Refactor
+    if (feature !== this.hoveredFeature) {
+      const gl = App.drawingContext.gl; // TODO
+      this.hoveredFeature = feature;
+      this.hoveredRoadNodeIndices.clear();
+      this.hoveredRoadLinkIndices.clear();
+      if (feature) {
+        switch (feature.tag) {
+          case "roadNode":
+            const index = this.geometry.getRoadNodeIndex(feature.roadNode);
+            this.hoveredRoadNodeIndices.insertPoint(index);
+            this.hoveredRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+            break;
+          case "roadLink":
+            const indices = this.geometry.getRoadLinkIndices(feature.roadLink);
+            this.hoveredRoadLinkIndices.insertLine(indices);
+            this.hoveredRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            break;
+        }
+      }
+      this.updateFeatureUI();
+      App.isDrawingNeeded = true; // TODO
+    }
+  },
+
+  selectFeature: function (feature) { // TODO: Refactor
+    if (feature !== this.selectedFeature) {
+      const gl = App.drawingContext.gl; // TODO
+      this.selectedFeature = feature;
+      this.selectedRoadNodeIndices.clear();
+      this.selectedRoadLinkIndices.clear();
+      if (feature) {
+        switch (feature.tag) {
+          case "roadNode":
+            const index = this.geometry.getRoadNodeIndex(feature.roadNode);
+            this.selectedRoadNodeIndices.insertPoint(index);
+            this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+            break;
+          case "roadLink":
+            const indices = this.geometry.getRoadLinkIndices(feature.roadLink);
+            this.selectedRoadLinkIndices.insertLine(indices);
+            this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            break;
+        }
+      }
+      this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+      this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+      App.isDrawingNeeded = true; // TODO
+    }
+  },
+
   hoverFeatureAtCursor: function (clientX, clientY) {
     const clientP = {
       x: clientX,
@@ -152,49 +203,7 @@ Controller.prototype = {
     };
     const cursorP = this.fromClientPoint(clientP);
     const cursorR = this.fromClientRect(vector.bounds(10, clientP));
-    this.hoveredRoadNodeIndices.clear();
-    this.hoveredRoadLinkIndices.clear();
-    this.hoveredFeature = this.findClosestFeature(cursorP, cursorR);
-    if (this.hoveredFeature) {
-      switch (this.hoveredFeature.tag) {
-        case "roadNode":
-          const index = this.geometry.getRoadNodeIndex(this.hoveredFeature.roadNode);
-          this.hoveredRoadNodeIndices.insertPoint(index);
-          break;
-        case "roadLink":
-          const indices = this.geometry.getRoadLinkIndices(this.hoveredFeature.roadLink);
-          this.hoveredRoadLinkIndices.insertLine(indices);
-          break;
-      }
-    }
-    this.updateFeatureUI();
-
-    const gl = App.drawingContext.gl; // TODO
-    this.hoveredRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
-    this.hoveredRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
-    App.isDrawingNeeded = true; // TODO
-  },
-
-  selectHoveredFeature: function () {
-    this.selectedRoadNodeIndices.clear();
-    this.selectedRoadLinkIndices.clear();
-    this.selectedFeature = this.hoveredFeature;
-    if (this.selectedFeature) {
-      switch (this.selectedFeature.tag) {
-        case "roadNode":
-          this.selectedRoadNodeIndices.copy(this.hoveredRoadNodeIndices);
-          break;
-        case "roadLink":
-          this.selectedRoadLinkIndices.copy(this.hoveredRoadLinkIndices);
-          break;
-      }
-    }
-    this.updateFeatureUI();
-
-    const gl = App.drawingContext.gl; // TODO
-    this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
-    this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
-    App.isDrawingNeeded = true; // TODO
+    this.hoverFeature(this.findClosestFeature(cursorP, cursorR));
   },
 
   updateLoadingProgressUI: function () {
@@ -286,7 +295,7 @@ Controller.prototype = {
   onMouseClicked: function (event) {
     if (this.prevClickDate + 250 < Date.now()) {
       this.prevClickDate = Date.now();
-      this.selectHoveredFeature();
+      this.selectFeature(this.hoveredFeature);
       if (this.selectedFeature) {
         this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
       }

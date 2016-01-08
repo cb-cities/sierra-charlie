@@ -19,11 +19,6 @@ Indexset.prototype = {
     this.indexArr.push.apply(this.indexArr, newIndices);
   },
 
-  copy: function (otherIndexset) {
-    this.indexArr = [];
-    this.indexArr.push.apply(this.indexArr, otherIndexset.indexArr);
-  },
-
   render: function (gl, usage) {
     if (!this.indexBuf) { // TODO
       this.indexBuf = gl.createBuffer();
