@@ -151,7 +151,7 @@ Controller.prototype = {
       y: clientY
     };
     var cursorP = this.fromClientPoint(clientP);
-    var cursorR = this.fromClientRect(vector.bounds(16, clientP));
+    var cursorR = this.fromClientRect(vector.bounds(10, clientP));
     this.hoveredFeature = this.findClosestFeature(cursorP, cursorR);
     this.hoveredRoadNodeIndices.clear();
     this.hoveredRoadLinkIndices.clear();
