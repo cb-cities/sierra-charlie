@@ -158,10 +158,12 @@ module.exports = {
   },
 
   updateDrawingContext: function () {
+    var gl;
+    var cx;
     if (!this.drawingContext) {
       this.isDrawingNeeded = true;
       var canvas = document.getElementById("map-canvas");
-      var gl = canvas.getContext("webgl", {
+      gl = canvas.getContext("webgl", {
           alpha: false
         });
       var program = glUtils.createProgram(gl, vertexShader, fragmentShader);
@@ -172,7 +174,7 @@ module.exports = {
       var centerLoc = gl.getUniformLocation(program, "center");
       var pointSizeLoc = gl.getUniformLocation(program, "pointSize");
       var colorLoc = gl.getUniformLocation(program, "color");
-      this.drawingContext = {
+      cx = this.drawingContext = {
         gl: gl,
         program: program,
         pixelRatio: window.devicePixelRatio,
@@ -188,9 +190,10 @@ module.exports = {
       gl.clearColor(0, 0, 0, 0);
       gl.getExtension("OES_element_index_uint");
       Grid.render(gl); // TODO
+    } else {
+      cx = this.drawingContext;
+      gl = cx.gl;
     }
-    var cx = this.drawingContext;
-    var gl = cx.gl;
     if (Geometry.render(gl)) { // TODO
       this.isDrawingNeeded = true;
     }
@@ -226,7 +229,6 @@ module.exports = {
       // var time = compute.time(this.getRawTime());
       var zoomLevel = compute.zoomLevel(zoom);
 
-      var gl = cx.gl;
       gl.uniform2f(cx.pixelFitLoc, 1 / (clientWidth * 2), 1 / (clientHeight * 2));
       gl.uniform2f(cx.scaleRatioLoc,
         defs.baseClientTileSize / (zoomLevel * defs.tileSize) / (clientWidth / 2),

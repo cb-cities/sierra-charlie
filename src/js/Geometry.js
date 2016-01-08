@@ -119,12 +119,12 @@ Geometry.prototype = {
       }
     }
     var roadToids = Object.keys(this.roads);
-    for (var i = 0; i < roadToids.length; i++) {
-      var road = this.roads[roadToids[i]];
+    for (var j = 0; j < roadToids.length; j++) {
+      var road = this.roads[roadToids[j]];
       var members = [];
-      for (var j = 0; j < road.members.length; j++) {
-        if (road.members[j] in this.roadLinks) {
-          members.push(road.members[j]);
+      for (var k = 0; k < road.members.length; k++) {
+        if (road.members[k] in this.roadLinks) {
+          members.push(road.members[k]);
         }
       }
       road.members = members;

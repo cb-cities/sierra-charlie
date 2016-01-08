@@ -55,7 +55,12 @@ module.exports = {
       },
       {
         test: /\.glsl$/,
-        loader: 'raw',
+        loader: "raw",
+        exclude: [/elm-stuff/, /node_modules/]
+      },
+      {
+        test: /\.js$/,
+        loader: "babel-loader",
         exclude: [/elm-stuff/, /node_modules/]
       },
       {
