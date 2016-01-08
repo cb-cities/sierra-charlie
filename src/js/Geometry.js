@@ -207,7 +207,7 @@ Geometry.prototype = {
         if (member in this.roadLinks) {
           // this.roadLinks[member].roads.push(toid); // TODO
           if (this.roadLinks[member].roads.indexOf(road.name) === -1) {
-            this.roadLinks[member].roads.push(road.name)
+            this.roadLinks[member].roads.push(road.name);
           }
         } else {
           if (!(member in this.tmpRoadsOfRoadLink)) {
