@@ -1,43 +1,43 @@
 "use strict";
 
 
-var _ = module.exports = {
+const _ = module.exports = {
   minimum: function (arr) {
-    var min = Infinity;
-    for (var i = 0; i < arr.length; i++) {
-      if (arr[i] < min) {
-        min = arr[i];
+    let result = Infinity;
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] < result) {
+        result = arr[i];
       }
     }
-    return min;
+    return result;
   },
 
   maximum: function (arr) {
-    var max = -Infinity;
-    for (var i = 0; i < arr.length; i++) {
-      if (arr[i] > max) {
-        max = arr[i];
+    let result = -Infinity;
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] > result) {
+        result = arr[i];
       }
     }
-    return max;
+    return result;
   },
 
   average: function (arr) {
-    var sum = 0;
-    for (var i = 0; i < arr.length; i++) {
-      sum += arr[i];
+    let result = 0;
+    for (let i = 0; i < arr.length; i++) {
+      result += arr[i];
     }
-    return sum / arr.length;
+    return result / arr.length;
   },
 
   variance: function (arr) {
-    var avg = _.average(arr);
-    var sum = 0;
-    for (var i = 0; i < arr.length; i++) {
-      var diff = avg - arr[i];
-      sum += diff * diff;
+    const avg = _.average(arr);
+    let result = 0;
+    for (let i = 0; i < arr.length; i++) {
+      const diff = avg - arr[i];
+      result += diff * diff;
     }
-    return sum / arr.length;
+    return result / arr.length;
   },
 
   standardDeviation: function (arr) {

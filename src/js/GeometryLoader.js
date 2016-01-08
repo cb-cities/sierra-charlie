@@ -1,9 +1,9 @@
 "use strict";
 
-var oboe = require("oboe");
-var simplify = require("simplify-js");
+const oboe = require("oboe");
+const simplify = require("simplify-js");
 
-var defs = require("./defs");
+const defs = require("./defs");
 
 
 function sliceFloat32Array(array, offset, count) {
@@ -47,7 +47,7 @@ GeometryLoader.prototype = {
   },
 
   postRoadNodes: function (isForced) {
-    var data = {
+    const data = {
       message: "roadNodesLoaded",
       vertexArr: sliceFloat32Array(this.vertexArr, this.vertexOffset * 2, this.vertexCount * 2),
       roadNodeIndexArr: sliceUint32Array(this.roadNodeIndexArr, this.roadNodeIndexOffset, this.roadNodeIndexCount),
@@ -62,7 +62,7 @@ GeometryLoader.prototype = {
   },
 
   postRoadLinks: function (isForced) {
-    var data = {
+    const data = {
       message: "roadLinksLoaded",
       vertexArr: sliceFloat32Array(this.vertexArr, this.vertexOffset * 2, this.vertexCount * 2),
       roadLinkIndexArr: sliceUint32Array(this.roadLinkIndexArr, this.roadLinkIndexOffset, this.roadLinkIndexCount),
@@ -77,7 +77,7 @@ GeometryLoader.prototype = {
   },
 
   postRoads: function (isForced) {
-    var data = {
+    const data = {
       message: "roadsLoaded",
       roads: this.roads
     };
@@ -88,7 +88,7 @@ GeometryLoader.prototype = {
   },
 
   postAddresses: function (isForced) {
-    var data = {
+    const data = {
       message: "addressesLoaded",
       addresses: this.addresses
     };
@@ -102,7 +102,7 @@ GeometryLoader.prototype = {
     oboe(origin + "/json/roadnodes1.json.gz")
       .node("!.*", function (obj) {
           this.itemCount++;
-          var p = {
+          const p = {
             x: parseFloat(obj.point[0]),
             y: parseFloat(obj.point[1])
           };
@@ -127,8 +127,8 @@ GeometryLoader.prototype = {
     oboe(origin + "/json/roadlinks" + partIndex + ".json.gz")
       .node("!.*", function (obj) {
           this.itemCount++;
-          var ps = [];
-          for (var i = 0; i < obj.polyline.length / 2; i++) {
+          let ps = [];
+          for (let i = 0; i < obj.polyline.length / 2; i++) {
             ps.push({
                 x: parseFloat(obj.polyline[2 * i]),
                 y: parseFloat(obj.polyline[2 * i + 1])
@@ -137,8 +137,8 @@ GeometryLoader.prototype = {
           if (obj.polyline.length > 4) {
             ps = simplify(ps);
           }
-          var vertices = [];
-          for (var j = 0; j < ps.length; j++) {
+          let vertices = [];
+          for (let j = 0; j < ps.length; j++) {
             vertices.push(ps[j].x, ps[j].y);
           }
           this.roadLinks.push({
@@ -151,7 +151,7 @@ GeometryLoader.prototype = {
               vertexOffset: this.vertexCount,
               indexOffset: this.roadLinkIndexCount
             });
-          for (var k = 0; k < ps.length; k++) {
+          for (let k = 0; k < ps.length; k++) {
             this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + k;
             if (k !== 0 && k !== ps.length - 1) {
               this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + k;

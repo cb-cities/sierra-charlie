@@ -1,14 +1,14 @@
 "use strict";
 
-var r = require("react-wrapper");
+const r = require("react-wrapper");
 
-var EasedStateMixin = require("./EasedStateMixin");
-var compute = require("./compute");
-var defs = require("./defs");
+const EasedStateMixin = require("./EasedStateMixin");
+const compute = require("./compute");
+const defs = require("./defs");
 
-var glUtils = require("./gl-utils"); // TODO
-var fragmentShader = require("../glsl/fragment-shader.glsl");
-var vertexShader = require("../glsl/vertex-shader.glsl");
+const glUtils = require("./gl-utils"); // TODO
+const fragmentShader = require("../glsl/fragment-shader.glsl");
+const vertexShader = require("../glsl/vertex-shader.glsl");
 
 
 module.exports = {
@@ -115,18 +115,18 @@ module.exports = {
   },
 
   updateFrameSpace: function () {
-    var centerX = this.getCenterX();
-    var centerY = this.getCenterY();
-    var zoom = this.getZoom();
+    const centerX = this.getCenterX();
+    const centerY = this.getCenterY();
+    const zoom = this.getZoom();
     this.updateSpace(zoom);
     this.updateFrame(centerX, centerY, zoom);
   },
 
   updateFrame: function (centerX, centerY, zoom) {
-    var newScrollLeft = compute.scrollLeftFromCenterX(centerX, zoom);
-    var newScrollTop = compute.scrollTopFromCenterY(centerY, zoom);
+    const newScrollLeft = compute.scrollLeftFromCenterX(centerX, zoom);
+    const newScrollTop = compute.scrollTopFromCenterY(centerY, zoom);
     if (this.prevScrollLeft !== newScrollLeft || this.prevScrollTop !== newScrollTop) {
-      var frame = document.getElementById("map-frame");
+      const frame = document.getElementById("map-frame");
       frame.scrollLeft = newScrollLeft;
       frame.scrollTop = newScrollTop;
       this.prevScrollLeft = newScrollLeft;
@@ -135,10 +135,10 @@ module.exports = {
   },
 
   updateSpace: function (zoom) {
-    var newWidth = compute.totalClientWidth(zoom);
-    var newHeight = compute.totalClientHeight(zoom);
+    const newWidth = compute.totalClientWidth(zoom);
+    const newHeight = compute.totalClientHeight(zoom);
     if (this.prevWidth !== newWidth || this.prevHeight !== newHeight) {
-      var space = document.getElementById("map-space");
+      const space = document.getElementById("map-space");
       space.style.width = newWidth + "px";
       space.style.height = newHeight + "px";
       this.prevWidth = newWidth;
@@ -158,22 +158,21 @@ module.exports = {
   },
 
   updateDrawingContext: function () {
-    var gl;
-    var cx;
+    let gl, cx;
     if (!this.drawingContext) {
       this.isDrawingNeeded = true;
-      var canvas = document.getElementById("map-canvas");
+      const canvas = document.getElementById("map-canvas");
       gl = canvas.getContext("webgl", {
           alpha: false
         });
-      var program = glUtils.createProgram(gl, vertexShader, fragmentShader);
+      const program = glUtils.createProgram(gl, vertexShader, fragmentShader);
       gl.useProgram(program);
-      var vertexLoc = gl.getAttribLocation(program, "vertex");
-      var pixelFitLoc = gl.getUniformLocation(program, "pixelFit");
-      var scaleRatioLoc = gl.getUniformLocation(program, "scaleRatio");
-      var centerLoc = gl.getUniformLocation(program, "center");
-      var pointSizeLoc = gl.getUniformLocation(program, "pointSize");
-      var colorLoc = gl.getUniformLocation(program, "color");
+      const vertexLoc = gl.getAttribLocation(program, "vertex");
+      const pixelFitLoc = gl.getUniformLocation(program, "pixelFit");
+      const scaleRatioLoc = gl.getUniformLocation(program, "scaleRatio");
+      const centerLoc = gl.getUniformLocation(program, "center");
+      const pointSizeLoc = gl.getUniformLocation(program, "pointSize");
+      const colorLoc = gl.getUniformLocation(program, "color");
       cx = this.drawingContext = {
         gl: gl,
         program: program,
@@ -208,13 +207,13 @@ module.exports = {
       return;
     }
     this.isAnimationFrameRequested = requestAnimationFrame(this.onAnimationFrameReceived);
-    var cx = this.drawingContext;
-    var gl = cx.gl;
-    var canvas = document.getElementById("map-canvas"); // TODO
-    var clientWidth = canvas.clientWidth;
-    var clientHeight = canvas.clientHeight;
-    var deviceWidth = cx.pixelRatio * clientWidth;
-    var deviceHeight = cx.pixelRatio * clientHeight;
+    const cx = this.drawingContext;
+    const gl = cx.gl;
+    const canvas = document.getElementById("map-canvas"); // TODO
+    const clientWidth = canvas.clientWidth;
+    const clientHeight = canvas.clientHeight;
+    const deviceWidth = cx.pixelRatio * clientWidth;
+    const deviceHeight = cx.pixelRatio * clientHeight;
     if (canvas.width !== deviceWidth || canvas.height !== deviceHeight) {
       this.isDrawingNeeded = true;
       canvas.width = deviceWidth;
@@ -223,11 +222,11 @@ module.exports = {
     }
     if (this.isDrawingNeeded) {
       this.isDrawingNeeded = false;
-      var centerX = this.getCenterX();
-      var centerY = this.getCenterY();
-      var zoom = this.getZoom();
-      // var time = compute.time(this.getRawTime());
-      var zoomLevel = compute.zoomLevel(zoom);
+      const centerX = this.getCenterX();
+      const centerY = this.getCenterY();
+      const zoom = this.getZoom();
+      // const time = compute.time(this.getRawTime());
+      const zoomLevel = compute.zoomLevel(zoom);
 
       gl.uniform2f(cx.pixelFitLoc, 1 / (clientWidth * 2), 1 / (clientHeight * 2));
       gl.uniform2f(cx.scaleRatioLoc,
@@ -247,9 +246,9 @@ module.exports = {
         gl.vertexAttribPointer(cx.vertexLoc, 2, gl.FLOAT, false, 0, 0);
 
         // Draw road links
-        var baseRoadLinkSize = 2 * cx.pixelRatio;
-        var roadLinkSize = baseRoadLinkSize * Math.sqrt(zoomLevel) / zoomLevel;
-        var roadLinkAlpha = Math.min(roadLinkSize, 1);
+        const baseRoadLinkSize = 2 * cx.pixelRatio;
+        const roadLinkSize = baseRoadLinkSize * Math.sqrt(zoomLevel) / zoomLevel;
+        const roadLinkAlpha = Math.min(roadLinkSize, 1);
         gl.lineWidth(roadLinkSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
         Geometry.drawRoadLinks(gl); // TODO
@@ -259,9 +258,9 @@ module.exports = {
         this.selectedRoadLinkIndices.draw(gl, gl.LINES); // TODO
 
         // Draw road nodes
-        var baseRoadNodeSize = 8 * cx.pixelRatio;
-        var roadNodeSize = baseRoadNodeSize * Math.cbrt(zoomLevel) / zoomLevel;
-        var roadNodeAlpha = Math.min(roadNodeSize, 1);
+        const baseRoadNodeSize = 8 * cx.pixelRatio;
+        const roadNodeSize = baseRoadNodeSize * Math.cbrt(zoomLevel) / zoomLevel;
+        const roadNodeAlpha = Math.min(roadNodeSize, 1);
         gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
         Geometry.drawRoadNodes(gl); // TODO

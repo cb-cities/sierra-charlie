@@ -15,14 +15,14 @@ Lineset.prototype = {
   },
 
   insertLine: function (x1, y1, x2, y2) {
-    var index = this.vertexArr.length / 2;
+    const index = this.vertexArr.length / 2;
     this.vertexArr.push(x1, y1, x2, y2);
     this.indexArr.push(index, index + 1);
   },
 
   insertPolyline: function (ps) {
-    var baseIndex = this.vertexArr.length / 2;
-    for (var i = 0; i < ps.length; i++) {
+    const baseIndex = this.vertexArr.length / 2;
+    for (let i = 0; i < ps.length; i++) {
       this.vertexArr.push(ps[i].x, ps[i].y);
       if (i > 0 && i < ps.length - 1) {
         this.indexArr.push(baseIndex + i, baseIndex + i);
@@ -33,9 +33,9 @@ Lineset.prototype = {
   },
 
   extend: function (vertices, indices) {
-    var baseIndex = this.vertexArr.length / 2;
+    const baseIndex = this.vertexArr.length / 2;
     this.vertexArr.push.apply(this.vertexArr, vertices);
-    for (var i = 0; i < indices.length; i++) {
+    for (let i = 0; i < indices.length; i++) {
       this.indexArr.push(baseIndex + indices[i]);
     }
   },

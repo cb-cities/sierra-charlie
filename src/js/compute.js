@@ -1,10 +1,10 @@
 "use strict";
 
-var defs = require("./defs");
-var rect = require("./rect");
+const defs = require("./defs");
+const rect = require("./rect");
 
 
-var _ = module.exports = {
+const _ = module.exports = {
   clampX: function (x) {
     return (
       Math.max(defs.firstTileX,

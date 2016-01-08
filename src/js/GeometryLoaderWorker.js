@@ -1,15 +1,15 @@
 "use strict";
 
-var GeometryLoader = require("./GeometryLoader");
+const GeometryLoader = require("./GeometryLoader");
 
 
-var loader = new GeometryLoader();
+const loader = new GeometryLoader();
 
 self.onmessage = function (event) {
   switch (event.data.message) {
     case "startLoading":
       loader.loadRoadNodes(event.data.origin);
-      for (var i = 1; i <= 4; i++) {
+      for (let i = 1; i <= 4; i++) {
         loader.loadRoadLinks(event.data.origin, i);
       }
       loader.loadRoads(event.data.origin);

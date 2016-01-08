@@ -1,9 +1,9 @@
 "use strict";
 
-var GeometryLoaderWorker = require("worker?inline!./GeometryLoaderWorker");
+const GeometryLoaderWorker = require("worker?inline!./GeometryLoaderWorker");
 
-var defs = require("./defs");
-var rect = require("./rect");
+const defs = require("./defs");
+const rect = require("./rect");
 
 
 function Geometry(props) {
@@ -51,9 +51,9 @@ Geometry.prototype = {
   },
 
   getRoadLinkPoints: function (roadLink) {
-    var results = [];
-    for (var i = 0; i < roadLink.pointCount; i++) {
-      var k = roadLink.vertexOffset + i;
+    let results = [];
+    for (let i = 0; i < roadLink.pointCount; i++) {
+      const k = roadLink.vertexOffset + i;
       results.push({
           x: this.vertexArr[2 * k],
           y: this.vertexArr[2 * k + 1]
@@ -63,18 +63,18 @@ Geometry.prototype = {
   },
 
   getRoadLinkIndices: function (roadLink) {
-    var results = [];
-    var indexCount = (roadLink.pointCount - 1) * 2;
-    for (var i = 0; i < indexCount; i++) {
+    let results = [];
+    const indexCount = (roadLink.pointCount - 1) * 2;
+    for (let i = 0; i < indexCount; i++) {
       results.push(this.roadLinkIndexArr[roadLink.indexOffset + i]);
     }
     return results;
   },
 
   getRoadLinkBounds: function (roadLink) {
-    var result = rect.invalid;
-    for (var i = 0; i < roadLink.pointCount; i++) {
-      var k = roadLink.vertexOffset + i;
+    let result = rect.invalid;
+    for (let i = 0; i < roadLink.pointCount; i++) {
+      const k = roadLink.vertexOffset + i;
       result = rect.stretch(result, {
           x: this.vertexArr[2 * k],
           y: this.vertexArr[2 * k + 1]
@@ -108,9 +108,10 @@ Geometry.prototype = {
     delete this.tmpRoadLinksOfRoadNode;
     delete this.tmpRoadsOfRoadLink;
     delete this.tmpAddressOfRoadNode;
-    var roadLinkToids = Object.keys(this.roadLinks);
-    for (var i = 0; i < roadLinkToids.length; i++) {
-      var roadLink = this.roadLinks[roadLinkToids[i]];
+    const roadLinkToids = Object.keys(this.roadLinks);
+    for (let i = 0; i < roadLinkToids.length; i++) {
+      const toid = roadLinkToids[i];
+      let roadLink = this.roads[toid];
       if (!(roadLink.negativeNode in this.roadNodes)) {
         roadLink.negativeNode = null;
       }
@@ -118,11 +119,12 @@ Geometry.prototype = {
         roadLink.positiveNode = null;
       }
     }
-    var roadToids = Object.keys(this.roads);
-    for (var j = 0; j < roadToids.length; j++) {
-      var road = this.roads[roadToids[j]];
-      var members = [];
-      for (var k = 0; k < road.members.length; k++) {
+    const roadToids = Object.keys(this.roads);
+    for (let j = 0; j < roadToids.length; j++) {
+      const toid = roadToids[j];
+      let road = this.roads[toid];
+      let members = [];
+      for (let k = 0; k < road.members.length; k++) {
         if (road.members[k] in this.roadLinks) {
           members.push(road.members[k]);
         }
@@ -141,9 +143,9 @@ Geometry.prototype = {
     this.vertexCount += data.vertexArr.length / 2;
     this.roadNodeIndexArr.set(data.roadNodeIndexArr, this.roadNodeIndexCount);
     this.roadNodeIndexCount += data.roadNodeIndexArr.length;
-    for (var i = 0; i < data.roadNodes.length; i++) {
-      var roadNode = data.roadNodes[i];
-      var toid = roadNode.toid;
+    for (let i = 0; i < data.roadNodes.length; i++) {
+      let roadNode = data.roadNodes[i];
+      const toid = roadNode.toid;
       if (toid in this.tmpRoadLinksOfRoadNode) {
         roadNode.roadLinks = this.tmpRoadLinksOfRoadNode[toid];
       } else {
@@ -166,9 +168,9 @@ Geometry.prototype = {
     this.vertexCount += data.vertexArr.length / 2;
     this.roadLinkIndexArr.set(data.roadLinkIndexArr, this.roadLinkIndexCount);
     this.roadLinkIndexCount += data.roadLinkIndexArr.length;
-    for (var i = 0; i < data.roadLinks.length; i++) {
-      var roadLink = data.roadLinks[i];
-      var toid = roadLink.toid;
+    for (let i = 0; i < data.roadLinks.length; i++) {
+      let roadLink = data.roadLinks[i];
+      const toid = roadLink.toid;
       if (toid in this.tmpRoadsOfRoadLink) {
         roadLink.roads = this.tmpRoadsOfRoadLink[toid];
       } else {
@@ -199,11 +201,11 @@ Geometry.prototype = {
 
   onRoadsLoaded: function (data) {
     this.itemCount += data.roads.length;
-    for (var i = 0; i < data.roads.length; i++) {
-      var road = data.roads[i];
-      var toid = road.toid;
-      for (var j = 0; j < road.members.length; j++) {
-        var member = road.members[j];
+    for (let i = 0; i < data.roads.length; i++) {
+      let road = data.roads[i];
+      const toid = road.toid;
+      for (let j = 0; j < road.members.length; j++) {
+        const member = road.members[j];
         if (member in this.roadLinks) {
           // this.roadLinks[member].roads.push(toid); // TODO
           if (this.roadLinks[member].roads.indexOf(road.name) === -1) {
@@ -228,9 +230,9 @@ Geometry.prototype = {
 
   onAddressesLoaded: function (data) {
     this.itemCount += data.addresses.length;
-    for (var i = 0; i < data.addresses.length; i++) {
-      var address = data.addresses[i];
-      var toid = address.toid;
+    for (let i = 0; i < data.addresses.length; i++) {
+      const address = data.addresses[i];
+      const toid = address.toid;
       if (toid in this.roadNodes) {
         this.roadNodes[toid].address = address.text;
       } else {
@@ -244,7 +246,7 @@ Geometry.prototype = {
 
   render: function (gl) {
     if (this.isRenderingNeeded) {
-      var usage = this.isLoadingFinished ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW;
+      const usage = this.isLoadingFinished ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW;
       this.isRenderingNeeded = false;
       if (!this.vertexBuf) { // TODO
         this.vertexBuf = gl.createBuffer();

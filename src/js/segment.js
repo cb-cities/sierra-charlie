@@ -1,17 +1,17 @@
 "use strict";
 
-var vector = require("./vector");
+const vector = require("./vector");
 
 
-var _ = module.exports = {
+const _ = module.exports = {
   length: function (s) {
     return vector.length(vector.subtract(s.p2, s.p1));
   },
 
   project: function (v, s) {
-    var w = vector.subtract(s.p2, s.p1);
-    var len = vector.length(w);
-    var ratio =
+    const w = vector.subtract(s.p2, s.p1);
+    const len = vector.length(w);
+    const ratio =
       Math.max(0,
         Math.min(
           vector.project(
@@ -61,17 +61,17 @@ var _ = module.exports = {
   },
 
   intersects: function (s1, s2) {
-    var u = vector.subtract(s1.p2, s1.p1);
-    var v = vector.subtract(s2.p2, s2.p1);
-    var w = vector.subtract(s1.p1, s2.p1);
-    var d = vector.perpDot(u, v);
+    const u = vector.subtract(s1.p2, s1.p1);
+    const v = vector.subtract(s2.p2, s2.p1);
+    const w = vector.subtract(s1.p1, s2.p1);
+    const d = vector.perpDot(u, v);
     if (Math.abs(d) < Number.EPSILON) { // s1 and s2 are parallel
       if (vector.perpDot(u, w) !== 0 || vector.perpDot(v, w) !== 0) { // s1 and s2 are not collinear
         return false;
       } else {
         // s1 and s2 are collinear or degenerate
-        var du = vector.dot(u, u);
-        var dv = vector.dot(v, v);
+        const du = vector.dot(u, u);
+        const dv = vector.dot(v, v);
         if (du === 0 && dv === 0) { // s1 and s2 are points
           if (s1.p1 !== s2.p1) { // s1 and s2 are distinct points
             return false;
@@ -91,8 +91,8 @@ var _ = module.exports = {
             return true;
           }
         } else { // s1 and s2 are collinear
-          var t0, t1;
-          var w2 = vector.subtract(s1.p2, s2.p1);
+          let t0, t1;
+          const w2 = vector.subtract(s1.p2, s2.p1);
           if (v.x !== 0) {
             t0 = w.x / v.x;
             t1 = w2.x / v.x;
@@ -101,7 +101,7 @@ var _ = module.exports = {
             t1 = w2.y / v.y;
           }
           if (t0 > t1) {
-            var t = t0;
+            const t = t0;
             t0 = t1;
             t1 = t;
           }
@@ -119,11 +119,11 @@ var _ = module.exports = {
         }
       }
     } else { // s1 and s2 may intersect in a point
-      var si = vector.perpDot(v, w) / d;
+      const si = vector.perpDot(v, w) / d;
       if (si < 0 || si > 1) {
         return false;
       } else {
-        var ti = vector.perpDot(u, w) / d;
+        const ti = vector.perpDot(u, w) / d;
         if (ti < 0 || ti > 1) {
           return false;
         } else {
@@ -134,10 +134,10 @@ var _ = module.exports = {
   },
 
   intersection: function (s1, s2) {
-    var u = vector.subtract(s1.p2, s1.p1);
-    var v = vector.subtract(s2.p2, s2.p1);
-    var w = vector.subtract(s1.p1, s2.p1);
-    var d = vector.perpDot(u, v);
+    const u = vector.subtract(s1.p2, s1.p1);
+    const v = vector.subtract(s2.p2, s2.p1);
+    const w = vector.subtract(s1.p1, s2.p1);
+    const d = vector.perpDot(u, v);
     if (Math.abs(d) < Number.EPSILON) { // s1 and s2 are parallel
       if (vector.perpDot(u, w) !== 0 || vector.perpDot(v, w) !== 0) { // s1 and s2 are not collinear
         return {
@@ -145,8 +145,8 @@ var _ = module.exports = {
         };
       } else {
         // s1 and s2 are collinear or degenerate
-        var du = vector.dot(u, u);
-        var dv = vector.dot(v, v);
+        const du = vector.dot(u, u);
+        const dv = vector.dot(v, v);
         if (du === 0 && dv === 0) { // s1 and s2 are points
           if (s1.p1 !== s2.p1) { // s1 and s2 are distinct points
             return {
@@ -181,8 +181,8 @@ var _ = module.exports = {
             };
           }
         } else { // s1 and s2 are collinear
-          var t0, t1;
-          var w2 = vector.subtract(s1.p2, s2.p1);
+          let t0, t1;
+          const w2 = vector.subtract(s1.p2, s2.p1);
           if (v.x !== 0) {
             t0 = w.x / v.x;
             t1 = w2.x / v.x;
@@ -191,7 +191,7 @@ var _ = module.exports = {
             t1 = w2.y / v.y;
           }
           if (t0 > t1) {
-            var t = t0;
+            const t = t0;
             t0 = t1;
             t1 = t;
           }
@@ -220,13 +220,13 @@ var _ = module.exports = {
         }
       }
     } else { // s1 and s2 may intersect in a point
-      var si = vector.perpDot(v, w) / d;
+      const si = vector.perpDot(v, w) / d;
       if (si < 0 || si > 1) {
         return {
           result: "none"
         };
       } else {
-        var ti = vector.perpDot(u, w) / d;
+        const ti = vector.perpDot(u, w) / d;
         if (ti < 0 || ti > 1) {
           return {
             result: "none"

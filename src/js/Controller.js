@@ -1,15 +1,15 @@
 "use strict";
 
-var Geometry = require("./Geometry");
-var Grid = require("./Grid");
-var Indexset = require("./Indexset");
-var Polyquadtree = require("./Polyquadtree");
-var Quadtree = require("./Quadtree");
+const Geometry = require("./Geometry");
+const Grid = require("./Grid");
+const Indexset = require("./Indexset");
+const Polyquadtree = require("./Polyquadtree");
+const Quadtree = require("./Quadtree");
 
-var compute = require("./compute");
-var defs = require("./defs");
-var polyline = require("./polyline");
-var vector = require("./vector");
+const compute = require("./compute");
+const defs = require("./defs");
+const polyline = require("./polyline");
+const vector = require("./vector");
 
 
 function Controller() {
@@ -30,12 +30,12 @@ function Controller() {
   this.selectedFeature = null;
   this.selectedRoadNodeIndices = new Indexset();
   this.selectedRoadLinkIndices = new Indexset();
-  var frame = document.getElementById("map-frame");
+  const frame = document.getElementById("map-frame");
   frame.addEventListener("scroll", this.onFrameScrolled.bind(this));
-  var canvas = document.getElementById("map-canvas");
+  const canvas = document.getElementById("map-canvas");
   canvas.addEventListener("webglcontextlost", this.onCanvasContextLost.bind(this));
   canvas.addEventListener("webglcontextrestored", this.onCanvasContextRestored.bind(this));
-  var space = document.getElementById("map-space");
+  const space = document.getElementById("map-space");
   space.addEventListener("mousemove", this.onMouseMoved.bind(this));
   space.addEventListener("click", this.onMouseClicked.bind(this));
   space.addEventListener("dblclick", this.onMouseDoubleClicked.bind(this));
@@ -47,60 +47,60 @@ function Controller() {
 
 Controller.prototype = {
   getClientWidth: function () {
-    var canvas = document.getElementById("map-canvas");
+    const canvas = document.getElementById("map-canvas");
     return canvas.clientWidth;
   },
 
   getClientHeight: function () {
-    var canvas = document.getElementById("map-canvas");
+    const canvas = document.getElementById("map-canvas");
     return canvas.clientHeight;
   },
 
   fromClientPoint: function (clientP) {
-    var clientWidth = this.getClientWidth();
-    var clientHeight = this.getClientHeight();
-    var centerX = App.getCenterX();
-    var centerY = App.getCenterY();
-    var zoom = App.getZoom();
+    const clientWidth = this.getClientWidth();
+    const clientHeight = this.getClientHeight();
+    const centerX = App.getCenterX();
+    const centerY = App.getCenterY();
+    const zoom = App.getZoom();
     return compute.fromClientPoint(clientP, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
   fromClientRect: function (clientR) {
-    var clientWidth = this.getClientWidth();
-    var clientHeight = this.getClientHeight();
-    var centerX = App.getCenterX();
-    var centerY = App.getCenterY();
-    var zoom = App.getZoom();
+    const clientWidth = this.getClientWidth();
+    const clientHeight = this.getClientHeight();
+    const centerX = App.getCenterX();
+    const centerY = App.getCenterY();
+    const zoom = App.getZoom();
     return compute.fromClientRect(clientR, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
   toClientPoint: function (p) {
-    var clientWidth = this.getClientWidth();
-    var clientHeight = this.getClientHeight();
-    var centerX = App.getCenterX();
-    var centerY = App.getCenterY();
-    var zoom = App.getZoom();
+    const clientWidth = this.getClientWidth();
+    const clientHeight = this.getClientHeight();
+    const centerX = App.getCenterX();
+    const centerY = App.getCenterY();
+    const zoom = App.getZoom();
     return compute.toClientPoint(p, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
   findClosestFeature: function (cursorP, cursorR) { // TODO: Refactor
-    var roadNodes = this.roadNodeTree.select(cursorR);
-    var closestRoadNodeDistance = Infinity;
-    var closestRoadNode = null;
-    for (var i = 0; i < roadNodes.length; i++) {
-      var p = this.geometry.getRoadNodePoint(roadNodes[i]);
-      var d1 = vector.distance(cursorP, p);
+    const roadNodes = this.roadNodeTree.select(cursorR);
+    let closestRoadNodeDistance = Infinity;
+    let closestRoadNode = null;
+    for (let i = 0; i < roadNodes.length; i++) {
+      const p = this.geometry.getRoadNodePoint(roadNodes[i]);
+      const d1 = vector.distance(cursorP, p);
       if (d1 < closestRoadNodeDistance) {
         closestRoadNodeDistance = d1;
         closestRoadNode = roadNodes[i];
       }
     }
-    var roadLinks = this.roadLinkTree.select(cursorR);
-    var closestRoadLinkDistance = Infinity;
-    var closestRoadLink = null;
-    for (var j = 0; j < roadLinks.length; j++) {
-      var ps = this.geometry.getRoadLinkPoints(roadLinks[j]);
-      var d2 = polyline.distance(cursorP, ps);
+    const roadLinks = this.roadLinkTree.select(cursorR);
+    let closestRoadLinkDistance = Infinity;
+    let closestRoadLink = null;
+    for (let j = 0; j < roadLinks.length; j++) {
+      const ps = this.geometry.getRoadLinkPoints(roadLinks[j]);
+      const d2 = polyline.distance(cursorP, ps);
       if (d2 < closestRoadLinkDistance) {
         closestRoadLinkDistance = d2;
         closestRoadLink = roadLinks[j];
@@ -124,7 +124,7 @@ Controller.prototype = {
   },
 
   updateFeatureUI: function () {
-    var hoveredFeatureToSend = this.hoveredFeature;
+    let hoveredFeatureToSend = this.hoveredFeature;
     if (this.hoveredFeature && this.selectedFeature) {
       if (this.hoveredFeature.tag === this.selectedFeature.tag) {
         switch (this.hoveredFeature.tag) {
@@ -146,30 +146,30 @@ Controller.prototype = {
   },
 
   updateHoveredGeometry: function (clientX, clientY) {
-    var clientP = {
+    const clientP = {
       x: clientX,
       y: clientY
     };
-    var cursorP = this.fromClientPoint(clientP);
-    var cursorR = this.fromClientRect(vector.bounds(10, clientP));
+    const cursorP = this.fromClientPoint(clientP);
+    const cursorR = this.fromClientRect(vector.bounds(10, clientP));
     this.hoveredFeature = this.findClosestFeature(cursorP, cursorR);
     this.hoveredRoadNodeIndices.clear();
     this.hoveredRoadLinkIndices.clear();
     if (this.hoveredFeature) {
       switch (this.hoveredFeature.tag) {
         case "roadNode":
-          var index = this.geometry.getRoadNodeIndex(this.hoveredFeature.roadNode);
+          const index = this.geometry.getRoadNodeIndex(this.hoveredFeature.roadNode);
           this.hoveredRoadNodeIndices.insertPoint(index);
           break;
         case "roadLink":
-          var indices = this.geometry.getRoadLinkIndices(this.hoveredFeature.roadLink);
+          const indices = this.geometry.getRoadLinkIndices(this.hoveredFeature.roadLink);
           this.hoveredRoadLinkIndices.insertLine(indices);
           break;
       }
     }
     this.updateFeatureUI();
 
-    var gl = App.drawingContext.gl; // TODO
+    const gl = App.drawingContext.gl; // TODO
     this.hoveredRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
     this.hoveredRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
     App.isDrawingNeeded = true; // TODO
@@ -191,7 +191,7 @@ Controller.prototype = {
     }
     this.updateFeatureUI();
 
-    var gl = App.drawingContext.gl; // TODO
+    const gl = App.drawingContext.gl; // TODO
     this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
     this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
     App.isDrawingNeeded = true; // TODO
@@ -202,7 +202,7 @@ Controller.prototype = {
   },
 
   onRoadNodesLoaded: function (roadNodes) {
-    for (var i = 0; i < roadNodes.length; i++) {
+    for (let i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
     }
     App.updateDrawingContext(); // TODO
@@ -211,7 +211,7 @@ Controller.prototype = {
   },
 
   onRoadLinksLoaded: function (roadLinks) {
-    for (var i = 0; i < roadLinks.length; i++) {
+    for (let i = 0; i < roadLinks.length; i++) {
       this.roadLinkTree.insert(roadLinks[i]);
     }
     App.updateDrawingContext(); // TODO
@@ -231,10 +231,10 @@ Controller.prototype = {
 
   onFrameScrolled: function (event) {
     if (!(App.isScrolling())) {
-      var frame = document.getElementById("map-frame");
-      var zoom = App.getZoom();
-      var newCenterX = compute.centerXFromScrollLeft(frame.scrollLeft, zoom);
-      var newCenterY = compute.centerYFromScrollTop(frame.scrollTop, zoom);
+      const frame = document.getElementById("map-frame");
+      const zoom = App.getZoom();
+      const newCenterX = compute.centerXFromScrollLeft(frame.scrollLeft, zoom);
+      const newCenterY = compute.centerYFromScrollTop(frame.scrollTop, zoom);
       App.setStaticCenter(newCenterX, newCenterY);
     }
     this.updateHoveredGeometry(this.prevClientX, this.prevClientY);
@@ -258,22 +258,22 @@ Controller.prototype = {
   },
 
   displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) {
-    var zoom = App.getZoom();
-    var duration = doSlowMotion ? 2500 : 500;
+    const zoom = App.getZoom();
+    const duration = doSlowMotion ? 2500 : 500;
     switch (feature.tag) {
       case "roadNode":
-        var p = this.geometry.getRoadNodePoint(feature.roadNode);
+        const p = this.geometry.getRoadNodePoint(feature.roadNode);
         App.setCenter(p, duration);
         if (doZoom) { // double-click only
           App.setZoom(compute.clampZoom(doReverseZoom ? zoom + 1 : defs.minZoom), duration);
         }
         break;
       case "roadLink":
-        var ps = this.geometry.getRoadLinkPoints(feature.roadLink);
+        const ps = this.geometry.getRoadLinkPoints(feature.roadLink);
         App.setCenter(polyline.approximateMidpoint(ps), duration);
-        var clientWidth = this.getClientWidth();
-        var clientHeight = this.getClientHeight();
-        var fittedZoom = compute.zoomForRect(polyline.bounds(10, ps), clientWidth, clientHeight);
+        const clientWidth = this.getClientWidth();
+        const clientHeight = this.getClientHeight();
+        const fittedZoom = compute.zoomForRect(polyline.bounds(10, ps), clientWidth, clientHeight);
         App.setZoom(
           doZoom ?
             compute.clampZoom(doReverseZoom ? zoom + 1 : fittedZoom) :
@@ -299,10 +299,10 @@ Controller.prototype = {
     if (this.selectedFeature) {
       this.displayFeature(this.selectedFeature, !!event.shiftKey, true, !!event.altKey);
     } else {
-      var zoom = App.getZoom();
-      var duration = event.shiftKey ? 2500 : 500;
-      var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
-      var newCenter = compute.clampPoint(this.fromClientPoint({
+      const zoom = App.getZoom();
+      const duration = event.shiftKey ? 2500 : 500;
+      const newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
+      const newCenter = compute.clampPoint(this.fromClientPoint({
           x: event.clientX,
           y: event.clientY
         }));
@@ -312,17 +312,17 @@ Controller.prototype = {
   },
 
   onKeyPressed: function (event) {
-    var clientWidth = this.getClientWidth();
-    var clientHeight = this.getClientHeight();
-    var centerX = App.getStaticCenterX();
-    var centerY = App.getStaticCenterY();
-    // var rawTime = App.getStaticRawTime();
-    var zoom = App.getStaticZoom();
-    var pageWidth = compute.fromClientWidth(clientWidth, zoom);
-    var pageHeight = compute.fromClientHeight(clientHeight, zoom);
-    var duration = event.shiftKey ? 2500 : 500;
-    // var timeDelta = event.altKey ? 60 : 3600;
-    var zoomDelta = event.altKey ? 2 : 10; // TODO
+    const clientWidth = this.getClientWidth();
+    const clientHeight = this.getClientHeight();
+    const centerX = App.getStaticCenterX();
+    const centerY = App.getStaticCenterY();
+    // const rawTime = App.getStaticRawTime();
+    const zoom = App.getStaticZoom();
+    const pageWidth = compute.fromClientWidth(clientWidth, zoom);
+    const pageHeight = compute.fromClientHeight(clientHeight, zoom);
+    const duration = event.shiftKey ? 2500 : 500;
+    // const timeDelta = event.altKey ? 60 : 3600;
+    const zoomDelta = event.altKey ? 2 : 10; // TODO
     switch (event.keyCode) {
       case 37: // left
       case 36: // home
@@ -341,11 +341,11 @@ Controller.prototype = {
         App.setCenterY(compute.clampY(centerY - pageHeight / (event.keyCode === 34 ? 1 : 10)), duration);
         break;
       // case 219: // left bracket
-      //   var newRawTime = Math.round((rawTime * 3600) - timeDelta) / 3600;
+      //   const newRawTime = Math.round((rawTime * 3600) - timeDelta) / 3600;
       //   App.setRawTime(newRawTime, duration);
       //   break;
       // case 221: // right bracket
-      //   var newRawTime = Math.round((rawTime * 3600) + timeDelta) / 3600;
+      //   const newRawTime = Math.round((rawTime * 3600) + timeDelta) / 3600;
       //   App.setRawTime(newRawTime, duration);
       //   break;
       case 187: // plus
@@ -356,7 +356,7 @@ Controller.prototype = {
         break;
       default: // 1-9, 0
         if (event.keyCode >= 49 && event.keyCode <= 57 || event.keyCode === 48) {
-          var newZoom = compute.clampZoom(
+          const newZoom = compute.clampZoom(
               event.keyCode === 48 ? 10 : event.keyCode - 49);
           App.setZoom(newZoom, duration);
         }

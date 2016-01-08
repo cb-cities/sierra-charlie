@@ -1,30 +1,30 @@
 "use strict";
 
 
-var tileSize = 1000;
-var baseClientTileSize = 1024;
+const tileSize = 1000;
+const baseClientTileSize = 1024;
 
-var firstTileX = 489000;
-var firstTileY = 148000;
-var lastTileX = 573000;
-var lastTileY = 209000;
+const firstTileX = 489000;
+const firstTileY = 148000;
+const lastTileX = 573000;
+const lastTileY = 209000;
 
-var tileCountX = (lastTileX - firstTileX) / tileSize + 1;
-var tileCountY = (lastTileY - firstTileY) / tileSize + 1;
+const tileCountX = (lastTileX - firstTileX) / tileSize + 1;
+const tileCountY = (lastTileY - firstTileY) / tileSize + 1;
 
-var maxRoadNodeCount = 343724;
-var maxRoadLinkCount = 423541;
-var maxRoadLinkPointCount = 1433365; // simplified from 2267772
-var maxRoadLinkIndexCount = 2019648; // simplified from 3688462
-var maxRoadCount = 85237;
-var maxAddressCount = 343443;
+const maxRoadNodeCount = 343724;
+const maxRoadLinkCount = 423541;
+const maxRoadLinkPointCount = 1433365; // simplified from 2267772
+const maxRoadLinkIndexCount = 2019648; // simplified from 3688462
+const maxRoadCount = 85237;
+const maxAddressCount = 343443;
 
-var quadtreeLeft = 465464;
-var quadtreeTop = 112964;
-var quadtreeSize = 131072;
+const quadtreeLeft = 465464;
+const quadtreeTop = 112964;
+const quadtreeSize = 131072;
 
-var minZoom = 0;
-var maxZoom = 9;
+const minZoom = 0;
+const maxZoom = 9;
 
 
 module.exports = {

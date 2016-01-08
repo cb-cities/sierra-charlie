@@ -1,10 +1,10 @@
 "use strict";
 
 window.React = require("react/addons");
-var r = require("react-wrapper");
+const r = require("react-wrapper");
 
-var Controller = require("./js/Controller");
-var app = r.wrap(require("./js/App"));
+const Controller = require("./js/Controller");
+const app = r.wrap(require("./js/App"));
 window.Elm = require("./elm/UI");
 
 require("./index.html");
