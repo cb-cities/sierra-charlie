@@ -83,6 +83,18 @@ Controller.prototype = {
     return compute.toClientPoint(p, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
+  sendLoadingProgress: function () {
+    UI.ports.setLoadingProgress.send(this.geometry.getItemCount() / defs.maxGeometryItemCount * 100);
+  },
+
+  sendHighlightedFeature: function () {
+    UI.ports.setHighlightedFeature.send(this.highlightedFeature);
+  },
+
+  sendSelectedFeature: function () {
+    UI.ports.setSelectedFeature.send(this.selectedFeature);
+  },
+
   getFeatureAtCursor: function (cursorP, cursorR) { // TODO: Refactor
     const roadNodes = this.roadNodeTree.select(cursorR);
     let closestRoadNodeDistance = Infinity;
@@ -143,7 +155,7 @@ Controller.prototype = {
             break;
         }
       }
-      UI.ports.setHighlightedFeature.send(this.highlightedFeature);
+      this.sendHighlightedFeature();
       App.isDrawingNeeded = true; // TODO
     }
   },
@@ -168,7 +180,7 @@ Controller.prototype = {
             break;
         }
       }
-      UI.ports.setSelectedFeature.send(this.selectedFeature);
+      this.sendSelectedFeature();
       App.isDrawingNeeded = true; // TODO
     }
   },
@@ -204,16 +216,14 @@ Controller.prototype = {
     }
   },
 
-  updateLoadingProgressUI: function () {
-    UI.ports.setLoadingProgress.send(this.geometry.getItemCount() / defs.maxGeometryItemCount * 100);
-  },
-
   onRoadNodesLoaded: function (roadNodes) {
     for (let i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
     }
     App.updateDrawingContext(); // TODO
-    this.updateLoadingProgressUI();
+    this.sendLoadingProgress();
+    this.sendHighlightedFeature();
+    this.sendSelectedFeature();
     this.highlightFeatureAtCursor();
   },
 
@@ -222,20 +232,22 @@ Controller.prototype = {
       this.roadLinkTree.insert(roadLinks[i]);
     }
     App.updateDrawingContext(); // TODO
-    this.updateLoadingProgressUI();
+    this.sendLoadingProgress();
+    this.sendHighlightedFeature();
+    this.sendSelectedFeature();
     this.highlightFeatureAtCursor();
   },
 
   onRoadsLoaded: function (roads) { // TODO: Attach road data to road links
-    this.updateLoadingProgressUI();
-    UI.ports.setHighlightedFeature.send(this.highlightedFeature);
-    UI.ports.setSelectedFeature.send(this.selectedFeature);
+    this.sendLoadingProgress();
+    this.sendHighlightedFeature();
+    this.sendSelectedFeature();
   },
 
   onAddressesLoaded: function (addresses) {
-    this.updateLoadingProgressUI();
-    UI.ports.setHighlightedFeature.send(this.highlightedFeature);
-    UI.ports.setSelectedFeature.send(this.selectedFeature);
+    this.sendLoadingProgress();
+    this.sendHighlightedFeature();
+    this.sendSelectedFeature();
   },
 
   onFrameScrolled: function (event) {

@@ -109,6 +109,7 @@ GeometryLoader.prototype = {
           this.roadNodes.push({
               toid: obj.toid,
               address: null,
+              roadLinks: [],
               vertexOffset: this.vertexCount,
               indexOffset: this.roadNodeIndexCount
             });
@@ -145,8 +146,11 @@ GeometryLoader.prototype = {
               toid: obj.toid,
               term: obj.term,
               nature: obj.nature,
-              negativeNode: obj.negativeNode,
-              positiveNode: obj.positiveNode,
+              unloadedNegativeNode: obj.negativeNode,
+              unloadedPositiveNode: obj.positiveNode,
+              negativeNode: null,
+              positiveNode: null,
+              roads: [],
               pointCount: ps.length,
               vertexOffset: this.vertexCount,
               indexOffset: this.roadLinkIndexCount
@@ -177,7 +181,8 @@ GeometryLoader.prototype = {
               group: obj.group,
               term: obj.term,
               name: obj.name,
-              members: obj.members
+              unloadedLinks: obj.members,
+              roadLinks: []
             });
           this.postRoads();
           return oboe.drop;
