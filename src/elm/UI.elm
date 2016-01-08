@@ -105,12 +105,6 @@ viewRoadNode address rn =
             , div [] [viewTOID address rn.toid]
             ]
         ]
-      streetAddress =
-        [ div []
-            [ div [class "ui-feature-key"] [text "Address: "]
-            , div [] [text (withDefault "—" rn.address)]
-            ]
-        ]
       roadLinks =
         [ div []
             ( [div [class "ui-feature-key"] [text "Road Links: "]] ++
@@ -121,8 +115,14 @@ viewRoadNode address rn =
                   List.concatMap (\toid -> [div [] [viewTOID address toid]]) rn.roadLinks
             )
         ]
+      streetAddress =
+        [ div []
+            [ div [class "ui-feature-key"] [text "Approximate Address: "]
+            , div [] [text (withDefault "—" rn.address)]
+            ]
+        ]
     in
-      div [] (tag ++ toid ++ streetAddress ++ roadLinks)
+      div [] (tag ++ toid ++ roadLinks ++ streetAddress)
 
 
 viewRoadLink : Address Action -> RoadLink -> Html
@@ -134,18 +134,6 @@ viewRoadLink address rl =
         [ div []
             [ div [class "ui-feature-key"] [text "TOID: "]
             , div [] [viewTOID address rl.toid]
-            ]
-        ]
-      term =
-        [ div []
-            [ div [class "ui-feature-key"] [text "Term: "]
-            , div [] [text rl.term]
-            ]
-        ]
-      nature =
-        [ div []
-            [ div [class "ui-feature-key"] [text "Nature: "]
-            , div [] [text rl.nature]
             ]
         ]
       negativeNode =
@@ -168,6 +156,18 @@ viewRoadLink address rl =
                   div [] [viewTOID address toid]
             ]
         ]
+      nature =
+        [ div []
+            [ div [class "ui-feature-key"] [text "Nature: "]
+            , div [] [text rl.nature]
+            ]
+        ]
+      term =
+        [ div []
+            [ div [class "ui-feature-key"] [text "Term: "]
+            , div [] [text rl.term]
+            ]
+        ]
       roads =
         [ div []
             ( [div [class "ui-feature-key"] [text "Roads: "]] ++
@@ -179,7 +179,7 @@ viewRoadLink address rl =
             )
         ]
     in
-      div [] (tag ++ toid ++ term ++ nature ++ positiveNode ++ negativeNode ++ roads)
+      div [] (tag ++ toid ++ positiveNode ++ negativeNode ++ nature ++ term ++ roads)
 
 
 viewFeature : Address Action -> String -> Maybe Feature -> Html
