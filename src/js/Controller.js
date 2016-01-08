@@ -13,8 +13,7 @@ const vector = require("./vector");
 
 
 function Controller() {
-  this.prevClientX = 0;
-  this.prevClientY = 0;
+  this.prevCursor = null;
   this.prevClickDate = 0;
   window.Geometry = this.geometry = new Geometry({ // TODO
       onRoadNodesLoaded: this.onRoadNodesLoaded.bind(this),
@@ -37,6 +36,7 @@ function Controller() {
   canvas.addEventListener("webglcontextrestored", this.onCanvasContextRestored.bind(this));
   const space = document.getElementById("map-space");
   space.addEventListener("mousemove", this.onMouseMoved.bind(this));
+  space.addEventListener("mouseleave", this.onMouseLeft.bind(this));
   space.addEventListener("click", this.onMouseClicked.bind(this));
   space.addEventListener("dblclick", this.onMouseDoubleClicked.bind(this));
   window.addEventListener("keydown", this.onKeyPressed.bind(this));
@@ -196,14 +196,12 @@ Controller.prototype = {
     }
   },
 
-  hoverFeatureAtCursor: function (clientX, clientY) {
-    const clientP = {
-      x: clientX,
-      y: clientY
-    };
-    const cursorP = this.fromClientPoint(clientP);
-    const cursorR = this.fromClientRect(vector.bounds(10, clientP));
-    this.hoverFeature(this.findFeatureAtCursor(cursorP, cursorR));
+  hoverFeatureAtCursor: function () {
+    if (this.prevCursor) {
+      const cursorP = this.fromClientPoint(this.prevCursor);
+      const cursorR = this.fromClientRect(vector.bounds(10, this.prevCursor));
+      this.hoverFeature(this.findFeatureAtCursor(cursorP, cursorR));
+    }
   },
 
   updateLoadingProgressUI: function () {
@@ -216,7 +214,7 @@ Controller.prototype = {
     }
     App.updateDrawingContext(); // TODO
     this.updateLoadingProgressUI();
-    this.hoverFeatureAtCursor(this.prevClientX, this.prevClientY);
+    this.hoverFeatureAtCursor();
   },
 
   onRoadLinksLoaded: function (roadLinks) {
@@ -225,7 +223,7 @@ Controller.prototype = {
     }
     App.updateDrawingContext(); // TODO
     this.updateLoadingProgressUI();
-    this.hoverFeatureAtCursor(this.prevClientX, this.prevClientY);
+    this.hoverFeatureAtCursor();
   },
 
   onRoadsLoaded: function (roads) { // TODO: Attach road data to road links
@@ -246,7 +244,7 @@ Controller.prototype = {
       const newCenterY = compute.centerYFromScrollTop(frame.scrollTop, zoom);
       App.setStaticCenter(newCenterX, newCenterY);
     }
-    this.hoverFeatureAtCursor(this.prevClientX, this.prevClientY);
+    this.hoverFeatureAtCursor();
   },
 
   onCanvasContextLost: function (event) {
@@ -261,9 +259,16 @@ Controller.prototype = {
   },
 
   onMouseMoved: function (event) {
-    this.hoverFeatureAtCursor(event.clientX, event.clientY);
-    this.prevClientX = event.clientX;
-    this.prevClientY = event.clientY;
+    this.prevCursor = {
+      x: event.clientX,
+      y: event.clientY
+    };
+    this.hoverFeatureAtCursor();
+  },
+
+  onMouseLeft: function (event) {
+    this.prevCursor = null;
+    this.hoverFeature(null);
   },
 
   displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) {
@@ -293,7 +298,7 @@ Controller.prototype = {
   },
 
   onMouseClicked: function (event) {
-    if (this.prevClickDate + 250 < Date.now()) {
+    if (this.prevCursor && this.prevClickDate + 250 < Date.now()) {
       this.prevClickDate = Date.now();
       this.selectFeature(this.hoveredFeature);
       if (this.selectedFeature) {
@@ -303,16 +308,13 @@ Controller.prototype = {
   },
 
   onMouseDoubleClicked: function (event) {
-    if (this.selectedFeature) {
+    if (this.prevCursor && this.selectedFeature) {
       this.displayFeature(this.selectedFeature, !!event.shiftKey, true, !!event.altKey);
     } else {
       const zoom = App.getZoom();
       const duration = event.shiftKey ? 2500 : 500;
       const newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
-      const newCenter = compute.clampPoint(this.fromClientPoint({
-          x: this.prevClientX,
-          y: this.prevClientY
-        }));
+      const newCenter = compute.clampPoint(this.fromClientPoint(this.prevCursor));
       App.setZoom(newZoom, duration);
       App.setCenter(newCenter, duration);
     }
