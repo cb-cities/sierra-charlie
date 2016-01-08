@@ -20,18 +20,10 @@ require("./index.appcache");
       setHighlightedFeature: null,
       setSelectedFeature: null,
     });
-  let prevHoveredTOID = null;
-  let prevClickedTOID = null;
-  window.UI.ports.prevHoveredTOID.subscribe(function (toid) {
-      if (toid !== prevHoveredTOID) {
-        controller.highlightFeatureByTOID(toid);
-        prevHoveredTOID = toid;
-      }
+  window.UI.ports.hoveredTOID.subscribe(function (toid) {
+      controller.highlightFeatureByTOID(toid);
     });
-  window.UI.ports.prevClickedTOID.subscribe(function (toid) {
-      if (toid !== prevClickedTOID) {
-        controller.selectFeatureByTOID(toid);
-        prevClickedTOID = toid;
-      }
+  window.UI.ports.clickedTOID.subscribe(function (toid) {
+      controller.selectFeatureByTOID(toid);
     });
 })();
