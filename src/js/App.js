@@ -18,7 +18,7 @@ module.exports = {
     return {
       centerX: 530625,
       centerY: 177563,
-      zoom: 5,
+      zoom: 7,
       rawTime: 10 + 9 / 60
     };
   },

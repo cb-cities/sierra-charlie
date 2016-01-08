@@ -257,7 +257,7 @@ Controller.prototype = {
     this.prevClientY = event.clientY;
   },
 
-  onMouseClicked: function (event) {
+  onMouseClicked: function (event) { // TODO: Refactor
     if (this.prevClickDate + 250 < Date.now()) {
       this.prevClickDate = Date.now();
       var duration = event.shiftKey ? 2500 : 500;
@@ -271,26 +271,47 @@ Controller.prototype = {
             App.setCenter(p, duration);
             break;
           case "roadLink":
+            var clientWidth = this.getClientWidth();
+            var clientHeight = this.getClientHeight();
+            var zoom = App.getZoom();
             var ps = this.geometry.getRoadLinkPoints(this.selectedFeature.roadLink);
-            App.setCenter(polyline.approximateMidpoint(ps), duration); // TODO: Set closest zoom that will fit polyline bounds
+            var r = polyline.bounds(10, ps);
+            var newZoom = compute.clampZoom(Math.max(zoom, compute.zoomForRect(r, clientWidth, clientHeight)));
+            App.setZoom(newZoom, duration);
+            App.setCenter(polyline.approximateMidpoint(ps), duration);
             break;
         }
       }
     }
   },
 
-  onMouseDoubleClicked: function (event) {
+  onMouseDoubleClicked: function (event) { // TODO: Refactor
     var duration = event.shiftKey ? 2500 : 500;
-    if (!this.selectedFeature) {
+    var zoom = App.getZoom();
+    if (this.selectedFeature) {
+      switch (this.selectedFeature.tag) {
+        case "roadNode":
+          var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : Math.min(zoom - 1, 2));
+          App.setZoom(newZoom, duration);
+          break;
+        case "roadLink":
+          var clientWidth = this.getClientWidth();
+          var clientHeight = this.getClientHeight();
+          var ps = this.geometry.getRoadLinkPoints(this.selectedFeature.roadLink);
+          var r = polyline.bounds(10, ps);
+          var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : compute.zoomForRect(r, clientWidth, clientHeight));
+          App.setZoom(newZoom, duration);
+          break;
+      }
+    } else {
+      var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
       var newCenter = compute.clampPoint(this.fromClientPoint({
           x: event.clientX,
           y: event.clientY
         }));
+      App.setZoom(newZoom, duration);
       App.setCenter(newCenter, duration);
     }
-    var zoom = App.getZoom();
-    var newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
-    App.setZoom(newZoom, duration);
   },
 
   onKeyPressed: function (event) {
@@ -345,7 +366,7 @@ Controller.prototype = {
       default: // 1-9, 0
         if (event.keyCode >= 49 && event.keyCode <= 57 || event.keyCode === 48) {
           var newZoom = compute.clampZoom(
-              event.keyCode === 48 ? 7 : event.keyCode - 49 - 2);
+              event.keyCode === 48 ? 10 : event.keyCode - 49);
           App.setZoom(newZoom, duration);
         }
     }

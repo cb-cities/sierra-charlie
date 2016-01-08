@@ -1,6 +1,7 @@
 "use strict";
 
 var defs = require("./defs");
+var rect = require("./rect");
 
 
 var _ = module.exports = {
@@ -125,6 +126,13 @@ var _ = module.exports = {
   },
 
   zoomLevel: function (zoom) {
-    return Math.pow(2, zoom);
+    return Math.pow(2, zoom - 2);
+  },
+
+  zoomForRect: function (r, clientWidth, clientHeight) {
+    return (
+      Math.max(
+        Math.ceil(Math.log2(Math.ceil(rect.width(r) / _.zoomLevel(defs.minZoom) / clientWidth))),
+        Math.ceil(Math.log2(Math.ceil(rect.height(r) / _.zoomLevel(defs.minZoom) / clientHeight)))));
   }
 };
