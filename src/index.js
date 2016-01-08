@@ -12,10 +12,26 @@ require("./index.css");
 require("./index.appcache");
 
 
-window.Controller = new Controller();
-window.App = r.render(app(), document.getElementById("app"));
-window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
-    setLoadingProgress: 0,
-    setHoveredFeature: null,
-    setSelectedFeature: null
-  });
+(function () {
+  const controller = window.Controller = new Controller();
+  window.App = r.render(app(), document.getElementById("app"));
+  window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
+      setLoadingProgress: 0,
+      setHighlightedFeature: null,
+      setSelectedFeature: null,
+    });
+  let prevHoveredTOID = null;
+  let prevClickedTOID = null;
+  window.UI.ports.prevHoveredTOID.subscribe(function (toid) {
+      if (toid !== prevHoveredTOID) {
+        controller.highlightFeatureByTOID(toid);
+        prevHoveredTOID = toid;
+      }
+    });
+  window.UI.ports.prevClickedTOID.subscribe(function (toid) {
+      if (toid !== prevClickedTOID) {
+        controller.selectFeatureByTOID(toid);
+        prevClickedTOID = toid;
+      }
+    });
+})();

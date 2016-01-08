@@ -1,9 +1,11 @@
 module UI where
 
 import Effects exposing (Effects, Never)
-import Html exposing (Html, div, text)
+import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, id, style)
+import Html.Events exposing (onMouseEnter, onMouseLeave, onClick)
 import Maybe exposing (withDefault)
+import Signal exposing (Address)
 import StartApp exposing (App)
 import Task exposing (Task)
 
@@ -34,24 +36,30 @@ type alias Feature =
 
 type alias Model =
   { loadingProgress : Float
-  , hoveredFeature : Maybe Feature
+  , highlightedFeature : Maybe Feature
   , selectedFeature : Maybe Feature
+  , prevHoveredTOID : Maybe String
+  , prevClickedTOID : Maybe String
   }
 
 
 defaultModel : Model
 defaultModel =
   { loadingProgress = 0
-  , hoveredFeature = Nothing
+  , highlightedFeature = Nothing
   , selectedFeature = Nothing
+  , prevHoveredTOID = Nothing
+  , prevClickedTOID = Nothing
   }
 
 
 type Action =
     Idle
   | SetLoadingProgress Float
-  | SetHoveredFeature (Maybe Feature)
+  | SetHighlightedFeature (Maybe Feature)
   | SetSelectedFeature (Maybe Feature)
+  | SetPrevHoveredTOID (Maybe String)
+  | SetPrevClickedTOID (Maybe String)
 
 
 noEffect : Model -> (Model, Effects Action)
@@ -65,28 +73,39 @@ update action model =
       Idle ->
         noEffect model
       SetLoadingProgress newProgress ->
-        {model | loadingProgress = max 0 newProgress}
-          |> noEffect
-      SetHoveredFeature newFeature ->
-        {model | hoveredFeature = newFeature}
-          |> noEffect
+        noEffect {model | loadingProgress = max 0 newProgress}
+      SetHighlightedFeature newFeature ->
+        noEffect {model | highlightedFeature = newFeature}
       SetSelectedFeature newFeature ->
-        {model | selectedFeature = newFeature}
-          |> noEffect
+        noEffect {model | selectedFeature = newFeature}
+      SetPrevHoveredTOID newTOID ->
+        noEffect {model | prevHoveredTOID = newTOID}
+      SetPrevClickedTOID newTOID ->
+        noEffect {model | prevClickedTOID = newTOID}
 
 
-viewRoadNode : RoadNode -> Html
-viewRoadNode rn =
+viewTOID : Address Action -> String -> Html
+viewTOID address toid =
+    a
+      [ onClick address (SetPrevClickedTOID (Just toid))
+      , onMouseEnter address (SetPrevHoveredTOID (Just toid))
+      , onMouseLeave address (SetPrevHoveredTOID Nothing)
+      ]
+      [text toid]
+
+
+viewRoadNode : Address Action -> RoadNode -> Html
+viewRoadNode address rn =
     let
       tag =
         [div [class "ui-feature-tag"] [text "Road Node"]]
       toid =
         [ div []
             [ div [class "ui-feature-key"] [text "TOID: "]
-            , div [] [text rn.toid]
+            , div [] [viewTOID address rn.toid]
             ]
         ]
-      address =
+      streetAddress =
         [ div []
             [ div [class "ui-feature-key"] [text "Address: "]
             , div [] [text (withDefault "—" rn.address)]
@@ -99,22 +118,22 @@ viewRoadNode rn =
                 [] ->
                   [div [] [text "—"]]
                 _ ->
-                  List.concatMap (\str -> [div [] [text str]]) rn.roadLinks
+                  List.concatMap (\toid -> [div [] [viewTOID address toid]]) rn.roadLinks
             )
         ]
     in
-      div [] (tag ++ toid ++ address ++ roadLinks)
+      div [] (tag ++ toid ++ streetAddress ++ roadLinks)
 
 
-viewRoadLink : RoadLink -> Html
-viewRoadLink rl =
+viewRoadLink : Address Action -> RoadLink -> Html
+viewRoadLink address rl =
     let
       tag =
         [div [class "ui-feature-tag"] [text "Road Link"]]
       toid =
         [ div []
             [ div [class "ui-feature-key"] [text "TOID: "]
-            , div [] [text rl.toid]
+            , div [] [viewTOID address rl.toid]
             ]
         ]
       term =
@@ -132,13 +151,21 @@ viewRoadLink rl =
       negativeNode =
         [ div []
             [ div [class "ui-feature-key"] [text "Negative Node: "]
-            , div [] [text (withDefault "—" rl.negativeNode)]
+            , case rl.negativeNode of
+                Nothing ->
+                  div [] [text "—"]
+                Just toid ->
+                  div [] [viewTOID address toid]
             ]
         ]
       positiveNode =
         [ div []
             [ div [class "ui-feature-key"] [text "Positive Node: "]
-            , div [] [text (withDefault "—" rl.positiveNode)]
+            , case rl.positiveNode of
+                Nothing ->
+                  div [] [text "—"]
+                Just toid ->
+                  div [] [viewTOID address toid]
             ]
         ]
       roads =
@@ -155,26 +182,26 @@ viewRoadLink rl =
       div [] (tag ++ toid ++ term ++ nature ++ positiveNode ++ negativeNode ++ roads)
 
 
-viewFeature : String -> Maybe Feature -> Html
-viewFeature featureId feature =
+viewFeature : Address Action -> String -> Maybe Feature -> Html
+viewFeature address featureId feature =
     case feature of
       Nothing ->
-        div [id featureId, style [("display", "none")]] []
+        div [id featureId, class "ui-feature", style [("display", "none")]] []
       Just f ->
         let
           contents =
             case (f.tag, f.roadNode, f.roadLink) of
               ("roadNode", Just rn, Nothing) ->
-                [viewRoadNode rn]
+                [viewRoadNode address rn]
               ("roadLink", Nothing, Just rl) ->
-                [viewRoadLink rl]
+                [viewRoadLink address rl]
               _ ->
                 []
         in
-          div [id featureId] contents
+          div [id featureId, class "ui-feature"] contents
 
 
-view : Signal.Address Action -> Model -> Html
+view : Address Action -> Model -> Html
 view address model =
     div []
       [ div
@@ -187,18 +214,18 @@ view address model =
             ]
             []
           ]
-      , viewFeature "ui-hovered-feature" model.hoveredFeature
-      , viewFeature "ui-selected-feature" model.selectedFeature
+      , viewFeature address "ui-highlighted-feature" model.highlightedFeature
+      , viewFeature address "ui-selected-feature" model.selectedFeature
       ]
 
 
 init : (Model, Effects Action)
 init =
-    (defaultModel, Task.succeed Idle |> Effects.task)
+    (defaultModel, Effects.task (Task.succeed Idle))
 
 
 port setLoadingProgress : Signal Float
-port setHoveredFeature : Signal (Maybe Feature)
+port setHighlightedFeature : Signal (Maybe Feature)
 port setSelectedFeature : Signal (Maybe Feature)
 
 
@@ -210,10 +237,20 @@ app =
       , view = view
       , inputs =
           [ Signal.map SetLoadingProgress setLoadingProgress
-          , Signal.map SetHoveredFeature setHoveredFeature
+          , Signal.map SetHighlightedFeature setHighlightedFeature
           , Signal.map SetSelectedFeature setSelectedFeature
           ]
       }
+
+
+port prevHoveredTOID : Signal (Maybe String)
+port prevHoveredTOID =
+    Signal.map .prevHoveredTOID app.model
+
+
+port prevClickedTOID : Signal (Maybe String)
+port prevClickedTOID =
+    Signal.map .prevClickedTOID app.model
 
 
 port tasks : Signal (Task Never ())

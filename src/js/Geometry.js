@@ -39,6 +39,24 @@ Geometry.prototype = {
     return this.itemCount === defs.maxGeometryItemCount;
   },
 
+  getFeature: function (toid) {
+    if (toid in this.roadNodes) {
+      return {
+        tag: "roadNode",
+        roadNode: this.roadNodes[toid],
+        roadLink: null
+      };
+    } else if (toid in this.roadLinks) {
+      return {
+        tag: "roadLink",
+        roadLink: this.roadLinks[toid],
+        roadNode: null
+      };
+    } else {
+      return null;
+    }
+  },
+
   getRoadNodePoint: function (roadNode) {
     return {
       x: this.vertexArr[roadNode.vertexOffset * 2],

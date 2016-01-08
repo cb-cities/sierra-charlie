@@ -23,9 +23,9 @@ function Controller() {
   window.Grid = this.grid = new Grid(); // TODO
   window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
   window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
-  this.hoveredFeature = null;
-  this.hoveredRoadNodeIndices = new Indexset();
-  this.hoveredRoadLinkIndices = new Indexset();
+  this.highlightedFeature = null;
+  this.highlightedRoadNodeIndices = new Indexset();
+  this.highlightedRoadLinkIndices = new Indexset();
   this.selectedFeature = null;
   this.selectedRoadNodeIndices = new Indexset();
   this.selectedRoadLinkIndices = new Indexset();
@@ -123,49 +123,27 @@ Controller.prototype = {
     }
   },
 
-  updateFeatureUI: function () {
-    let hoveredFeatureToSend = this.hoveredFeature;
-    if (this.hoveredFeature && this.selectedFeature) {
-      if (this.hoveredFeature.tag === this.selectedFeature.tag) {
-        switch (this.hoveredFeature.tag) {
-          case "roadNode":
-            if (this.hoveredFeature.roadNode.toid === this.selectedFeature.roadNode.toid) {
-              hoveredFeatureToSend = null;
-            }
-            break;
-          case "roadLink":
-            if (this.hoveredFeature.roadLink.toid === this.selectedFeature.roadLink.toid) {
-              hoveredFeatureToSend = null;
-            }
-            break;
-        }
-      }
-    }
-    UI.ports.setHoveredFeature.send(hoveredFeatureToSend);
-    UI.ports.setSelectedFeature.send(this.selectedFeature);
-  },
-
-  hoverFeature: function (feature) { // TODO: Refactor
-    if (feature !== this.hoveredFeature) {
+  highlightFeature: function (feature) { // TODO: Refactor
+    if (feature !== this.highlightedFeature) {
       const gl = App.drawingContext.gl; // TODO
-      this.hoveredFeature = feature;
-      this.hoveredRoadNodeIndices.clear();
-      this.hoveredRoadLinkIndices.clear();
+      this.highlightedFeature = feature;
+      this.highlightedRoadNodeIndices.clear();
+      this.highlightedRoadLinkIndices.clear();
       if (feature) {
         switch (feature.tag) {
           case "roadNode":
             const index = this.geometry.getRoadNodeIndex(feature.roadNode);
-            this.hoveredRoadNodeIndices.insertPoint(index);
-            this.hoveredRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.highlightedRoadNodeIndices.insertPoint(index);
+            this.highlightedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           case "roadLink":
             const indices = this.geometry.getRoadLinkIndices(feature.roadLink);
-            this.hoveredRoadLinkIndices.insertLine(indices);
-            this.hoveredRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.highlightedRoadLinkIndices.insertLine(indices);
+            this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
         }
       }
-      this.updateFeatureUI();
+      UI.ports.setHighlightedFeature.send(this.highlightedFeature);
       App.isDrawingNeeded = true; // TODO
     }
   },
@@ -190,17 +168,39 @@ Controller.prototype = {
             break;
         }
       }
-      this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
-      this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+      UI.ports.setSelectedFeature.send(this.selectedFeature);
       App.isDrawingNeeded = true; // TODO
     }
   },
 
-  hoverFeatureAtCursor: function () {
+  highlightFeatureAtCursor: function () {
     if (this.prevCursor) {
       const cursorP = this.fromClientPoint(this.prevCursor);
       const cursorR = this.fromClientRect(vector.bounds(10, this.prevCursor));
-      this.hoverFeature(this.getFeatureAtCursor(cursorP, cursorR));
+      this.highlightFeature(this.getFeatureAtCursor(cursorP, cursorR));
+    }
+  },
+
+  highlightFeatureByTOID: function (toid) {
+    if (!toid) {
+      this.highlightFeature(null);
+    } else {
+      const feature = this.geometry.getFeature(toid);
+      if (feature) { // TODO: Invalid TOIDs should never appear in the UI
+        this.highlightFeature(feature);
+      }
+    }
+  },
+
+  selectFeatureByTOID: function (toid) {
+    if (!toid) {
+      this.selectFeature(null);
+    } else {
+      const feature = this.geometry.getFeature(toid);
+      if (feature) { // TODO: Invalid TOIDs should never appear in the UI
+        this.selectFeature(feature);
+        this.displayFeature(feature, false, false); // TODO: Pass prev shift key state
+      }
     }
   },
 
@@ -214,7 +214,7 @@ Controller.prototype = {
     }
     App.updateDrawingContext(); // TODO
     this.updateLoadingProgressUI();
-    this.hoverFeatureAtCursor();
+    this.highlightFeatureAtCursor();
   },
 
   onRoadLinksLoaded: function (roadLinks) {
@@ -223,17 +223,19 @@ Controller.prototype = {
     }
     App.updateDrawingContext(); // TODO
     this.updateLoadingProgressUI();
-    this.hoverFeatureAtCursor();
+    this.highlightFeatureAtCursor();
   },
 
   onRoadsLoaded: function (roads) { // TODO: Attach road data to road links
     this.updateLoadingProgressUI();
-    this.updateFeatureUI();
+    UI.ports.setHighlightedFeature.send(this.highlightedFeature);
+    UI.ports.setSelectedFeature.send(this.selectedFeature);
   },
 
   onAddressesLoaded: function (addresses) {
     this.updateLoadingProgressUI();
-    this.updateFeatureUI();
+    UI.ports.setHighlightedFeature.send(this.highlightedFeature);
+    UI.ports.setSelectedFeature.send(this.selectedFeature);
   },
 
   onFrameScrolled: function (event) {
@@ -244,7 +246,7 @@ Controller.prototype = {
       const newCenterY = compute.centerYFromScrollTop(frame.scrollTop, zoom);
       App.setStaticCenter(newCenterX, newCenterY);
     }
-    this.hoverFeatureAtCursor();
+    this.highlightFeatureAtCursor();
   },
 
   onCanvasContextLost: function (event) {
@@ -263,12 +265,12 @@ Controller.prototype = {
       x: event.clientX,
       y: event.clientY
     };
-    this.hoverFeatureAtCursor();
+    this.highlightFeatureAtCursor();
   },
 
   onMouseLeft: function (event) {
     this.prevCursor = null;
-    this.hoverFeature(null);
+    this.highlightFeature(null);
   },
 
   displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) {
@@ -300,7 +302,7 @@ Controller.prototype = {
   onMouseClicked: function (event) {
     if (this.prevCursor && this.prevClickDate + 250 < Date.now()) {
       this.prevClickDate = Date.now();
-      this.selectFeature(this.hoveredFeature);
+      this.selectFeature(this.highlightedFeature);
       if (this.selectedFeature) {
         this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
       }

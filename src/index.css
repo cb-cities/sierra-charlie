@@ -93,19 +93,16 @@ body {
   cursor: default;
 }
 
-#ui-hovered-feature {
+.ui-feature {
   width: 200px;
   height: 324px;
   position: absolute;
   border-top: 1px rgba(255, 255, 255, 0.2) solid;
-  border-right: 1px rgba(255, 255, 255, 0.2) solid;
   padding: 2px;
-  left: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.8);
   color: #fff;
   overflow: hidden;
-  pointer-events: none;
   -moz-user-select: none;
   -ms-user-select: none;
   -webkit-user-select: none;
@@ -113,23 +110,25 @@ body {
   cursor: default;
 }
 
+#ui-highlighted-feature {
+  border-right: 1px rgba(255, 255, 255, 0.2) solid;
+  left: 0;
+  pointer-events: none;
+}
+
 #ui-selected-feature {
-  width: 200px;
-  height: 324px;
-  position: absolute;
-  border-top: 1px rgba(255, 255, 255, 0.2) solid;
   border-left: 1px rgba(255, 255, 255, 0.2) solid;
-  padding: 2px;
   right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
   color: #f60;
-  overflow: hidden;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
-  cursor: default;
+}
+
+#ui-selected-feature a {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+#ui-selected-feature a:hover {
+  color: #fff;
 }
 
 .ui-feature-tag {
