@@ -1,7 +1,7 @@
 module UI where
 
 import Effects exposing (Effects, Never, none)
-import Html exposing (Html, a, div, text)
+import Html exposing (Html, a, div, span, text)
 import Html.Attributes exposing (class, id, style)
 import Html.Events exposing (onMouseEnter, onMouseLeave, onClick)
 import Maybe exposing (withDefault)
@@ -102,21 +102,27 @@ viewRoadNode address rn =
             ]
         ]
       roadLinks =
-        [ div []
-            ( [div [class "ui-feature-key"] [text "Road Links: "]] ++
-              case rn.roadLinks of
-                [] ->
-                  [div [] [text "—"]]
-                _ ->
-                  List.concatMap (\toid -> [div [] [viewTOID address toid]]) rn.roadLinks
-            )
-        ]
-      streetAddress =
-        [ div []
-            [ div [class "ui-feature-key"] [text "Approximate Address: "]
-            , div [] [text (withDefault "—" rn.address)]
+        if rn.roadLinks == []
+          then []
+          else
+            [ div []
+                ( [div [class "ui-feature-key"] [text "Road Links: "]] ++
+                    List.concatMap (\toid -> [ div [] [ span [] [text "• "]
+                                                      , span [] [viewTOID address toid]
+                                                      ]
+                                             ]) rn.roadLinks
+                )
             ]
-        ]
+      streetAddress =
+        case rn.address of
+          Nothing ->
+            []
+          Just addr ->
+            [ div []
+                [ div [class "ui-feature-key"] [text "Approximate Address: "]
+                , div [] [text addr]
+                ]
+            ]
     in
       div [] (tag ++ toid ++ roadLinks ++ streetAddress)
 
@@ -132,26 +138,37 @@ viewRoadLink address rl =
             , div [] [viewTOID address rl.toid]
             ]
         ]
-      negativeNode =
-        [ div []
-            [ div [class "ui-feature-key"] [text "Negative Node: "]
-            , case rl.negativeNode of
-                Nothing ->
-                  div [] [text "—"]
-                Just toid ->
-                  div [] [viewTOID address toid]
+      roadNodes =
+        case (rl.negativeNode, rl.positiveNode) of
+          (Nothing, Nothing) ->
+            []
+          (Just neg, Nothing) ->
+            [ div []
+                [ div [class "ui-feature-key"] [text "Road Nodes: "]
+                , div [] [ span [] [text "- "]
+                         , viewTOID address neg
+                         ]
+                ]
             ]
-        ]
-      positiveNode =
-        [ div []
-            [ div [class "ui-feature-key"] [text "Positive Node: "]
-            , case rl.positiveNode of
-                Nothing ->
-                  div [] [text "—"]
-                Just toid ->
-                  div [] [viewTOID address toid]
+          (Nothing, Just pos) ->
+            [ div []
+                [ div [class "ui-feature-key"] [text "Road Nodes: "]
+                , div [] [ span [] [text "+ "]
+                         , viewTOID address pos
+                         ]
+                ]
             ]
-        ]
+          (Just neg, Just pos) ->
+            [ div []
+                [ div [class "ui-feature-key"] [text "Road Nodes: "]
+                , div [] [ span [] [text "- "]
+                         , viewTOID address neg
+                         ]
+                , div [] [ span [] [text "+ "]
+                         , viewTOID address pos
+                         ]
+                ]
+            ]
       nature =
         [ div []
             [ div [class "ui-feature-key"] [text "Nature: "]
@@ -165,17 +182,19 @@ viewRoadLink address rl =
             ]
         ]
       roads =
-        [ div []
-            ( [div [class "ui-feature-key"] [text "Roads: "]] ++
-              case rl.roads of
-                [] ->
-                  [div [] [text "—"]]
-                _ ->
-                  List.concatMap (\str -> [div [] [text str]]) rl.roads
-            )
-        ]
+        if rl.roads == []
+          then []
+          else
+            [ div []
+                ( [div [class "ui-feature-key"] [text "Roads: "]] ++
+                    List.concatMap (\str -> [ div [] [ span [] [text "• "]
+                                                     , span [] [text str]
+                                                     ]
+                                            ]) rl.roads
+                )
+            ]
     in
-      div [] (tag ++ toid ++ positiveNode ++ negativeNode ++ nature ++ term ++ roads)
+      div [] (tag ++ toid ++ roadNodes ++ nature ++ term ++ roads)
 
 
 viewFeature : Address Action -> String -> Maybe Feature -> Html
