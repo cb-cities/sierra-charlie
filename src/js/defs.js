@@ -23,9 +23,6 @@ const quadtreeLeft = 465464;
 const quadtreeTop = 112964;
 const quadtreeSize = 131072;
 
-const minZoom = 0;
-const maxZoom = 9;
-
 
 module.exports = {
   tileSize: tileSize,
@@ -58,8 +55,9 @@ module.exports = {
   quadtreeTop: quadtreeTop,
   quadtreeSize: quadtreeSize,
 
-  minZoom: minZoom,
-  maxZoom: maxZoom,
+  minZoom: 0,
+  actualZoom: 2,
+  maxZoom: 9,
 
   maxLoaderPostCount: 256,
   maxLoaderPostDelay: 100

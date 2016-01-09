@@ -293,7 +293,7 @@ Controller.prototype = {
         const p = this.geometry.getRoadNodePoint(feature.roadNode);
         App.setCenter(p, duration);
         if (doZoom) { // double-click only
-          App.setZoom(compute.clampZoom(doReverseZoom ? zoom + 1 : defs.minZoom), duration);
+          App.setZoom(compute.clampZoom(doReverseZoom ? zoom + 1 : Math.min(zoom - 1, defs.actualZoom)), duration);
         }
         break;
       case "roadLink":
@@ -302,11 +302,13 @@ Controller.prototype = {
         const clientWidth = this.getClientWidth();
         const clientHeight = this.getClientHeight();
         const fittedZoom = compute.zoomForRect(polyline.bounds(10, ps), clientWidth, clientHeight);
-        App.setZoom(
-          doZoom ?
-            compute.clampZoom(doReverseZoom ? zoom + 1 : fittedZoom) :
-            Math.max(zoom, fittedZoom),
-          duration);
+        let newZoom;
+        if (doZoom) {
+          newZoom = doReverseZoom ? zoom + 1 : Math.max(fittedZoom, Math.min(zoom - 1, defs.actualZoom));
+        } else {
+          newZoom = Math.max(zoom, fittedZoom);
+        }
+        App.setZoom(compute.clampZoom(newZoom), duration);
         break;
     }
   },
