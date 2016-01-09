@@ -2,6 +2,7 @@
 
 const GeometryLoaderWorker = require("worker?inline!./GeometryLoaderWorker");
 
+const array = require("./array");
 const defs = require("./defs");
 const polyline = require("./polyline");
 
@@ -90,12 +91,9 @@ Geometry.prototype = {
   },
 
   getRoadLinkIndices: function (roadLink) {
-    let results = [];
-    const indexCount = (roadLink.pointCount - 1) * 2;
-    for (let i = 0; i < indexCount; i++) {
-      results.push(this.roadLinkIndexArr[roadLink.indexOffset + i]);
-    }
-    return results;
+    const start = roadLink.indexOffset;
+    const end = start + (roadLink.pointCount - 1) * 2;
+    return array.sliceUint32(this.roadLinkIndexArr, start, end);
   },
 
   getRoadLinkMidpoint: function (roadLink) {
