@@ -3,17 +3,8 @@
 const oboe = require("oboe");
 const simplify = require("simplify-js");
 
+const array = require("./array");
 const defs = require("./defs");
-
-
-function sliceFloat32Array(array, offset, count) {
-  return new Float32Array(array.buffer.slice(offset * 4, count * 4));
-}
-
-
-function sliceUint32Array(array, offset, count) {
-  return new Uint32Array(array.buffer.slice(offset * 4, count * 4));
-}
 
 
 function GeometryLoader() {
@@ -49,8 +40,8 @@ GeometryLoader.prototype = {
   postRoadNodes: function (isForced) {
     const data = {
       message: "roadNodesLoaded",
-      vertexArr: sliceFloat32Array(this.vertexArr, this.vertexOffset * 2, this.vertexCount * 2),
-      roadNodeIndexArr: sliceUint32Array(this.roadNodeIndexArr, this.roadNodeIndexOffset, this.roadNodeIndexCount),
+      vertexArr: array.sliceFloat32(this.vertexArr, this.vertexOffset * 2, this.vertexCount * 2),
+      roadNodeIndexArr: array.sliceUint32(this.roadNodeIndexArr, this.roadNodeIndexOffset, this.roadNodeIndexCount),
       roadNodes: this.roadNodes
     };
     if (this.post(data, isForced)) {
@@ -64,8 +55,8 @@ GeometryLoader.prototype = {
   postRoadLinks: function (isForced) {
     const data = {
       message: "roadLinksLoaded",
-      vertexArr: sliceFloat32Array(this.vertexArr, this.vertexOffset * 2, this.vertexCount * 2),
-      roadLinkIndexArr: sliceUint32Array(this.roadLinkIndexArr, this.roadLinkIndexOffset, this.roadLinkIndexCount),
+      vertexArr: array.sliceFloat32(this.vertexArr, this.vertexOffset * 2, this.vertexCount * 2),
+      roadLinkIndexArr: array.sliceUint32(this.roadLinkIndexArr, this.roadLinkIndexOffset, this.roadLinkIndexCount),
       roadLinks: this.roadLinks
     };
     if (this.post(data, isForced)) {
