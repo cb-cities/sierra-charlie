@@ -122,13 +122,15 @@ Controller.prototype = {
       return {
         tag: "roadNode",
         roadNode: closestRoadNode,
-        roadLink: null
+        roadLink: null,
+        road: null
       };
     } else if (closestRoadLink) {
       return {
         tag: "roadLink",
         roadLink: closestRoadLink,
-        roadNode: null
+        roadNode: null,
+        road: null
       };
     } else {
       return null;
@@ -151,6 +153,12 @@ Controller.prototype = {
           }
           case "roadLink": {
             const indices = this.geometry.getRoadLinkIndices(feature.roadLink);
+            this.highlightedRoadLinkIndices.insertLine(indices);
+            this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            break;
+          }
+          case "road": {
+            const indices = this.geometry.getRoadIndices(feature.road);
             this.highlightedRoadLinkIndices.insertLine(indices);
             this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
@@ -182,10 +190,48 @@ Controller.prototype = {
             this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
+          case "road": {
+            const indices = this.geometry.getRoadIndices(feature.road);
+            this.selectedRoadLinkIndices.insertLine(indices);
+            this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            break;
+          }
         }
       }
       this.sendSelectedFeature();
       App.isDrawingNeeded = true; // TODO
+    }
+  },
+
+  updateHighlightedFeature: function () { // TODO: Refactor
+    if (this.highlightedFeature) {
+      switch (this.highlightedFeature.tag) {
+        case "road": {
+            const gl = App.drawingContext.gl; // TODO
+            this.highlightedRoadNodeIndices.clear();
+            this.highlightedRoadLinkIndices.clear();
+            const indices = this.geometry.getRoadIndices(this.highlightedFeature.road);
+            this.highlightedRoadLinkIndices.insertLine(indices);
+            this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            break;
+        }
+      }
+    }
+  },
+
+  updateSelectedFeature: function () { // TODO: Refactor
+    if (this.selectedFeature) {
+      switch (this.selectedFeature.tag) {
+        case "road": {
+            const gl = App.drawingContext.gl; // TODO
+            this.selectedRoadNodeIndices.clear();
+            this.selectedRoadLinkIndices.clear();
+            const indices = this.geometry.getRoadIndices(this.selectedFeature.road);
+            this.selectedRoadLinkIndices.insertLine(indices);
+            this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            break;
+        }
+      }
     }
   },
 
@@ -225,12 +271,14 @@ Controller.prototype = {
     }
     App.updateDrawingContext(); // TODO
     this.sendLoadingProgress();
+    this.updateHighlightedFeature();
     this.sendHighlightedFeature();
+    this.updateSelectedFeature();
     this.sendSelectedFeature();
     this.highlightFeatureAtCursor();
   },
 
-  onRoadsLoaded: function (roads) { // TODO: Attach road data to road links
+  onRoadsLoaded: function (roads) {
     this.sendLoadingProgress();
     this.sendHighlightedFeature();
     this.sendSelectedFeature();
@@ -277,7 +325,7 @@ Controller.prototype = {
     this.highlightFeature(null);
   },
 
-  displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) {
+  displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) { // TODO: Refactor
     const duration = doSlowMotion ? 2500 : 500;
     switch (feature.tag) {
       case "roadNode": {
@@ -305,6 +353,22 @@ Controller.prototype = {
         }
         App.setZoom(compute.clampZoom(newZoom), duration);
         break;
+      }
+      case "road": {
+        const p = this.geometry.getRoadMidpoint(feature.road);
+        App.setCenter(p, duration);
+        const clientWidth = this.getClientWidth();
+        const clientHeight = this.getClientHeight();
+        const zoom = App.getZoom();
+        const r = this.geometry.getRoadBounds(10, feature.road);
+        const fittedZoom = compute.zoomForRect(r, clientWidth, clientHeight);
+        let newZoom;
+        if (doZoom) {
+          newZoom = doReverseZoom ? zoom + 1 : Math.max(fittedZoom, Math.min(zoom - 1, defs.actualZoom));
+        } else {
+          newZoom = Math.max(zoom, fittedZoom);
+        }
+        App.setZoom(compute.clampZoom(newZoom), duration);
       }
     }
   },

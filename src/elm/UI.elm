@@ -40,6 +40,7 @@ type alias Feature =
   { tag : String
   , roadNode : Maybe RoadNode
   , roadLink : Maybe RoadLink
+  , road : Maybe Road
   }
 
 
@@ -200,15 +201,15 @@ viewRoadLink address link =
           else
             [ div []
                 ( [div [class "ui-feature-key"] [text "Roads: "]] ++
-                    List.map (viewRoad address) link.roads
+                    List.map (viewRoadItem address) link.roads
                 )
             ]
     in
       div [] (tag ++ toid ++ roadNodes ++ description ++ roads)
 
 
-viewRoad : Address Action -> Road -> Html
-viewRoad address road =
+viewRoadItem : Address Action -> Road -> Html
+viewRoadItem address road =
     let
       toid =
         [viewTOIDItem address road.toid]
@@ -228,6 +229,41 @@ viewRoad address road =
       div [] (toid ++ description)
 
 
+viewRoad : Address Action -> Road -> Html
+viewRoad address road =
+    let
+      tag =
+        [div [class "ui-feature-tag"] [text "Road"]]
+      toid =
+        [ div []
+            [ div [class "ui-feature-key"] [text "TOID: "]
+            , div [] [viewTOID address road.toid]
+            ]
+        ]
+      name =
+        [ div []
+            [ div [class "ui-feature-key"] [text "Name: "]
+            , div [] [text road.name]
+            ]
+        ]
+      descriptionText =
+        case road.term of
+          Nothing ->
+            road.name ++ ", " ++ road.group
+          Just term ->
+            road.name ++ ", " ++ road.group ++ ", " ++ term
+      description =
+        [ div []
+            [ div [class "ui-feature-key"] [text "Description: "]
+            , div [] [text descriptionText]
+            ]
+        ]
+      roadLinks =
+        viewTOIDItems address "Road Links: " road.roadLinks
+    in
+      div [] (tag ++ toid ++ name ++ description ++ roadLinks)
+
+
 viewFeature : Address Action -> String -> Maybe Feature -> Html
 viewFeature address featureId feature =
     case feature of
@@ -236,11 +272,13 @@ viewFeature address featureId feature =
       Just f ->
         let
           contents =
-            case (f.tag, f.roadNode, f.roadLink) of
-              ("roadNode", Just node, Nothing) ->
+            case (f.tag, f.roadNode, f.roadLink, f.road) of
+              ("roadNode", Just node, Nothing, Nothing) ->
                 [viewRoadNode address node]
-              ("roadLink", Nothing, Just link) ->
+              ("roadLink", Nothing, Just link, Nothing) ->
                 [viewRoadLink address link]
+              ("road", Nothing, Nothing, Just road) ->
+                [viewRoad address road]
               _ ->
                 []
         in
