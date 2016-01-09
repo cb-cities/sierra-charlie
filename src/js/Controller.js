@@ -376,7 +376,7 @@ Controller.prototype = {
   onMouseClicked: function (event) {
     const now = Date.now();
     const delta = now - this.prevClickDate;
-    if (this.prevCursor && delta > 250) {
+    if (this.prevCursor && delta > 500) {
       console.log("click (" + delta + "ms)");
       this.prevClickDate = now;
       this.selectFeature(this.highlightedFeature);
