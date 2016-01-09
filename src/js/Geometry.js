@@ -202,7 +202,7 @@ Geometry.prototype = {
       }
       link.roads = this.roadsOfUnloadedLink[toid] || [];
       for (let j = 0; j < link.roads.length; j++) {
-        const road = this.roads[link.roads[j]];
+        const road = link.roads[j];
         pushUnique(road, "roadLinks", toid);
       }
       this.roadLinks[toid] = link;
@@ -220,9 +220,9 @@ Geometry.prototype = {
       for (let j = 0; j < road.unloadedLinks.length; j++) {
         const link = road.unloadedLinks[j];
         if (link in this.roadLinks) {
-          pushUnique(this.roadLinks[link], "roads", toid);
+          pushUnique(this.roadLinks[link], "roads", road);
         } else {
-          pushUnique(this.roadsOfUnloadedLink, link, toid);
+          pushUnique(this.roadsOfUnloadedLink, link, road);
         }
       }
       this.roads[toid] = road;

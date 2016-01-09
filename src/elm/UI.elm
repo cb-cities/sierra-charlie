@@ -23,7 +23,16 @@ type alias RoadLink =
   , nature : String
   , negativeNode : Maybe String
   , positiveNode : Maybe String
-  , roads : List String
+  , roads : List Road
+  }
+
+
+type alias Road =
+  { toid : String
+  , group : String
+  , term : Maybe String
+  , name : String
+  , roadLinks : List String
   }
 
 
@@ -90,31 +99,41 @@ viewTOID address toid =
       [text toid]
 
 
+viewTOIDItem : Address Action -> String -> Html
+viewTOIDItem address toid =
+    div []
+      [ span [] [text "* "]
+      , span [] [viewTOID address toid]
+      ]
+
+
+viewTOIDItems : Address Action -> String -> List String -> List Html
+viewTOIDItems address label toids =
+    if toids == []
+      then []
+      else
+        [ div []
+            ( [div [class "ui-feature-key"] [text label]] ++
+              List.map (viewTOIDItem address) toids
+            )
+        ]
+
+
 viewRoadNode : Address Action -> RoadNode -> Html
-viewRoadNode address rn =
+viewRoadNode address node =
     let
       tag =
         [div [class "ui-feature-tag"] [text "Road Node"]]
       toid =
         [ div []
             [ div [class "ui-feature-key"] [text "TOID: "]
-            , div [] [viewTOID address rn.toid]
+            , div [] [viewTOID address node.toid]
             ]
         ]
       roadLinks =
-        if rn.roadLinks == []
-          then []
-          else
-            [ div []
-                ( [div [class "ui-feature-key"] [text "Road Links: "]] ++
-                    List.concatMap (\toid -> [ div [] [ span [] [text "• "]
-                                                      , span [] [viewTOID address toid]
-                                                      ]
-                                             ]) rn.roadLinks
-                )
-            ]
+        viewTOIDItems address "Road Links: " node.roadLinks
       streetAddress =
-        case rn.address of
+        case node.address of
           Nothing ->
             []
           Just addr ->
@@ -128,18 +147,18 @@ viewRoadNode address rn =
 
 
 viewRoadLink : Address Action -> RoadLink -> Html
-viewRoadLink address rl =
+viewRoadLink address link =
     let
       tag =
         [div [class "ui-feature-tag"] [text "Road Link"]]
       toid =
         [ div []
             [ div [class "ui-feature-key"] [text "TOID: "]
-            , div [] [viewTOID address rl.toid]
+            , div [] [viewTOID address link.toid]
             ]
         ]
       roadNodes =
-        case (rl.negativeNode, rl.positiveNode) of
+        case (link.negativeNode, link.positiveNode) of
           (Nothing, Nothing) ->
             []
           (Just neg, Nothing) ->
@@ -169,32 +188,44 @@ viewRoadLink address rl =
                          ]
                 ]
             ]
-      nature =
+      description =
         [ div []
-            [ div [class "ui-feature-key"] [text "Nature: "]
-            , div [] [text rl.nature]
-            ]
-        ]
-      term =
-        [ div []
-            [ div [class "ui-feature-key"] [text "Term: "]
-            , div [] [text rl.term]
+            [ div [class "ui-feature-key"] [text "Description: "]
+            , div [] [text (link.term ++ ", " ++ link.nature)]
             ]
         ]
       roads =
-        if rl.roads == []
+        if link.roads == []
           then []
           else
             [ div []
                 ( [div [class "ui-feature-key"] [text "Roads: "]] ++
-                    List.concatMap (\str -> [ div [] [ span [] [text "• "]
-                                                     , span [] [text str]
-                                                     ]
-                                            ]) rl.roads
+                    List.map (viewRoad address) link.roads
                 )
             ]
     in
-      div [] (tag ++ toid ++ roadNodes ++ nature ++ term ++ roads)
+      div [] (tag ++ toid ++ roadNodes ++ description ++ roads)
+
+
+viewRoad : Address Action -> Road -> Html
+viewRoad address road =
+    let
+      toid =
+        [viewTOIDItem address road.toid]
+      descriptionText =
+        case road.term of
+          Nothing ->
+            road.name ++ ", " ++ road.group
+          Just term ->
+            road.name ++ ", " ++ road.group ++ ", " ++ term
+      description =
+        [ div []
+            [ span [] [text "  "]
+            , span [] [text descriptionText]
+            ]
+        ]
+    in
+      div [] (toid ++ description)
 
 
 viewFeature : Address Action -> String -> Maybe Feature -> Html
@@ -206,10 +237,10 @@ viewFeature address featureId feature =
         let
           contents =
             case (f.tag, f.roadNode, f.roadLink) of
-              ("roadNode", Just rn, Nothing) ->
-                [viewRoadNode address rn]
-              ("roadLink", Nothing, Just rl) ->
-                [viewRoadLink address rl]
+              ("roadNode", Just node, Nothing) ->
+                [viewRoadNode address node]
+              ("roadLink", Nothing, Just link) ->
+                [viewRoadLink address link]
               _ ->
                 []
         in
