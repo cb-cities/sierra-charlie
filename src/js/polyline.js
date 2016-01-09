@@ -42,14 +42,7 @@ const _ = module.exports = {
   },
 
   midpoint: function (ps) {
-    if (ps.length < 2) {
-      return undefined;
-    } else {
-      return segment.midpoint({
-          p1: ps[0],
-          p2: ps[ps.length - 1]
-        });
-    }
+    return rect.midpoint(_.bounds(0, ps));
   },
 
   intersects: function (ps1, ps2) {

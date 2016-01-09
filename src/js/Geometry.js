@@ -96,12 +96,12 @@ Geometry.prototype = {
     return array.sliceUint32(this.roadLinkIndexArr, start, end);
   },
 
-  getRoadLinkMidpoint: function (roadLink) {
-    return polyline.midpoint(this.getRoadLinkPoints(roadLink));
-  },
-
   getRoadLinkBounds: function (margin, roadLink) {
     return polyline.bounds(margin, this.getRoadLinkPoints(roadLink));
+  },
+
+  getRoadLinkMidpoint: function (roadLink) {
+    return polyline.midpoint(this.getRoadLinkPoints(roadLink));
   },
 
   onMessage: function (event) {

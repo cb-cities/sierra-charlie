@@ -1,7 +1,7 @@
 "use strict";
 
 
-module.exports = {
+const _ = module.exports = {
   invalid: {
     left: Infinity,
     top: Infinity,
@@ -39,6 +39,13 @@ module.exports = {
       top: r.top - margin,
       right: r.right + margin,
       bottom: r.bottom + margin
+    };
+  },
+
+  midpoint: function (r) {
+    return {
+      x: r.left + _.width(r) / 2,
+      y: r.top + _.height(r) / 2
     };
   },
 
