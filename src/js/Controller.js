@@ -194,25 +194,13 @@ Controller.prototype = {
   },
 
   highlightFeatureByTOID: function (toid) {
-    if (!toid) {
-      this.highlightFeature(null);
-    } else {
-      const feature = this.geometry.getFeature(toid);
-      if (feature) { // TODO: Invalid TOIDs should never appear in the UI
-        this.highlightFeature(feature);
-      }
-    }
+    this.highlightFeature(this.geometry.getFeature(toid));
   },
 
   selectFeatureByTOID: function (toid) {
-    if (!toid) {
-      this.selectFeature(null);
-    } else {
-      const feature = this.geometry.getFeature(toid);
-      if (feature) { // TODO: Invalid TOIDs should never appear in the UI
-        this.selectFeature(feature);
-        this.displayFeature(feature, false, false); // TODO: Pass prev shift key state
-      }
+    this.selectFeature(this.geometry.getFeature(toid));
+    if (this.selectedFeature) {
+      this.displayFeature(this.selectedFeature, false, false); // TODO: Pass prev shift key state
     }
   },
 
