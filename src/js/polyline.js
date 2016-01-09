@@ -41,7 +41,7 @@ const _ = module.exports = {
     return result;
   },
 
-  approximateMidpoint: function (ps) {
+  midpoint: function (ps) {
     if (ps.length < 2) {
       return undefined;
     } else {

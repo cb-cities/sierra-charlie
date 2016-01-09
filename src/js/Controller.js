@@ -290,12 +290,13 @@ Controller.prototype = {
         break;
       }
       case "roadLink": {
-        const ps = this.geometry.getRoadLinkPoints(feature.roadLink);
-        App.setCenter(polyline.approximateMidpoint(ps), duration);
+        const p = this.geometry.getRoadLinkMidpoint(feature.roadLink);
+        App.setCenter(p, duration);
         const clientWidth = this.getClientWidth();
         const clientHeight = this.getClientHeight();
         const zoom = App.getZoom();
-        const fittedZoom = compute.zoomForRect(polyline.bounds(10, ps), clientWidth, clientHeight);
+        const r = this.geometry.getRoadLinkBounds(10, feature.roadLink);
+        const fittedZoom = compute.zoomForRect(r, clientWidth, clientHeight);
         let newZoom;
         if (doZoom) {
           newZoom = doReverseZoom ? zoom + 1 : Math.max(fittedZoom, Math.min(zoom - 1, defs.actualZoom));
