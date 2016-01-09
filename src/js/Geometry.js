@@ -6,10 +6,10 @@ const defs = require("./defs");
 const rect = require("./rect");
 
 
-function pushProp(arr, key, val) {
+function pushUnique(arr, key, val) {
   if (!(key in arr)) {
     arr[key] = [val];
-  } else {
+  } else if (arr[key].indexOf(val) === -1) {
     arr[key].push(val);
   }
 }
@@ -169,8 +169,6 @@ Geometry.prototype = {
           link.negativeNode = toid;
         } else if (toid === link.unloadedPositiveNode) {
           link.positiveNode = toid;
-        } else {
-          console.warning("wtf");
         }
       }
       this.roadNodes[toid] = node;
@@ -191,21 +189,21 @@ Geometry.prototype = {
       let link = data.roadLinks[i];
       const toid = link.toid;
       if (link.unloadedNegativeNode in this.roadNodes) {
-        this.roadNodes[link.unloadedNegativeNode].roadLinks.push(toid);
+        pushUnique(this.roadNodes[link.unloadedNegativeNode], "roadLinks", toid);
         link.negativeNode = link.unloadedNegativeNode;
       } else {
-        pushProp(this.linksOfUnloadedNode, link.unloadedNegativeNode, toid);
+        pushUnique(this.linksOfUnloadedNode, link.unloadedNegativeNode, toid);
       }
       if (link.unloadedPositiveNode in this.roadNodes) {
-        this.roadNodes[link.unloadedPositiveNode].roadLinks.push(toid);
+        pushUnique(this.roadNodes[link.unloadedPositiveNode], "roadLinks", toid);
         link.positiveNode = link.unloadedPositiveNode;
       } else {
-        pushProp(this.linksOfUnloadedNode, link.unloadedPositiveNode, toid);
+        pushUnique(this.linksOfUnloadedNode, link.unloadedPositiveNode, toid);
       }
       link.roads = this.roadsOfUnloadedLink[toid] || [];
       for (let j = 0; j < link.roads.length; j++) {
         const road = this.roads[link.roads[j]];
-        road.roadLinks.push(toid);
+        pushUnique(road, "roadLinks", toid);
       }
       this.roadLinks[toid] = link;
     }
@@ -222,9 +220,9 @@ Geometry.prototype = {
       for (let j = 0; j < road.unloadedLinks.length; j++) {
         const link = road.unloadedLinks[j];
         if (link in this.roadLinks) {
-          this.roadLinks[link].roads.push(toid);
+          pushUnique(this.roadLinks[link], "roads", toid);
         } else {
-          pushProp(this.roadsOfUnloadedLink, link, toid);
+          pushUnique(this.roadsOfUnloadedLink, link, toid);
         }
       }
       this.roads[toid] = road;
