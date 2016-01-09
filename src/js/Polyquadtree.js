@@ -64,7 +64,7 @@ Polyquadtree.prototype = {
   },
 
   select: function (r) {
-    let results = [];
+    const results = [];
     if (this.intersects(r)) {
       if (this.items) {
         for (let i = 0; i < this.items.length; i++) {
