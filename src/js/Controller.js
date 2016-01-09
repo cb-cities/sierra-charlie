@@ -21,8 +21,8 @@ function Controller() {
       onRoadsLoaded: this.onRoadsLoaded.bind(this)
     });
   window.Grid = this.grid = new Grid(); // TODO
-  window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadNodePoint.bind(this.geometry)); // TODO
-  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getRoadLinkBounds.bind(this.geometry)); // TODO
+  window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getPointForRoadNode.bind(this.geometry)); // TODO
+  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getBoundsForRoadLink.bind(this.geometry)); // TODO
   this.highlightedFeature = null;
   this.highlightedRoadNodeIndices = new Indexset();
   this.highlightedRoadLinkIndices = new Indexset();
@@ -95,12 +95,14 @@ Controller.prototype = {
     UI.ports.setSelectedFeature.send(this.selectedFeature);
   },
 
-  getFeatureAtCursor: function (cursorP, cursorR) { // TODO: Refactor
+  getClosestFeature: function () { // TODO: Refactor
+    const cursorP = this.fromClientPoint(this.prevCursor);
+    const cursorR = this.fromClientRect(vector.bounds(10, this.prevCursor));
     const roadNodes = this.roadNodeTree.select(cursorR);
     let closestRoadNodeDistance = Infinity;
     let closestRoadNode = null;
     for (let i = 0; i < roadNodes.length; i++) {
-      const p = this.geometry.getRoadNodePoint(roadNodes[i]);
+      const p = this.geometry.getPointForRoadNode(roadNodes[i]);
       const d1 = vector.distance(cursorP, p);
       if (d1 < closestRoadNodeDistance) {
         closestRoadNodeDistance = d1;
@@ -111,7 +113,7 @@ Controller.prototype = {
     let closestRoadLinkDistance = Infinity;
     let closestRoadLink = null;
     for (let j = 0; j < roadLinks.length; j++) {
-      const ps = this.geometry.getRoadLinkPoints(roadLinks[j]);
+      const ps = this.geometry.getPointsForRoadLink(roadLinks[j]);
       const d2 = polyline.distance(cursorP, ps);
       if (d2 < closestRoadLinkDistance) {
         closestRoadLinkDistance = d2;
@@ -146,19 +148,19 @@ Controller.prototype = {
       if (feature) {
         switch (feature.tag) {
           case "roadNode": {
-            const index = this.geometry.getRoadNodeIndex(feature.roadNode);
+            const index = this.geometry.getPointIndexForRoadNode(feature.roadNode);
             this.highlightedRoadNodeIndices.insertPoint(index);
             this.highlightedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
           case "roadLink": {
-            const indices = this.geometry.getRoadLinkIndices(feature.roadLink);
+            const indices = this.geometry.getLineIndicesForRoadLink(feature.roadLink);
             this.highlightedRoadLinkIndices.insertLine(indices);
             this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
           case "road": {
-            const indices = this.geometry.getRoadIndices(feature.road);
+            const indices = this.geometry.getLineIndicesForRoad(feature.road);
             this.highlightedRoadLinkIndices.insertLine(indices);
             this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
@@ -179,19 +181,19 @@ Controller.prototype = {
       if (feature) {
         switch (feature.tag) {
           case "roadNode": {
-            const index = this.geometry.getRoadNodeIndex(feature.roadNode);
+            const index = this.geometry.getPointIndexForRoadNode(feature.roadNode);
             this.selectedRoadNodeIndices.insertPoint(index);
             this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
           case "roadLink": {
-            const indices = this.geometry.getRoadLinkIndices(feature.roadLink);
+            const indices = this.geometry.getLineIndicesForRoadLink(feature.roadLink);
             this.selectedRoadLinkIndices.insertLine(indices);
             this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
           case "road": {
-            const indices = this.geometry.getRoadIndices(feature.road);
+            const indices = this.geometry.getLineIndicesForRoad(feature.road);
             this.selectedRoadLinkIndices.insertLine(indices);
             this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
@@ -210,7 +212,7 @@ Controller.prototype = {
             const gl = App.drawingContext.gl; // TODO
             this.highlightedRoadNodeIndices.clear();
             this.highlightedRoadLinkIndices.clear();
-            const indices = this.geometry.getRoadIndices(this.highlightedFeature.road);
+            const indices = this.geometry.getLineIndicesForRoad(this.highlightedFeature.road);
             this.highlightedRoadLinkIndices.insertLine(indices);
             this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
@@ -226,7 +228,7 @@ Controller.prototype = {
             const gl = App.drawingContext.gl; // TODO
             this.selectedRoadNodeIndices.clear();
             this.selectedRoadLinkIndices.clear();
-            const indices = this.geometry.getRoadIndices(this.selectedFeature.road);
+            const indices = this.geometry.getLineIndicesForRoad(this.selectedFeature.road);
             this.selectedRoadLinkIndices.insertLine(indices);
             this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
@@ -237,18 +239,16 @@ Controller.prototype = {
 
   highlightFeatureAtCursor: function () {
     if (this.prevCursor) {
-      const cursorP = this.fromClientPoint(this.prevCursor);
-      const cursorR = this.fromClientRect(vector.bounds(10, this.prevCursor));
-      this.highlightFeature(this.getFeatureAtCursor(cursorP, cursorR));
+      this.highlightFeature(this.getClosestFeature());
     }
   },
 
   highlightFeatureByTOID: function (toid) {
-    this.highlightFeature(this.geometry.getFeature(toid));
+    this.highlightFeature(this.geometry.getFeatureByTOID(toid));
   },
 
   selectFeatureByTOID: function (toid) {
-    this.selectFeature(this.geometry.getFeature(toid));
+    this.selectFeature(this.geometry.getFeatureByTOID(toid));
     if (this.selectedFeature) {
       this.displayFeature(this.selectedFeature, false, false); // TODO: Pass prev shift key state
     }
@@ -329,7 +329,7 @@ Controller.prototype = {
     const duration = doSlowMotion ? 2500 : 500;
     switch (feature.tag) {
       case "roadNode": {
-        const p = this.geometry.getRoadNodePoint(feature.roadNode);
+        const p = this.geometry.getPointForRoadNode(feature.roadNode);
         App.setCenter(p, duration);
         if (doZoom) { // double-click only
           const zoom = App.getZoom();
@@ -338,12 +338,12 @@ Controller.prototype = {
         break;
       }
       case "roadLink": {
-        const p = this.geometry.getRoadLinkMidpoint(feature.roadLink);
+        const p = this.geometry.getMidpointForRoadLink(feature.roadLink);
         App.setCenter(p, duration);
         const clientWidth = this.getClientWidth();
         const clientHeight = this.getClientHeight();
         const zoom = App.getZoom();
-        const r = this.geometry.getRoadLinkBounds(10, feature.roadLink);
+        const r = this.geometry.getBoundsForRoadLink(10, feature.roadLink);
         const fittedZoom = compute.zoomForRect(r, clientWidth, clientHeight);
         let newZoom;
         if (doZoom) {
@@ -355,12 +355,12 @@ Controller.prototype = {
         break;
       }
       case "road": {
-        const p = this.geometry.getRoadMidpoint(feature.road);
+        const p = this.geometry.getMidpointForRoad(feature.road);
         App.setCenter(p, duration);
         const clientWidth = this.getClientWidth();
         const clientHeight = this.getClientHeight();
         const zoom = App.getZoom();
-        const r = this.geometry.getRoadBounds(10, feature.road);
+        const r = this.geometry.getBoundsForRoad(10, feature.road);
         const fittedZoom = compute.zoomForRect(r, clientWidth, clientHeight);
         let newZoom;
         if (doZoom) {
