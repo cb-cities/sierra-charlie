@@ -3,7 +3,7 @@
 const GeometryLoaderWorker = require("worker?inline!./GeometryLoaderWorker");
 
 const defs = require("./defs");
-const rect = require("./rect");
+const polyline = require("./polyline");
 
 
 function pushUnique(arr, key, val) {
@@ -98,16 +98,12 @@ Geometry.prototype = {
     return results;
   },
 
-  getRoadLinkBounds: function (roadLink) {
-    let result = rect.invalid;
-    for (let i = 0; i < roadLink.pointCount; i++) {
-      const k = roadLink.vertexOffset + i;
-      result = rect.stretch(result, {
-          x: this.vertexArr[2 * k],
-          y: this.vertexArr[2 * k + 1]
-        });
-    }
-    return result;
+  getRoadLinkMidpoint: function (roadLink) {
+    return polyline.midpoint(this.getRoadLinkPoints(roadLink));
+  },
+
+  getRoadLinkBounds: function (margin, roadLink) {
+    return polyline.bounds(margin, this.getRoadLinkPoints(roadLink));
   },
 
   onMessage: function (event) {
