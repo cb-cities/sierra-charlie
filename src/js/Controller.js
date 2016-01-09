@@ -374,12 +374,17 @@ Controller.prototype = {
   },
 
   onMouseClicked: function (event) {
-    if (this.prevCursor && this.prevClickDate + 250 < Date.now()) {
-      this.prevClickDate = Date.now();
+    const now = Date.now();
+    const delta = now - this.prevClickDate;
+    if (this.prevCursor && delta > 250) {
+      console.log("click (" + delta + "ms)");
+      this.prevClickDate = now;
       this.selectFeature(this.highlightedFeature);
       if (this.selectedFeature) {
         this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
       }
+    } else {
+      console.log("double click (" + delta + "ms)");
     }
   },
 
