@@ -143,16 +143,18 @@ Controller.prototype = {
       this.highlightedRoadLinkIndices.clear();
       if (feature) {
         switch (feature.tag) {
-          case "roadNode":
+          case "roadNode": {
             const index = this.geometry.getRoadNodeIndex(feature.roadNode);
             this.highlightedRoadNodeIndices.insertPoint(index);
             this.highlightedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
-          case "roadLink":
+          }
+          case "roadLink": {
             const indices = this.geometry.getRoadLinkIndices(feature.roadLink);
             this.highlightedRoadLinkIndices.insertLine(indices);
             this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
+          }
         }
       }
       this.sendHighlightedFeature();
@@ -168,16 +170,18 @@ Controller.prototype = {
       this.selectedRoadLinkIndices.clear();
       if (feature) {
         switch (feature.tag) {
-          case "roadNode":
+          case "roadNode": {
             const index = this.geometry.getRoadNodeIndex(feature.roadNode);
             this.selectedRoadNodeIndices.insertPoint(index);
             this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
-          case "roadLink":
+          }
+          case "roadLink": {
             const indices = this.geometry.getRoadLinkIndices(feature.roadLink);
             this.selectedRoadLinkIndices.insertLine(indices);
             this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
+          }
         }
       }
       this.sendSelectedFeature();
@@ -274,21 +278,23 @@ Controller.prototype = {
   },
 
   displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) {
-    const zoom = App.getZoom();
     const duration = doSlowMotion ? 2500 : 500;
     switch (feature.tag) {
-      case "roadNode":
+      case "roadNode": {
         const p = this.geometry.getRoadNodePoint(feature.roadNode);
         App.setCenter(p, duration);
         if (doZoom) { // double-click only
+          const zoom = App.getZoom();
           App.setZoom(compute.clampZoom(doReverseZoom ? zoom + 1 : Math.min(zoom - 1, defs.actualZoom)), duration);
         }
         break;
-      case "roadLink":
+      }
+      case "roadLink": {
         const ps = this.geometry.getRoadLinkPoints(feature.roadLink);
         App.setCenter(polyline.approximateMidpoint(ps), duration);
         const clientWidth = this.getClientWidth();
         const clientHeight = this.getClientHeight();
+        const zoom = App.getZoom();
         const fittedZoom = compute.zoomForRect(polyline.bounds(10, ps), clientWidth, clientHeight);
         let newZoom;
         if (doZoom) {
@@ -298,6 +304,7 @@ Controller.prototype = {
         }
         App.setZoom(compute.clampZoom(newZoom), duration);
         break;
+      }
     }
   },
 
@@ -324,55 +331,86 @@ Controller.prototype = {
     }
   },
 
-  onKeyPressed: function (event) {
-    const clientWidth = this.getClientWidth();
-    const clientHeight = this.getClientHeight();
-    const centerX = App.getStaticCenterX();
-    const centerY = App.getStaticCenterY();
-    // const rawTime = App.getStaticRawTime();
-    const zoom = App.getStaticZoom();
-    const pageWidth = compute.fromClientWidth(clientWidth, zoom);
-    const pageHeight = compute.fromClientHeight(clientHeight, zoom);
+  onKeyPressed: function (event) { // TODO: Refactor
     const duration = event.shiftKey ? 2500 : 500;
-    // const timeDelta = event.altKey ? 60 : 3600;
-    const zoomDelta = event.altKey ? 2 : 10; // TODO
     switch (event.keyCode) {
       case 37: // left
-      case 36: // home
-        App.setCenterX(compute.clampX(centerX - pageWidth / (event.keyCode === 36 ? 1 : 10)), duration);
+      case 36: { // home
+        const clientWidth = this.getClientWidth();
+        const centerX = App.getStaticCenterX();
+        const zoom = App.getStaticZoom();
+        const pageWidth = compute.fromClientWidth(clientWidth, zoom);
+        const scale = event.keyCode === 36 ? 1 : 10;
+        App.setCenterX(compute.clampX(centerX - pageWidth / scale), duration);
         break;
+      }
       case 39: // right
-      case 35: // end
-        App.setCenterX(compute.clampX(centerX + pageWidth / (event.keyCode === 35 ? 1 : 10)), duration);
+      case 35: { // end
+        const clientWidth = this.getClientWidth();
+        const centerX = App.getStaticCenterX();
+        const zoom = App.getStaticZoom();
+        const pageWidth = compute.fromClientWidth(clientWidth, zoom);
+        const scale = event.keyCode === 35 ? 1 : 10;
+        App.setCenterX(compute.clampX(centerX + pageWidth / scale), duration);
         break;
+      }
       case 38: // up
-      case 33: // page up
-        App.setCenterY(compute.clampY(centerY + pageHeight / (event.keyCode === 33 ? 1 : 10)), duration);
+      case 33: { // page up
+        const clientHeight = this.getClientHeight();
+        const centerY = App.getStaticCenterY();
+        const zoom = App.getStaticZoom();
+        const pageHeight = compute.fromClientHeight(clientHeight, zoom);
+        const scale = event.keyCode === 33 ? 1 : 10;
+        App.setCenterY(compute.clampY(centerY + pageHeight / scale), duration);
         break;
+      }
       case 40: // down
-      case 34: // page down
-        App.setCenterY(compute.clampY(centerY - pageHeight / (event.keyCode === 34 ? 1 : 10)), duration);
+      case 34: { // page down
+        const clientHeight = this.getClientHeight();
+        const centerY = App.getStaticCenterY();
+        const zoom = App.getStaticZoom();
+        const pageHeight = compute.fromClientHeight(clientHeight, zoom);
+        const scale = event.keyCode === 34 ? 1 : 10;
+        App.setCenterY(compute.clampY(centerY - pageHeight / scale), duration);
         break;
+      }
       // case 219: // left bracket
+      //   const rawTime = App.getStaticRawTime();
+      //   const timeDelta = event.altKey ? 60 : 3600;
       //   const newRawTime = Math.round((rawTime * 3600) - timeDelta) / 3600;
       //   App.setRawTime(newRawTime, duration);
       //   break;
       // case 221: // right bracket
+      //   const rawTime = App.getStaticRawTime();
+      //   const timeDelta = event.altKey ? 60 : 3600;
       //   const newRawTime = Math.round((rawTime * 3600) + timeDelta) / 3600;
       //   App.setRawTime(newRawTime, duration);
       //   break;
-      case 187: // plus
-        App.setZoom(compute.clampZoom(Math.round((zoom * 10) - zoomDelta) / 10), duration);
+      case 187: { // plus
+        const zoom = App.getStaticZoom();
+        const zoomDelta = event.altKey ? 2 : 10; // TODO
+        const newZoom = compute.clampZoom(Math.round((zoom * 10) - zoomDelta) / 10);
+        App.setZoom(newZoom, duration);
         break;
-      case 189: // minus
-        App.setZoom(compute.clampZoom(Math.round((zoom * 10) + zoomDelta) / 10), duration);
+      }
+      case 189: { // minus
+        const zoom = App.getStaticZoom();
+        const zoomDelta = event.altKey ? 2 : 10; // TODO
+        const newZoom = compute.clampZoom(Math.round((zoom * 10) + zoomDelta) / 10);
+        App.setZoom(newZoom, duration);
         break;
-      default: // 1-9, 0
-        if (event.keyCode >= 49 && event.keyCode <= 57 || event.keyCode === 48) {
-          const newZoom = compute.clampZoom(
-              event.keyCode === 48 ? 10 : event.keyCode - 49);
+      }
+      case 48: { // 0
+        const newZoom = compute.clampZoom(10);
+        App.setZoom(newZoom, duration);
+        break;
+      }
+      default: { // 1-9, 0
+        if (event.keyCode >= 49 && event.keyCode <= 57) {
+          const newZoom = compute.clampZoom(event.keyCode - 49);
           App.setZoom(newZoom, duration);
         }
+      }
     }
   },
 

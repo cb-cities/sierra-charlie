@@ -112,18 +112,22 @@ Geometry.prototype = {
 
   onMessage: function (event) {
     switch (event.data.message) {
-      case "roadNodesLoaded":
+      case "roadNodesLoaded": {
         this.onRoadNodesLoaded(event.data);
         break;
-      case "roadLinksLoaded":
+      }
+      case "roadLinksLoaded": {
         this.onRoadLinksLoaded(event.data);
         break;
-      case "roadsLoaded":
+      }
+      case "roadsLoaded": {
         this.onRoadsLoaded(event.data);
         break;
-      case "addressesLoaded":
+      }
+      case "addressesLoaded": {
         this.onAddressesLoaded(event.data);
         break;
+      }
     }
     if (this.isLoadingFinished()) {
       this.onLoadingFinished();
