@@ -4,6 +4,7 @@ const GeometryLoaderWorker = require("worker?inline!./GeometryLoaderWorker");
 
 const array = require("./array");
 const defs = require("./defs");
+const rect = require("./rect");
 const polyline = require("./polyline");
 
 
@@ -54,13 +55,22 @@ Geometry.prototype = {
       return {
         tag: "roadNode",
         roadNode: this.roadNodes[toid],
-        roadLink: null
+        roadLink: null,
+        road: null
       };
     } else if (toid in this.roadLinks) {
       return {
         tag: "roadLink",
+        roadNode: null,
         roadLink: this.roadLinks[toid],
-        roadNode: null
+        road: null
+      };
+    } else if (toid in this.roads) {
+      return {
+        tag: "road",
+        roadNode: null,
+        roadLink: null,
+        road: this.roads[toid]
       };
     } else {
       return null;
@@ -102,6 +112,37 @@ Geometry.prototype = {
 
   getRoadLinkMidpoint: function (roadLink) {
     return polyline.midpoint(this.getRoadLinkPoints(roadLink));
+  },
+
+  getRoadBounds: function (margin, road) {
+    let result = rect.invalid;
+    for (let i = 0; i < road.roadLinks.length; i++) {
+      const link = this.roadLinks[road.roadLinks[i]];
+      result = rect.union(result, this.getRoadLinkBounds(margin, link));
+    }
+    return result;
+  },
+
+  getRoadMidpoint: function (road) {
+    return rect.midpoint(this.getRoadBounds(0, road));
+  },
+
+  getRoadIndices: function (road) {
+    let parts = [];
+    let count = 0;
+    for (let i = 0; i < road.roadLinks.length; i++) {
+      const link = this.roadLinks[road.roadLinks[i]];
+      const part = this.getRoadLinkIndices(link);
+      parts.push(part);
+      count += part.length;
+    }
+    let results = new Uint32Array(count);
+    let offset = 0;
+    for (let i = 0; i < road.roadLinks.length; i++) {
+      results.set(parts[i], offset);
+      offset += parts[i].length;
+    }
+    return results;
   },
 
   onMessage: function (event) {
@@ -219,6 +260,7 @@ Geometry.prototype = {
         const link = road.unloadedLinks[j];
         if (link in this.roadLinks) {
           pushUnique(this.roadLinks[link], "roads", road);
+          pushUnique(road, "roadLinks", link);
         } else {
           pushUnique(this.roadsOfUnloadedLink, link, road);
         }
