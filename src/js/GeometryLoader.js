@@ -129,7 +129,7 @@ GeometryLoader.prototype = {
           if (obj.polyline.length > 4) {
             ps = simplify(ps);
           }
-          let vertices = [];
+          const vertices = [];
           for (let j = 0; j < ps.length; j++) {
             vertices.push(ps[j].x, ps[j].y);
           }

@@ -89,7 +89,7 @@ Geometry.prototype = {
   },
 
   getPointsForRoadLink: function (roadLink) {
-    let results = [];
+    const results = [];
     for (let i = 0; i < roadLink.pointCount; i++) {
       const k = roadLink.vertexOffset + i;
       results.push({
@@ -128,7 +128,7 @@ Geometry.prototype = {
   },
 
   getLineIndicesForRoad: function (road) {
-    let parts = [];
+    const parts = [];
     let count = 0;
     for (let i = 0; i < road.roadLinks.length; i++) {
       const link = this.roadLinks[road.roadLinks[i]];
@@ -136,7 +136,7 @@ Geometry.prototype = {
       parts.push(part);
       count += part.length;
     }
-    let results = new Uint32Array(count);
+    const results = new Uint32Array(count);
     let offset = 0;
     for (let i = 0; i < road.roadLinks.length; i++) {
       results.set(parts[i], offset);
@@ -198,7 +198,7 @@ Geometry.prototype = {
     this.roadNodeIndexArr.set(data.roadNodeIndexArr, this.roadNodeIndexCount);
     this.roadNodeIndexCount += data.roadNodeIndexArr.length;
     for (let i = 0; i < data.roadNodes.length; i++) {
-      let node = data.roadNodes[i];
+      const node = data.roadNodes[i];
       const toid = node.toid;
       node.address = this.addressForUnloadedNode[toid] || null;
       node.roadLinks = this.linksForUnloadedNode[toid] || [];
@@ -225,7 +225,7 @@ Geometry.prototype = {
     this.roadLinkIndexArr.set(data.roadLinkIndexArr, this.roadLinkIndexCount);
     this.roadLinkIndexCount += data.roadLinkIndexArr.length;
     for (let i = 0; i < data.roadLinks.length; i++) {
-      let link = data.roadLinks[i];
+      const link = data.roadLinks[i];
       const toid = link.toid;
       if (link.unloadedNegativeNode in this.roadNodes) {
         pushUnique(this.roadNodes[link.unloadedNegativeNode], "roadLinks", toid);
@@ -254,7 +254,7 @@ Geometry.prototype = {
   onRoadsLoaded: function (data) {
     this.itemCount += data.roads.length;
     for (let i = 0; i < data.roads.length; i++) {
-      let road = data.roads[i];
+      const road = data.roads[i];
       const toid = road.toid;
       for (let j = 0; j < road.unloadedLinks.length; j++) {
         const link = road.unloadedLinks[j];
