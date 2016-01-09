@@ -179,7 +179,7 @@ GeometryLoader.prototype = {
           this.roads.push({
               toid: obj.toid,
               group: obj.group,
-              term: obj.term,
+              term: obj.term || null,
               name: obj.name,
               unloadedLinks: obj.members,
               roadLinks: []
