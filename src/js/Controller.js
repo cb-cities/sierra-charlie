@@ -425,14 +425,13 @@ Controller.prototype = {
     const now = Date.now();
     const delta = now - this.prevClickDate;
     if (this.prevCursor && delta > 500) {
-      console.log("click (" + delta + "ms)");
       this.prevClickDate = now;
       this.selectFeature(this.highlightedFeature);
       if (this.selectedFeature) {
         this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
       }
     } else {
-      console.log("double click (" + delta + "ms)");
+      this.prevClickDate = null;
     }
   },
 
