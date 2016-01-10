@@ -24,11 +24,11 @@ function Controller() {
   window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getPointForRoadNode.bind(this.geometry)); // TODO
   window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getBoundsForRoadLink.bind(this.geometry)); // TODO
   this.highlightedFeature = null;
-  this.highlightedRoadNodeIndices = new Indexset();
-  this.highlightedRoadLinkIndices = new Indexset();
+  this.highlightedPointIndices = new Indexset();
+  this.highlightedLineIndices = new Indexset();
   this.selectedFeature = null;
-  this.selectedRoadNodeIndices = new Indexset();
-  this.selectedRoadLinkIndices = new Indexset();
+  this.selectedPointIndices = new Indexset();
+  this.selectedLineIndices = new Indexset();
   const frame = document.getElementById("map-frame");
   frame.addEventListener("scroll", this.onFrameScrolled.bind(this));
   const canvas = document.getElementById("map-canvas");
@@ -144,32 +144,32 @@ Controller.prototype = {
     if (feature !== this.highlightedFeature) {
       const gl = App.drawingContext.gl; // TODO
       this.highlightedFeature = feature;
-      this.highlightedRoadNodeIndices.clear();
-      this.highlightedRoadLinkIndices.clear();
+      this.highlightedPointIndices.clear();
+      this.highlightedLineIndices.clear();
       if (feature) {
         switch (feature.tag) {
           case "roadNode": {
             const pointIndex = this.geometry.getPointIndexForRoadNode(feature.roadNode);
-            this.highlightedRoadNodeIndices.insertPoint(pointIndex);
-            this.highlightedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.highlightedPointIndices.insert([pointIndex]);
+            this.highlightedPointIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
           case "roadLink": {
             const pointIndices = this.geometry.getPointIndicesForRoadLink(feature.roadLink);
-            this.highlightedRoadNodeIndices.insertPoints(pointIndices);
-            this.highlightedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.highlightedPointIndices.insert(pointIndices);
+            this.highlightedPointIndices.render(gl, gl.DYNAMIC_DRAW);
             const lineIndices = this.geometry.getLineIndicesForRoadLink(feature.roadLink);
-            this.highlightedRoadLinkIndices.insertLine(lineIndices);
-            this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.highlightedLineIndices.insert(lineIndices);
+            this.highlightedLineIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
           case "road": {
             const pointIndices = this.geometry.getPointIndicesForRoad(feature.road);
-            this.highlightedRoadNodeIndices.insertPoints(pointIndices);
-            this.highlightedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.highlightedPointIndices.insert(pointIndices);
+            this.highlightedPointIndices.render(gl, gl.DYNAMIC_DRAW);
             const lineIndices = this.geometry.getLineIndicesForRoad(feature.road);
-            this.highlightedRoadLinkIndices.insertLine(lineIndices);
-            this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.highlightedLineIndices.insert(lineIndices);
+            this.highlightedLineIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
         }
@@ -183,32 +183,32 @@ Controller.prototype = {
     if (feature !== this.selectedFeature) {
       const gl = App.drawingContext.gl; // TODO
       this.selectedFeature = feature;
-      this.selectedRoadNodeIndices.clear();
-      this.selectedRoadLinkIndices.clear();
+      this.selectedPointIndices.clear();
+      this.selectedLineIndices.clear();
       if (feature) {
         switch (feature.tag) {
           case "roadNode": {
             const pointIndex = this.geometry.getPointIndexForRoadNode(feature.roadNode);
-            this.selectedRoadNodeIndices.insertPoint(pointIndex);
-            this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.selectedPointIndices.insert([pointIndex]);
+            this.selectedPointIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
           case "roadLink": {
             const pointIndices = this.geometry.getPointIndicesForRoadLink(feature.roadLink);
-            this.selectedRoadNodeIndices.insertPoints(pointIndices);
-            this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.selectedPointIndices.insert(pointIndices);
+            this.selectedPointIndices.render(gl, gl.DYNAMIC_DRAW);
             const lineIndices = this.geometry.getLineIndicesForRoadLink(feature.roadLink);
-            this.selectedRoadLinkIndices.insertLine(lineIndices);
-            this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.selectedLineIndices.insert(lineIndices);
+            this.selectedLineIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
           case "road": {
             const pointIndices = this.geometry.getPointIndicesForRoad(feature.road);
-            this.selectedRoadNodeIndices.insertPoints(pointIndices);
-            this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.selectedPointIndices.insert(pointIndices);
+            this.selectedPointIndices.render(gl, gl.DYNAMIC_DRAW);
             const lineIndices = this.geometry.getLineIndicesForRoad(feature.road);
-            this.selectedRoadLinkIndices.insertLine(lineIndices);
-            this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+            this.selectedLineIndices.insert(lineIndices);
+            this.selectedLineIndices.render(gl, gl.DYNAMIC_DRAW);
             break;
           }
         }
@@ -224,27 +224,27 @@ Controller.prototype = {
     if (feature) {
       switch (feature.tag) {
         case "roadLink": {
-          this.highlightedRoadNodeIndices.clear();
-          this.highlightedRoadLinkIndices.clear();
+          this.highlightedPointIndices.clear();
+          this.highlightedLineIndices.clear();
 
           const pointIndices = this.geometry.getPointIndicesForRoadLink(feature.roadLink);
-          this.highlightedRoadNodeIndices.insertPoints(pointIndices);
-          this.highlightedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+          this.highlightedPointIndices.insert(pointIndices);
+          this.highlightedPointIndices.render(gl, gl.DYNAMIC_DRAW);
           const lineIndices = this.geometry.getLineIndicesForRoadLink(feature.roadLink);
-          this.highlightedRoadLinkIndices.insertLine(lineIndices);
-          this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+          this.highlightedLineIndices.insert(lineIndices);
+          this.highlightedLineIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
         }
         case "road": {
-          this.highlightedRoadNodeIndices.clear();
-          this.highlightedRoadLinkIndices.clear();
+          this.highlightedPointIndices.clear();
+          this.highlightedLineIndices.clear();
 
           const pointIndices = this.geometry.getPointIndicesForRoad(feature.road);
-          this.highlightedRoadNodeIndices.insertPoints(pointIndices);
-          this.highlightedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+          this.highlightedPointIndices.insert(pointIndices);
+          this.highlightedPointIndices.render(gl, gl.DYNAMIC_DRAW);
           const lineIndices = this.geometry.getLineIndicesForRoad(feature.road);
-          this.highlightedRoadLinkIndices.insertLine(lineIndices);
-          this.highlightedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+          this.highlightedLineIndices.insert(lineIndices);
+          this.highlightedLineIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
         }
       }
@@ -257,27 +257,27 @@ Controller.prototype = {
     if (feature) {
       switch (feature.tag) {
         case "roadLink": {
-          this.selectedRoadNodeIndices.clear();
-          this.selectedRoadLinkIndices.clear();
+          this.selectedPointIndices.clear();
+          this.selectedLineIndices.clear();
 
           const pointIndices = this.geometry.getPointIndicesForRoadLink(feature.roadLink);
-          this.selectedRoadNodeIndices.insertPoints(pointIndices);
-          this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+          this.selectedPointIndices.insert(pointIndices);
+          this.selectedPointIndices.render(gl, gl.DYNAMIC_DRAW);
           const lineIndices = this.geometry.getLineIndicesForRoadLink(feature.roadLink);
-          this.selectedRoadLinkIndices.insertLine(lineIndices);
-          this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+          this.selectedLineIndices.insert(lineIndices);
+          this.selectedLineIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
         }
         case "road": {
-          this.selectedRoadNodeIndices.clear();
-          this.selectedRoadLinkIndices.clear();
+          this.selectedPointIndices.clear();
+          this.selectedLineIndices.clear();
 
           const pointIndices = this.geometry.getPointIndicesForRoad(feature.road);
-          this.selectedRoadNodeIndices.insertPoints(pointIndices);
-          this.selectedRoadNodeIndices.render(gl, gl.DYNAMIC_DRAW);
+          this.selectedPointIndices.insert(pointIndices);
+          this.selectedPointIndices.render(gl, gl.DYNAMIC_DRAW);
           const lineIndices = this.geometry.getLineIndicesForRoad(feature.road);
-          this.selectedRoadLinkIndices.insertLine(lineIndices);
-          this.selectedRoadLinkIndices.render(gl, gl.DYNAMIC_DRAW);
+          this.selectedLineIndices.insert(lineIndices);
+          this.selectedLineIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
         }
       }
