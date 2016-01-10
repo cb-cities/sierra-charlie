@@ -7,6 +7,24 @@ import Html.Events exposing (onMouseEnter, onMouseLeave, onClick)
 import Types exposing (..)
 
 
+viewFeatureTag : String -> Html
+viewFeatureTag tag =
+    div [class "ui-feature-tag"] [text tag]
+
+
+viewFeatureLabel : String -> Html
+viewFeatureLabel label =
+    div [class "ui-feature-label"] [text (label ++ ": ")]
+
+
+viewItem : String -> Html -> Html
+viewItem bullet item =
+    div []
+      [ span [] [text (bullet ++ " ")]
+      , span [] [item]
+      ]
+
+
 viewTOID : Trigger -> String -> Html
 viewTOID trigger toid =
     a
@@ -17,204 +35,162 @@ viewTOID trigger toid =
       [text toid]
 
 
-viewTOIDItem : Trigger -> String -> Html
-viewTOIDItem trigger toid =
-    div []
-      [ span [] [text "* "]
-      , span [] [viewTOID trigger toid]
-      ]
+viewTOIDItem : Trigger -> String -> String -> Html
+viewTOIDItem trigger bullet toid =
+    viewItem bullet (viewTOID trigger toid)
 
 
-viewTOIDItems : Trigger -> String -> List String -> List Html
-viewTOIDItems trigger label toids =
-    if toids == []
-      then []
-      else
-        [ div []
-            ( [div [class "ui-feature-label"] [text label]] ++
-              List.map (viewTOIDItem trigger) toids
-            )
-        ]
+viewLabeled : String -> List Html -> List Html
+viewLabeled label contents =
+    [div [] ([viewFeatureLabel label] ++ contents)]
+
+
+viewLabeledList : String -> (a -> Html) -> List a -> List Html
+viewLabeledList label view items =
+    case items of
+      [] ->
+        []
+      _ ->
+        viewLabeled label (List.map view items)
 
 
 viewRoadNode : Trigger -> RoadNode -> Html
-viewRoadNode trigger node =
+viewRoadNode trigger roadNode =
     let
-      tagPart =
-        [div [class "ui-feature-tag"] [text "Road Node"]]
-      toidPart =
-        [ div []
-            [ div [class "ui-feature-label"] [text "TOID: "]
-            , div [] [viewTOID trigger node.toid]
-            ]
-        ]
-      roadLinksPart =
-        viewTOIDItems trigger "Road Links: " node.roadLinks
-      addressPart =
-        case node.address of
+      tag =
+        [viewFeatureTag "Road Node"]
+      description =
+        case roadNode.address of
           Nothing ->
             []
           Just address ->
-            [ div []
-                [ div [class "ui-feature-label"] [text "Approximate Address: "]
-                , div [] [text address]
-                ]
-            ]
+            viewLabeled "Description" [text address]
+      toid =
+        viewLabeled "TOID" [viewTOID trigger roadNode.toid]
+      roadLinks =
+        viewLabeledList "Road Links" (viewTOIDItem trigger "*") roadNode.roadLinks
     in
-      div [] (tagPart ++ toidPart ++ roadLinksPart ++ addressPart)
+      div [] (tag ++ description ++ toid ++ roadLinks)
+
+
+viewRoadLinkDescription : RoadLink -> Html
+viewRoadLinkDescription roadLink =
+    text (roadLink.term ++ ", " ++ roadLink.nature)
 
 
 viewRoadLink : Trigger -> RoadLink -> Html
-viewRoadLink trigger link =
+viewRoadLink trigger roadLink =
     let
-      tagPart =
-        [div [class "ui-feature-tag"] [text "Road Link"]]
-      toidPart =
-        [ div []
-            [ div [class "ui-feature-label"] [text "TOID: "]
-            , div [] [viewTOID trigger link.toid]
-            ]
-        ]
-      roadNodesPart =
-        case (link.negativeNode, link.positiveNode) of
+      tag =
+        [viewFeatureTag "Road Link"]
+      description =
+        viewLabeled "Description" [viewRoadLinkDescription roadLink]
+      toid =
+        viewLabeled "TOID" [viewTOID trigger roadLink.toid]
+      roadNodes =
+        case (roadLink.negativeNode, roadLink.positiveNode) of
           (Nothing, Nothing) ->
             []
-          (Just neg, Nothing) ->
-            [ div []
-                [ div [class "ui-feature-label"] [text "Road Nodes: "]
-                , div [] [ span [] [text "- "]
-                         , viewTOID trigger neg
-                         ]
-                ]
-            ]
-          (Nothing, Just pos) ->
-            [ div []
-                [ div [class "ui-feature-label"] [text "Road Nodes: "]
-                , div [] [ span [] [text "+ "]
-                         , viewTOID trigger pos
-                         ]
-                ]
-            ]
-          (Just neg, Just pos) ->
-            [ div []
-                [ div [class "ui-feature-label"] [text "Road Nodes: "]
-                , div [] [ span [] [text "- "]
-                         , viewTOID trigger neg
-                         ]
-                , div [] [ span [] [text "+ "]
-                         , viewTOID trigger pos
-                         ]
-                ]
-            ]
-      descriptionPart =
-        [ div []
-            [ div [class "ui-feature-label"] [text "Description: "]
-            , div [] [text (link.term ++ ", " ++ link.nature)]
-            ]
-        ]
-      roadsPart =
-        if link.roads == []
-          then []
-          else
-            [ div []
-                ( [div [class "ui-feature-label"] [text "Roads: "]] ++
-                    List.map (viewRoadItem trigger) link.roads
-                )
-            ]
+          (Just negativeNode, Nothing) ->
+            viewLabeled "Road Nodes"
+              [ viewTOIDItem trigger "-" negativeNode
+              ]
+          (Nothing, Just positiveNode) ->
+            viewLabeled "Road Nodes"
+              [ viewTOIDItem trigger "+" positiveNode
+              ]
+          (Just negativeNode, Just positiveNode) ->
+            viewLabeled "Road Nodes"
+              [ viewTOIDItem trigger "-" negativeNode
+              , viewTOIDItem trigger "+" positiveNode
+              ]
+      roads =
+        viewLabeledList "Roads" (viewRoadItem trigger) roadLink.roads
     in
-      div [] (tagPart ++ toidPart ++ roadNodesPart ++ descriptionPart ++ roadsPart)
+      div [] (tag ++ description ++ toid ++ roadNodes ++ roads)
+
+
+viewRoadDescription : Road -> Html
+viewRoadDescription road =
+    case road.term of
+      Nothing ->
+        text (road.name ++ ", " ++ road.group)
+      Just term ->
+        text (road.name ++ ", " ++ road.group ++ ", " ++ term)
 
 
 viewRoadItem : Trigger -> Road -> Html
 viewRoadItem trigger road =
     let
-      toidPart =
-        [viewTOIDItem trigger road.toid]
+      toid =
+        [viewTOIDItem trigger "*" road.toid]
       description =
-        case road.term of
-          Nothing ->
-            road.name ++ ", " ++ road.group
-          Just term ->
-            road.name ++ ", " ++ road.group ++ ", " ++ term
-      descriptionPart =
-        [ div []
-            [ span [] [text "  "]
-            , span [] [text description]
-            ]
-        ]
+        [viewItem " " (viewRoadDescription road)]
     in
-      div [] (toidPart ++ descriptionPart)
+      div [] (toid ++ description)
 
 
 viewRoad : Trigger -> Road -> Html
 viewRoad trigger road =
     let
-      tagPart =
-        [div [class "ui-feature-tag"] [text "Road"]]
-      toidPart =
-        [ div []
-            [ div [class "ui-feature-label"] [text "TOID: "]
-            , div [] [viewTOID trigger road.toid]
-            ]
-        ]
-      namePart =
-        [ div []
-            [ div [class "ui-feature-label"] [text "Name: "]
-            , div [] [text road.name]
-            ]
-        ]
+      tag =
+        [viewFeatureTag "Road"]
       description =
-        case road.term of
-          Nothing ->
-            road.name ++ ", " ++ road.group
-          Just term ->
-            road.name ++ ", " ++ road.group ++ ", " ++ term
-      descriptionPart =
-        [ div []
-            [ div [class "ui-feature-label"] [text "Description: "]
-            , div [] [text description]
-            ]
-        ]
-      roadLinksPart =
-        viewTOIDItems trigger "Road Links: " road.roadLinks
+        viewLabeled "Description" [viewRoadDescription road]
+      toid =
+        viewLabeled "TOID" [viewTOID trigger road.toid]
+      roadLinks =
+        viewLabeledList "Road Links" (viewTOIDItem trigger "*") road.roadLinks
     in
-      div [] (tagPart ++ toidPart ++ namePart ++ descriptionPart ++ roadLinksPart)
+      div [] (tag ++ description ++ toid ++ roadLinks)
 
 
 viewFeature : Trigger -> String -> Maybe Feature -> Html
-viewFeature trigger featureId feature =
-    case feature of
-      Nothing ->
-        div [id featureId, class "ui-feature", style [("display", "none")]] []
-      Just f ->
-        let
-          contents =
-            case (f.tag, f.roadNode, f.roadLink, f.road) of
-              ("roadNode", Just node, Nothing, Nothing) ->
-                [viewRoadNode trigger node]
-              ("roadLink", Nothing, Just link, Nothing) ->
-                [viewRoadLink trigger link]
+viewFeature trigger featureId maybeFeature =
+    let
+      display =
+        if maybeFeature == Nothing
+          then [style [("display", "none")]]
+          else []
+      contents =
+        case maybeFeature of
+          Nothing ->
+            []
+          Just feature ->
+            case (feature.tag, feature.roadNode, feature.roadLink, feature.road) of
+              ("roadNode", Just roadNode, Nothing, Nothing) ->
+                [viewRoadNode trigger roadNode]
+              ("roadLink", Nothing, Just roadLink, Nothing) ->
+                [viewRoadLink trigger roadLink]
               ("road", Nothing, Nothing, Just road) ->
                 [viewRoad trigger road]
               _ ->
                 []
-        in
-          div [id featureId, class "ui-feature"] contents
+    in
+      div ([id featureId, class "ui-feature"] ++ display) contents
+
+
+viewLoadingProgress : Float -> Html
+viewLoadingProgress loadingProgress =
+    let
+      opacity =
+        if loadingProgress == 100
+          then [style [("opacity", "0")]]
+          else []
+    in
+      div ([id "ui-loading-progress-track"] ++ opacity)
+        [ div
+            [ id "ui-loading-progress-bar"
+            , style [("width", toString loadingProgress ++ "%")]
+            ]
+            []
+        ]
 
 
 view : Trigger -> Model -> Html
 view trigger model =
     div []
-      [ div
-          [ id "ui-loading-progress-track"
-          , style [("opacity", if model.loadingProgress == 100 then "0" else "1")]
-          ]
-          [ div
-            [ id "ui-loading-progress-bar"
-            , style [("width", toString model.loadingProgress ++ "%")]
-            ]
-            []
-          ]
+      [ viewLoadingProgress model.loadingProgress
       , viewFeature trigger "ui-highlighted-feature" model.highlightedFeature
       , viewFeature trigger "ui-selected-feature" model.selectedFeature
       ]
