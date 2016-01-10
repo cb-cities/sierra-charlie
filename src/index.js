@@ -16,9 +16,9 @@ require("./index.appcache");
   const controller = window.Controller = new Controller();
   window.App = r.render(app(), document.getElementById("app"));
   window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
-      setLoadingProgress: 0,
-      setHighlightedFeature: null,
-      setSelectedFeature: null,
+      loadingProgress: 0,
+      highlightedFeature: null,
+      selectedFeature: null,
     });
   window.UI.ports.hoveredTOID.subscribe(function (toid) {
       controller.highlightFeatureByTOID(toid);
