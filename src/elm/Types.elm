@@ -49,8 +49,8 @@ type Action =
   | SetLoadingProgress Float
   | SetHighlightedFeature (Maybe Feature)
   | SetSelectedFeature (Maybe Feature)
-  | SendHoveredTOID (Maybe String)
-  | SendClickedTOID (Maybe String)
+  | HighlightFeature (Maybe String)
+  | SelectFeature (Maybe String)
 
 
 type alias Trigger =

@@ -20,10 +20,10 @@ require("./index.appcache");
       highlightedFeature: null,
       selectedFeature: null,
     });
-  window.UI.ports.hoveredTOID.subscribe(function (toid) {
+  window.UI.ports.highlightFeature.subscribe(function (toid) {
       controller.highlightFeatureByTOID(toid);
     });
-  window.UI.ports.clickedTOID.subscribe(function (toid) {
+  window.UI.ports.selectFeature.subscribe(function (toid) {
       controller.selectFeatureByTOID(toid);
     });
 })();

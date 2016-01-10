@@ -28,9 +28,9 @@ viewItem bullet item =
 viewTOID : Trigger -> String -> Html
 viewTOID trigger toid =
     a
-      [ onClick trigger (SendClickedTOID (Just toid))
-      , onMouseEnter trigger (SendHoveredTOID (Just toid))
-      , onMouseLeave trigger (SendHoveredTOID Nothing)
+      [ onClick trigger (SelectFeature (Just toid))
+      , onMouseEnter trigger (HighlightFeature (Just toid))
+      , onMouseLeave trigger (HighlightFeature Nothing)
       ]
       [text toid]
 
