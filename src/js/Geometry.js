@@ -100,6 +100,19 @@ Geometry.prototype = {
     return results;
   },
 
+  getPointIndicesForRoadLink: function (roadLink) {
+    const results = [];
+    if (roadLink.negativeNode) {
+      const node = this.roadNodes[roadLink.negativeNode];
+      results.push(this.getPointIndexForRoadNode(node));
+    }
+    if (roadLink.positiveNode) {
+      const node = this.roadNodes[roadLink.positiveNode];
+      results.push(this.getPointIndexForRoadNode(node));
+    }
+    return results;
+  },
+
   getLineIndicesForRoadLink: function (roadLink) {
     const start = roadLink.indexOffset;
     const end = start + (roadLink.pointCount - 1) * 2;
@@ -125,6 +138,15 @@ Geometry.prototype = {
 
   getMidpointForRoad: function (road) {
     return rect.midpoint(this.getBoundsForRoad(0, road));
+  },
+
+  getPointIndicesForRoad: function (road) {
+    const results = [];
+    for (let i = 0; i < road.roadLinks.length; i++) {
+      const link = this.roadLinks[road.roadLinks[i]];
+      results.push.apply(results, this.getPointIndicesForRoadLink(link));
+    }
+    return results;
   },
 
   getLineIndicesForRoad: function (road) {
