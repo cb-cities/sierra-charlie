@@ -100,10 +100,10 @@ module.exports = {
   },
 
   componentDidMount: function () {
-    this.highlightedRoadNodeIndices = Controller.highlightedRoadNodeIndices; // TODO
-    this.highlightedRoadLinkIndices = Controller.highlightedRoadLinkIndices; // TODO
-    this.selectedRoadNodeIndices = Controller.selectedRoadNodeIndices; // TODO
-    this.selectedRoadLinkIndices = Controller.selectedRoadLinkIndices; // TODO
+    this.highlightedPointIndices = Controller.highlightedPointIndices; // TODO
+    this.highlightedLineIndices = Controller.highlightedLineIndices; // TODO
+    this.selectedPointIndices = Controller.selectedPointIndices; // TODO
+    this.selectedLineIndices = Controller.selectedLineIndices; // TODO
 
     this.updateFrameSpace();
     this.startDrawing();
@@ -253,9 +253,9 @@ module.exports = {
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
         Geometry.drawAllRoadLinks(gl); // TODO
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-        this.selectedRoadLinkIndices.draw(gl, gl.LINES); // TODO
+        this.selectedLineIndices.draw(gl, gl.LINES); // TODO
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
-        this.highlightedRoadLinkIndices.draw(gl, gl.LINES); // TODO
+        this.highlightedLineIndices.draw(gl, gl.LINES); // TODO
 
         // Draw road nodes
         const baseRoadNodeSize = cx.pixelRatio * 8;
@@ -265,9 +265,9 @@ module.exports = {
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
         Geometry.drawAllRoadNodes(gl); // TODO
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-        this.selectedRoadNodeIndices.draw(gl, gl.POINTS); // TODO
+        this.selectedPointIndices.draw(gl, gl.POINTS); // TODO
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
-        this.highlightedRoadNodeIndices.draw(gl, gl.POINTS); // TODO
+        this.highlightedPointIndices.draw(gl, gl.POINTS); // TODO
       }
     }
   }

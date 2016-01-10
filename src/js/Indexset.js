@@ -11,16 +11,8 @@ Indexset.prototype = {
     this.indexArr = [];
   },
 
-  insertPoint: function (newIndex) {
-    this.indexArr.push(newIndex);
-  },
-
-  insertPoints: function (newIndices) {
-    this.indexArr.push.apply(this.indexArr, newIndices);
-  },
-
-  insertLine: function (newIndices) {
-    this.indexArr.push.apply(this.indexArr, newIndices);
+  insert: function (indices) {
+    this.indexArr.push.apply(this.indexArr, indices);
   },
 
   render: function (gl, usage) {
