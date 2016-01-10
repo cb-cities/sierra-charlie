@@ -122,8 +122,8 @@ GeometryLoader.prototype = {
           let ps = [];
           for (let i = 0; i < obj.polyline.length / 2; i++) {
             ps.push({
-                x: parseFloat(obj.polyline[2 * i]),
-                y: parseFloat(obj.polyline[2 * i + 1])
+                x: parseFloat(obj.polyline[i * 2]),
+                y: parseFloat(obj.polyline[i * 2 + 1])
               });
           }
           if (obj.polyline.length > 4) {

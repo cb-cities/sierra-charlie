@@ -154,10 +154,10 @@ module.exports = {
 
   startDrawing: function () {
     this.isAnimationFrameRequested = requestAnimationFrame(this.onAnimationFrameReceived);
-    this.updateDrawingContext();
+    this.renderContents();
   },
 
-  updateDrawingContext: function () {
+  renderContents: function () {
     let gl, cx;
     if (!this.drawingContext) {
       this.isDrawingNeeded = true;
@@ -246,24 +246,24 @@ module.exports = {
         gl.vertexAttribPointer(cx.vertexLoc, 2, gl.FLOAT, false, 0, 0);
 
         // Draw road links
-        const baseRoadLinkSize = 2 * cx.pixelRatio;
+        const baseRoadLinkSize = cx.pixelRatio * 2;
         const roadLinkSize = baseRoadLinkSize * Math.sqrt(zoomLevel) / zoomLevel;
         const roadLinkAlpha = Math.min(roadLinkSize, 1);
         gl.lineWidth(roadLinkSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
-        Geometry.drawRoadLinks(gl); // TODO
+        Geometry.drawAllRoadLinks(gl); // TODO
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
         this.selectedRoadLinkIndices.draw(gl, gl.LINES); // TODO
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
         this.highlightedRoadLinkIndices.draw(gl, gl.LINES); // TODO
 
         // Draw road nodes
-        const baseRoadNodeSize = 8 * cx.pixelRatio;
+        const baseRoadNodeSize = cx.pixelRatio * 8;
         const roadNodeSize = baseRoadNodeSize * Math.cbrt(zoomLevel) / zoomLevel;
         const roadNodeAlpha = Math.min(roadNodeSize, 1);
         gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
-        Geometry.drawRoadNodes(gl); // TODO
+        Geometry.drawAllRoadNodes(gl); // TODO
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
         this.selectedRoadNodeIndices.draw(gl, gl.POINTS); // TODO
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
