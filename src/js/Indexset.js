@@ -15,6 +15,10 @@ Indexset.prototype = {
     this.indexArr.push(newIndex);
   },
 
+  insertPoints: function (newIndices) {
+    this.indexArr.push.apply(this.indexArr, newIndices);
+  },
+
   insertLine: function (newIndices) {
     this.indexArr.push.apply(this.indexArr, newIndices);
   },
