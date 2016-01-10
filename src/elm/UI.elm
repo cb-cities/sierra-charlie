@@ -78,16 +78,16 @@ update action model =
     case action of
       Idle ->
         (model, none)
-      SetLoadingProgress newProgress ->
-        ({model | loadingProgress = max 0 newProgress}, none)
-      SetHighlightedFeature newFeature ->
-        ({model | highlightedFeature = newFeature}, none)
-      SetSelectedFeature newFeature ->
-        ({model | selectedFeature = newFeature}, none)
-      SendHoveredTOID newTOID ->
-        (model, send hoveredTOIDMailbox.address newTOID)
-      SendClickedTOID newTOID ->
-        (model, send clickedTOIDMailbox.address newTOID)
+      SetLoadingProgress progress ->
+        ({model | loadingProgress = max 0 progress}, none)
+      SetHighlightedFeature feature ->
+        ({model | highlightedFeature = feature}, none)
+      SetSelectedFeature feature ->
+        ({model | selectedFeature = feature}, none)
+      SendHoveredTOID toid ->
+        (model, send hoveredTOIDMailbox.address toid)
+      SendClickedTOID toid ->
+        (model, send clickedTOIDMailbox.address toid)
 
 
 viewTOID : Address Action -> String -> Html
@@ -308,9 +308,9 @@ init =
     (defaultModel, Effects.task (Task.succeed Idle))
 
 
-port setLoadingProgress : Signal Float
-port setHighlightedFeature : Signal (Maybe Feature)
-port setSelectedFeature : Signal (Maybe Feature)
+port loadingProgress : Signal Float
+port highlightedFeature : Signal (Maybe Feature)
+port selectedFeature : Signal (Maybe Feature)
 
 
 app : App Model
@@ -320,9 +320,9 @@ app =
       , update = update
       , view = view
       , inputs =
-          [ Signal.map SetLoadingProgress setLoadingProgress
-          , Signal.map SetHighlightedFeature setHighlightedFeature
-          , Signal.map SetSelectedFeature setSelectedFeature
+          [ Signal.map SetLoadingProgress loadingProgress
+          , Signal.map SetHighlightedFeature highlightedFeature
+          , Signal.map SetSelectedFeature selectedFeature
           ]
       }
 

@@ -84,15 +84,15 @@ Controller.prototype = {
   },
 
   sendLoadingProgress: function () {
-    UI.ports.setLoadingProgress.send(this.geometry.getItemCount() / defs.maxGeometryItemCount * 100);
+    UI.ports.loadingProgress.send(this.geometry.getItemCount() / defs.maxGeometryItemCount * 100);
   },
 
   sendHighlightedFeature: function () {
-    UI.ports.setHighlightedFeature.send(this.highlightedFeature);
+    UI.ports.highlightedFeature.send(this.highlightedFeature);
   },
 
   sendSelectedFeature: function () {
-    UI.ports.setSelectedFeature.send(this.selectedFeature);
+    UI.ports.selectedFeature.send(this.selectedFeature);
   },
 
   getClosestFeature: function () { // TODO: Refactor
