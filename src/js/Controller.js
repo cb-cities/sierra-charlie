@@ -304,7 +304,7 @@ Controller.prototype = {
     for (let i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
     }
-    App.updateDrawingContext(); // TODO
+    App.renderContents(); // TODO
     this.sendLoadingProgress();
     this.updateHighlightedFeature();
     this.updateSelectedFeature();
@@ -317,7 +317,7 @@ Controller.prototype = {
     for (let i = 0; i < roadLinks.length; i++) {
       this.roadLinkTree.insert(roadLinks[i]);
     }
-    App.updateDrawingContext(); // TODO
+    App.renderContents(); // TODO
     this.sendLoadingProgress();
     this.updateHighlightedFeature();
     this.updateSelectedFeature();

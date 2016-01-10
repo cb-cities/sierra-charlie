@@ -30,9 +30,9 @@ function Geometry(props) {
   this.roadLinkIndexArr = new Uint32Array(defs.maxRoadLinkIndexCount);
   this.roadLinkIndexCount = 0;
   this.roads = {};
-  this.addressForUnloadedNode = {};
-  this.linksForUnloadedNode = {};
-  this.roadsForUnloadedLink = {};
+  this.pendingAddresses = {};
+  this.pendingRoadLinks = {};
+  this.pendingRoads = {};
   this.worker = new GeometryLoaderWorker();
   this.worker.addEventListener("message", this.onMessage.bind(this));
   this.worker.postMessage({
@@ -85,30 +85,38 @@ Geometry.prototype = {
   },
 
   getPointIndexForRoadNode: function (roadNode) {
-    return roadNode.vertexOffset;
+    return this.roadNodeIndexArr[roadNode.indexOffset];
   },
 
   getPointsForRoadLink: function (roadLink) {
     const results = [];
     for (let i = 0; i < roadLink.pointCount; i++) {
-      const k = roadLink.vertexOffset + i;
+      const vertexOffset = roadLink.vertexOffset + i;
       results.push({
-          x: this.vertexArr[2 * k],
-          y: this.vertexArr[2 * k + 1]
+          x: this.vertexArr[vertexOffset * 2],
+          y: this.vertexArr[vertexOffset * 2 + 1]
         });
     }
     return results;
   },
 
   getPointIndicesForRoadLink: function (roadLink) {
-    const results = [];
+    let indexCount = 0;
     if (roadLink.negativeNode) {
-      const node = this.roadNodes[roadLink.negativeNode];
-      results.push(this.getPointIndexForRoadNode(node));
+      indexCount++;
     }
     if (roadLink.positiveNode) {
-      const node = this.roadNodes[roadLink.positiveNode];
-      results.push(this.getPointIndexForRoadNode(node));
+      indexCount++;
+    }
+    const results = new Uint32Array(indexCount);
+    let indexOffset = 0;
+    if (roadLink.negativeNode) {
+      const roadNode = this.roadNodes[roadLink.negativeNode];
+      results[indexOffset++] = this.getPointIndexForRoadNode(roadNode);
+    }
+    if (roadLink.positiveNode) {
+      const roadNode = this.roadNodes[roadLink.positiveNode];
+      results[indexOffset++] = this.getPointIndexForRoadNode(roadNode);
     }
     return results;
   },
@@ -127,44 +135,53 @@ Geometry.prototype = {
     return polyline.midpoint(this.getPointsForRoadLink(roadLink));
   },
 
+  getPointIndicesForRoad: function (road) {
+    let indexCount = 0;
+    const parts = [];
+    for (let i = 0; i < road.roadLinks.length; i++) {
+      const roadLink = this.roadLinks[road.roadLinks[i]];
+      const part = this.getPointIndicesForRoadLink(roadLink);
+      indexCount += part.length;
+      parts.push(part);
+    }
+    const results = new Uint32Array(indexCount);
+    let indexOffset = 0;
+    for (let i = 0; i < road.roadLinks.length; i++) {
+      results.set(parts[i], indexOffset);
+      indexOffset += parts[i].length;
+    }
+    return results;
+  },
+
+  getLineIndicesForRoad: function (road) {
+    let indexCount = 0;
+    const parts = [];
+    for (let i = 0; i < road.roadLinks.length; i++) {
+      const roadLink = this.roadLinks[road.roadLinks[i]];
+      const part = this.getLineIndicesForRoadLink(roadLink);
+      indexCount += part.length;
+      parts.push(part);
+    }
+    const results = new Uint32Array(indexCount);
+    let indexOffset = 0;
+    for (let i = 0; i < road.roadLinks.length; i++) {
+      results.set(parts[i], indexOffset);
+      indexOffset += parts[i].length;
+    }
+    return results;
+  },
+
   getBoundsForRoad: function (margin, road) {
     let result = rect.invalid;
     for (let i = 0; i < road.roadLinks.length; i++) {
-      const link = this.roadLinks[road.roadLinks[i]];
-      result = rect.union(result, this.getBoundsForRoadLink(margin, link));
+      const roadLink = this.roadLinks[road.roadLinks[i]];
+      result = rect.union(result, this.getBoundsForRoadLink(margin, roadLink));
     }
     return result;
   },
 
   getMidpointForRoad: function (road) {
     return rect.midpoint(this.getBoundsForRoad(0, road));
-  },
-
-  getPointIndicesForRoad: function (road) {
-    const results = [];
-    for (let i = 0; i < road.roadLinks.length; i++) {
-      const link = this.roadLinks[road.roadLinks[i]];
-      results.push.apply(results, this.getPointIndicesForRoadLink(link));
-    }
-    return results;
-  },
-
-  getLineIndicesForRoad: function (road) {
-    const parts = [];
-    let count = 0;
-    for (let i = 0; i < road.roadLinks.length; i++) {
-      const link = this.roadLinks[road.roadLinks[i]];
-      const part = this.getLineIndicesForRoadLink(link);
-      parts.push(part);
-      count += part.length;
-    }
-    const results = new Uint32Array(count);
-    let offset = 0;
-    for (let i = 0; i < road.roadLinks.length; i++) {
-      results.set(parts[i], offset);
-      offset += parts[i].length;
-    }
-    return results;
   },
 
   onMessage: function (event) {
@@ -191,27 +208,6 @@ Geometry.prototype = {
     }
   },
 
-  onLoadingFinished: function () {
-    this.worker.terminate();
-    delete this.addressForUnloadedNode;
-    delete this.linksForUnloadedNode;
-    delete this.roadsForUnloadedLink;
-    const roadLinkToids = Object.keys(this.roadLinks);
-    for (let i = 0; i < roadLinkToids.length; i++) {
-      const roadLink = this.roadLinks[roadLinkToids[i]];
-      delete roadLink.unloadedNegativeNode;
-      delete roadLink.unloadedPositiveNode;
-    }
-    const roadToids = Object.keys(this.roads);
-    for (let j = 0; j < roadToids.length; j++) {
-      const road = this.roads[roadToids[j]];
-      delete road.unloadedLinks;
-    }
-    if (this.props.onLoadingFinished) {
-      this.props.onLoadingFinished();
-    }
-  },
-
   onRoadNodesLoaded: function (data) {
     this.isRenderingNeeded = true;
     this.itemCount += data.roadNodes.length;
@@ -220,23 +216,28 @@ Geometry.prototype = {
     this.roadNodeIndexArr.set(data.roadNodeIndexArr, this.roadNodeIndexCount);
     this.roadNodeIndexCount += data.roadNodeIndexArr.length;
     for (let i = 0; i < data.roadNodes.length; i++) {
-      const node = data.roadNodes[i];
-      const toid = node.toid;
-      node.address = this.addressForUnloadedNode[toid] || null;
-      node.roadLinks = this.linksForUnloadedNode[toid] || [];
-      for (let j = 0; j < node.roadLinks.length; j++) {
-        const link = this.roadLinks[node.roadLinks[j]];
-        if (toid === link.unloadedNegativeNode) {
-          link.negativeNode = toid;
-        } else if (toid === link.unloadedPositiveNode) {
-          link.positiveNode = toid;
-        }
-      }
-      this.roadNodes[toid] = node;
+      this.insertRoadNode(data.roadNodes[i]);
     }
     if (this.props.onRoadNodesLoaded) {
       this.props.onRoadNodesLoaded(data.roadNodes);
     }
+  },
+
+  insertRoadNode: function (roadNode) {
+    const toid = roadNode.toid;
+    roadNode.address = this.pendingAddresses[toid] || null;
+    roadNode.roadLinks = this.pendingRoadLinks[toid] || [];
+    for (let i = 0; i < roadNode.roadLinks.length; i++) {
+      const roadLink = this.roadLinks[roadNode.roadLinks[i]];
+      if (toid === roadLink.unloadedNegativeNode) {
+        roadLink.negativeNode = toid;
+        delete roadLink.unloadedNegativeNode;
+      } else if (toid === roadLink.unloadedPositiveNode) {
+        roadLink.positiveNode = toid;
+        delete roadLink.unloadedPositiveNode;
+      }
+    }
+    this.roadNodes[toid] = roadNode;
   },
 
   onRoadLinksLoaded: function (data) {
@@ -247,66 +248,88 @@ Geometry.prototype = {
     this.roadLinkIndexArr.set(data.roadLinkIndexArr, this.roadLinkIndexCount);
     this.roadLinkIndexCount += data.roadLinkIndexArr.length;
     for (let i = 0; i < data.roadLinks.length; i++) {
-      const link = data.roadLinks[i];
-      const toid = link.toid;
-      if (link.unloadedNegativeNode in this.roadNodes) {
-        pushUnique(this.roadNodes[link.unloadedNegativeNode], "roadLinks", toid);
-        link.negativeNode = link.unloadedNegativeNode;
-      } else {
-        pushUnique(this.linksForUnloadedNode, link.unloadedNegativeNode, toid);
-      }
-      if (link.unloadedPositiveNode in this.roadNodes) {
-        pushUnique(this.roadNodes[link.unloadedPositiveNode], "roadLinks", toid);
-        link.positiveNode = link.unloadedPositiveNode;
-      } else {
-        pushUnique(this.linksForUnloadedNode, link.unloadedPositiveNode, toid);
-      }
-      link.roads = this.roadsForUnloadedLink[toid] || [];
-      for (let j = 0; j < link.roads.length; j++) {
-        const road = link.roads[j];
-        pushUnique(road, "roadLinks", toid);
-      }
-      this.roadLinks[toid] = link;
+      this.insertRoadLink(data.roadLinks[i]);
     }
     if (this.props.onRoadLinksLoaded) {
       this.props.onRoadLinksLoaded(data.roadLinks);
     }
   },
 
+  insertRoadLink: function (roadLink) {
+    const toid = roadLink.toid;
+    if (roadLink.unloadedNegativeNode in this.roadNodes) {
+      pushUnique(this.roadNodes[roadLink.unloadedNegativeNode], "roadLinks", toid);
+      roadLink.negativeNode = roadLink.unloadedNegativeNode;
+      delete roadLink.unloadedNegativeNode;
+    } else {
+      pushUnique(this.pendingRoadLinks, roadLink.unloadedNegativeNode, toid);
+    }
+    if (roadLink.unloadedPositiveNode in this.roadNodes) {
+      pushUnique(this.roadNodes[roadLink.unloadedPositiveNode], "roadLinks", toid);
+      roadLink.positiveNode = roadLink.unloadedPositiveNode;
+      delete roadLink.unloadedPositiveNode;
+    } else {
+      pushUnique(this.pendingRoadLinks, roadLink.unloadedPositiveNode, toid);
+    }
+    roadLink.roads = this.pendingRoads[toid] || [];
+    for (let i = 0; i < roadLink.roads.length; i++) {
+      const road = roadLink.roads[i];
+      pushUnique(road, "roadLinks", toid);
+    }
+    this.roadLinks[toid] = roadLink;
+  },
+
   onRoadsLoaded: function (data) {
     this.itemCount += data.roads.length;
     for (let i = 0; i < data.roads.length; i++) {
-      const road = data.roads[i];
-      const toid = road.toid;
-      for (let j = 0; j < road.unloadedLinks.length; j++) {
-        const link = road.unloadedLinks[j];
-        if (link in this.roadLinks) {
-          pushUnique(this.roadLinks[link], "roads", road);
-          pushUnique(road, "roadLinks", link);
-        } else {
-          pushUnique(this.roadsForUnloadedLink, link, road);
-        }
-      }
-      this.roads[toid] = road;
+      this.insertRoad(data.roads[i]);
     }
     if (this.props.onRoadsLoaded) {
       this.props.onRoadsLoaded(data.roads);
     }
   },
 
+  insertRoad: function (road) {
+    const toid = road.toid;
+    for (let i = 0; i < road.unloadedLinks.length; i++) {
+      const roadLink = road.unloadedLinks[i];
+      if (roadLink in this.roadLinks) {
+        pushUnique(this.roadLinks[roadLink], "roads", road);
+        pushUnique(road, "roadLinks", roadLink);
+      } else {
+        pushUnique(this.pendingRoads, roadLink, road);
+      }
+    }
+    delete road.unloadedLinks;
+    this.roads[toid] = road;
+  },
+
   onAddressesLoaded: function (data) {
     this.itemCount += data.addresses.length;
     for (let i = 0; i < data.addresses.length; i++) {
-      const address = data.addresses[i];
-      const toid = address.toid;
-      if (toid in this.roadNodes) {
-        this.roadNodes[toid].address = address.text;
-      } else {
-        this.addressForUnloadedNode[toid] = address.text;
-      }
+      this.insertAddress(data.addresses[i]);
     }
     if (this.props.onAddressesLoaded) {
       this.props.onAddressesLoaded(data.addresses);
+    }
+  },
+
+  insertAddress: function (address) {
+    const toid = address.toid;
+    if (toid in this.roadNodes) {
+      this.roadNodes[toid].address = address.text;
+    } else {
+      this.pendingAddresses[toid] = address.text;
+    }
+  },
+
+  onLoadingFinished: function () {
+    this.worker.terminate();
+    delete this.pendingAddresses;
+    delete this.pendingRoadLinks;
+    delete this.pendingRoads;
+    if (this.props.onLoadingFinished) {
+      this.props.onLoadingFinished();
     }
   },
 
@@ -340,12 +363,12 @@ Geometry.prototype = {
     }
   },
 
-  drawRoadNodes: function (gl) {
+  drawAllRoadNodes: function (gl) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexBuf);
     gl.drawElements(gl.POINTS, this.roadNodeIndexCount, gl.UNSIGNED_INT, 0);
   },
 
-  drawRoadLinks: function (gl) {
+  drawAllRoadLinks: function (gl) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexBuf);
     gl.drawElements(gl.LINES, this.roadLinkIndexCount, gl.UNSIGNED_INT, 0);
   }
