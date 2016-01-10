@@ -5,17 +5,17 @@ const rect = require("./rect");
 
 const softMaxItemCount = 16;
 
-function Polyquadtree(left, top, size, getItemBounds) {
+function Polyquadtree(left, top, size, getBounds) {
   this.left = left;
   this.top = top;
   this.size = size;
-  this.getItemBounds = getItemBounds;
+  this.getBounds = getBounds;
   this.items = [];
 }
 
 Polyquadtree.prototype = {
   insert: function (newItem) {
-    const newBounds = this.getItemBounds(0, newItem);
+    const newBounds = this.getBounds(0, newItem);
     if (this.items) {
       if (this.items.length < softMaxItemCount || this.someItemIntersects(newBounds)) {
         this.items.push(newItem);
@@ -41,7 +41,7 @@ Polyquadtree.prototype = {
 
   someItemIntersects: function (r) {
     for (let i = 0; i < this.items.length; i++) {
-      if (rect.intersects(r, this.getItemBounds(0, this.items[i]))) {
+      if (rect.intersects(r, this.getBounds(0, this.items[i]))) {
         return true;
       }
     }
@@ -52,10 +52,10 @@ Polyquadtree.prototype = {
     const halfSize = this.size / 2;
     const midWidth = this.left + halfSize;
     const midHeight = this.top + halfSize;
-    this.topLeft = new Polyquadtree(this.left, this.top, halfSize, this.getItemBounds);
-    this.topRight = new Polyquadtree(midWidth, this.top, halfSize, this.getItemBounds);
-    this.bottomLeft = new Polyquadtree(this.left, midHeight, halfSize, this.getItemBounds);
-    this.bottomRight = new Polyquadtree(midWidth, midHeight, halfSize, this.getItemBounds);
+    this.topLeft = new Polyquadtree(this.left, this.top, halfSize, this.getBounds);
+    this.topRight = new Polyquadtree(midWidth, this.top, halfSize, this.getBounds);
+    this.bottomLeft = new Polyquadtree(this.left, midHeight, halfSize, this.getBounds);
+    this.bottomRight = new Polyquadtree(midWidth, midHeight, halfSize, this.getBounds);
     const items = this.items;
     delete this.items;
     for (let i = 0; i < items.length; i++) {
@@ -68,7 +68,7 @@ Polyquadtree.prototype = {
     if (this.intersects(r)) {
       if (this.items) {
         for (let i = 0; i < this.items.length; i++) {
-          if (rect.intersects(r, this.getItemBounds(0, this.items[i]))) {
+          if (rect.intersects(r, this.getBounds(0, this.items[i]))) {
             results.push(this.items[i]);
           }
         }
