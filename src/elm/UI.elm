@@ -10,34 +10,34 @@ import Types exposing (..)
 import View exposing (view)
 
 
-defaultModel : Model
-defaultModel =
+initialState : State
+initialState =
   { loadingProgress = 0
   , highlightedFeature = Nothing
   , selectedFeature = Nothing
   }
 
 
-init : (Model, Effects Action)
+init : (State, Effects Action)
 init =
-    (defaultModel, Effects.task (Task.succeed Idle))
+    (initialState, Effects.task (Task.succeed Idle))
 
 
-update : Action -> Model -> (Model, Effects Action)
-update action model =
+update : Action -> State -> (State, Effects Action)
+update action state =
     case action of
       Idle ->
-        (model, none)
+        (state, none)
       SetLoadingProgress progress ->
-        ({model | loadingProgress = progress}, none)
+        ({state | loadingProgress = progress}, none)
       SetHighlightedFeature feature ->
-        ({model | highlightedFeature = feature}, none)
+        ({state | highlightedFeature = feature}, none)
       SetSelectedFeature feature ->
-        ({model | selectedFeature = feature}, none)
+        ({state | selectedFeature = feature}, none)
       HighlightFeature toid ->
-        (model, send highlightFeatureMailbox.address toid)
+        (state, send highlightFeatureMailbox.address toid)
       SelectFeature toid ->
-        (model, send selectFeatureMailbox.address toid)
+        (state, send selectFeatureMailbox.address toid)
 
 
 send : Address a -> a -> Effects Action
@@ -45,7 +45,7 @@ send address message =
     Effects.task (Signal.send address message `andThen` \_ -> Task.succeed Idle)
 
 
-ui : App Model
+ui : App State
 ui =
     StartApp.start
       { init = init
