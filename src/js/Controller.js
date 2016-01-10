@@ -84,7 +84,8 @@ Controller.prototype = {
   },
 
   sendLoadingProgress: function () {
-    UI.ports.loadingProgress.send(this.geometry.getItemCount() / defs.maxGeometryItemCount * 100);
+    const loadingProgress = this.geometry.getItemCount() / defs.maxGeometryItemCount * 100;
+    UI.ports.loadingProgress.send(loadingProgress);
   },
 
   sendHighlightedFeature: function () {
