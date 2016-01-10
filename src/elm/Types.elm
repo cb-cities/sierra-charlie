@@ -37,7 +37,7 @@ type alias Feature =
   }
 
 
-type alias Model =
+type alias State =
   { loadingProgress : Float
   , highlightedFeature : Maybe Feature
   , selectedFeature : Maybe Feature

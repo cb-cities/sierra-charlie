@@ -187,10 +187,10 @@ viewLoadingProgress loadingProgress =
         ]
 
 
-view : Trigger -> Model -> Html
-view trigger model =
+view : Trigger -> State -> Html
+view trigger state =
     div []
-      [ viewLoadingProgress model.loadingProgress
-      , viewFeature trigger "ui-highlighted-feature" model.highlightedFeature
-      , viewFeature trigger "ui-selected-feature" model.selectedFeature
+      [ viewLoadingProgress state.loadingProgress
+      , viewFeature trigger "ui-highlighted-feature" state.highlightedFeature
+      , viewFeature trigger "ui-selected-feature" state.selectedFeature
       ]
