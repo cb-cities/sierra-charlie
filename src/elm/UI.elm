@@ -34,10 +34,15 @@ update action model =
         ({model | highlightedFeature = feature}, none)
       SetSelectedFeature feature ->
         ({model | selectedFeature = feature}, none)
-      SendHoveredTOID toid ->
-        (model, send toid toHoveredTOID.address)
-      SendClickedTOID toid ->
-        (model, send toid toClickedTOID.address)
+      HighlightFeature toid ->
+        (model, send highlightFeatureMailbox.address toid)
+      SelectFeature toid ->
+        (model, send selectFeatureMailbox.address toid)
+
+
+send : Address a -> a -> Effects Action
+send address message =
+    Effects.task (Signal.send address message `andThen` \_ -> Task.succeed Idle)
 
 
 ui : App Model
@@ -63,28 +68,23 @@ port highlightedFeature : Signal (Maybe Feature)
 port selectedFeature : Signal (Maybe Feature)
 
 
-port hoveredTOID : Signal (Maybe String)
-port hoveredTOID =
-    toHoveredTOID.signal
+port highlightFeature : Signal (Maybe String)
+port highlightFeature =
+    highlightFeatureMailbox.signal
 
 
-port clickedTOID : Signal (Maybe String)
-port clickedTOID =
-    toClickedTOID.signal
+port selectFeature : Signal (Maybe String)
+port selectFeature =
+    selectFeatureMailbox.signal
 
 
-send : a -> Address a -> Effects Action
-send message address =
-    Effects.task (Signal.send address message `andThen` \_ -> Task.succeed Idle)
-
-
-toHoveredTOID : Mailbox (Maybe String)
-toHoveredTOID =
+highlightFeatureMailbox : Mailbox (Maybe String)
+highlightFeatureMailbox =
     Signal.mailbox Nothing
 
 
-toClickedTOID : Mailbox (Maybe String)
-toClickedTOID =
+selectFeatureMailbox : Mailbox (Maybe String)
+selectFeatureMailbox =
     Signal.mailbox Nothing
 
 
