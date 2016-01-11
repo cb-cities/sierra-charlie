@@ -12,7 +12,8 @@ import View exposing (view)
 
 initialState : State
 initialState =
-  { loadingProgress = 0
+  { mode = Nothing
+  , loadingProgress = 0
   , highlightedFeature = Nothing
   , selectedFeature = Nothing
   }
@@ -28,12 +29,16 @@ update action state =
     case action of
       Idle ->
         (state, none)
-      SetLoadingProgress progress ->
+      ReceiveMode mode ->
+        ({state | mode = mode}, none)
+      ReceiveLoadingProgress progress ->
         ({state | loadingProgress = progress}, none)
-      SetHighlightedFeature feature ->
+      ReceiveHighlightedFeature feature ->
         ({state | highlightedFeature = feature}, none)
-      SetSelectedFeature feature ->
+      ReceiveSelectedFeature feature ->
         ({state | selectedFeature = feature}, none)
+      SetMode mode ->
+        (state, send setModeMailbox.address mode)
       HighlightFeature toid ->
         (state, send highlightFeatureMailbox.address toid)
       SelectFeature toid ->
@@ -52,11 +57,15 @@ ui =
       , update = update
       , view = view
       , inputs =
-          [ Signal.map SetLoadingProgress loadingProgress
-          , Signal.map SetHighlightedFeature highlightedFeature
-          , Signal.map SetSelectedFeature selectedFeature
+          [ Signal.map ReceiveMode mode
+          , Signal.map ReceiveLoadingProgress loadingProgress
+          , Signal.map ReceiveHighlightedFeature highlightedFeature
+          , Signal.map ReceiveSelectedFeature selectedFeature
           ]
       }
+
+
+port mode : Signal (Maybe String)
 
 
 port loadingProgress : Signal Float
@@ -68,6 +77,11 @@ port highlightedFeature : Signal (Maybe Feature)
 port selectedFeature : Signal (Maybe Feature)
 
 
+port setMode : Signal (Maybe String)
+port setMode =
+    setModeMailbox.signal
+
+
 port highlightFeature : Signal (Maybe String)
 port highlightFeature =
     highlightFeatureMailbox.signal
@@ -76,6 +90,11 @@ port highlightFeature =
 port selectFeature : Signal (Maybe String)
 port selectFeature =
     selectFeatureMailbox.signal
+
+
+setModeMailbox : Mailbox (Maybe String)
+setModeMailbox =
+    Signal.mailbox Nothing
 
 
 highlightFeatureMailbox : Mailbox (Maybe String)
