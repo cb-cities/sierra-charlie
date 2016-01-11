@@ -13,6 +13,7 @@ const vector = require("./vector");
 
 
 function Controller() {
+  this.mode = null;
   this.prevCursor = null;
   this.prevClickDate = 0;
   window.Geometry = this.geometry = new Geometry({ // TODO
@@ -83,6 +84,10 @@ Controller.prototype = {
     return compute.toClientPoint(p, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
+  sendMode: function () {
+    UI.ports.mode.send(this.mode);
+  },
+
   sendLoadingProgress: function () {
     const loadingProgress = this.geometry.getItemCount() / defs.maxGeometryItemCount * 100;
     UI.ports.loadingProgress.send(loadingProgress);
@@ -96,12 +101,17 @@ Controller.prototype = {
     UI.ports.selectedFeature.send(this.selectedFeature);
   },
 
-  getClosestFeature: function () { // TODO: Refactor
+  setMode: function (mode) {
+    this.mode = mode;
+    this.sendMode();
+  },
+
+  findClosestRoadNode: function () { // TODO: Refactor
     const cursorP = this.fromClientPoint(this.prevCursor);
     const cursorR = this.fromClientRect(vector.bounds(10, this.prevCursor));
-    const roadNodes = this.roadNodeTree.select(cursorR);
     let closestRoadNodeDistance = Infinity;
     let closestRoadNode = null;
+    const roadNodes = this.roadNodeTree.select(cursorR);
     for (let i = 0; i < roadNodes.length; i++) {
       const p = this.geometry.getPointForRoadNode(roadNodes[i]);
       const d1 = vector.distance(cursorP, p);
@@ -110,9 +120,26 @@ Controller.prototype = {
         closestRoadNode = roadNodes[i];
       }
     }
-    const roadLinks = this.roadLinkTree.select(cursorR);
+    return closestRoadNode;
+  },
+
+  findClosestFeature: function () { // TODO: Refactor
+    const cursorP = this.fromClientPoint(this.prevCursor);
+    const cursorR = this.fromClientRect(vector.bounds(10, this.prevCursor));
+    let closestRoadNodeDistance = Infinity;
+    let closestRoadNode = null;
+    const roadNodes = this.roadNodeTree.select(cursorR);
+    for (let i = 0; i < roadNodes.length; i++) {
+      const p = this.geometry.getPointForRoadNode(roadNodes[i]);
+      const d1 = vector.distance(cursorP, p);
+      if (d1 < closestRoadNodeDistance) {
+        closestRoadNodeDistance = d1;
+        closestRoadNode = roadNodes[i];
+      }
+    }
     let closestRoadLinkDistance = Infinity;
     let closestRoadLink = null;
+    const roadLinks = this.roadLinkTree.select(cursorR);
     for (let j = 0; j < roadLinks.length; j++) {
       const ps = this.geometry.getPointsForRoadLink(roadLinks[j]);
       const d2 = polyline.distance(cursorP, ps);
@@ -196,7 +223,23 @@ Controller.prototype = {
 
   highlightFeatureAtCursor: function () {
     if (this.prevCursor) {
-      this.highlightFeature(this.getClosestFeature());
+      switch (this.mode) {
+        case "routing":
+          // TODO
+          const roadNode = this.findClosestRoadNode();
+          if (roadNode) {
+            const route = this.geometry.findShortestRouteBetweenRoadNodes(this.selectedFeature.roadNode, roadNode);
+            if (route) {
+              this.highlightFeature(route);
+            }
+          } else {
+            this.highlightFeature(null);
+          }
+          break;
+        default: {
+          this.highlightFeature(this.findClosestFeature());
+        }
+      }
     }
   },
 
@@ -337,9 +380,21 @@ Controller.prototype = {
     const delta = now - this.prevClickDate;
     if (this.prevCursor && delta > 500) {
       this.prevClickDate = now;
-      this.selectFeature(this.highlightedFeature);
-      if (this.selectedFeature) {
-        this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
+      switch (this.mode) {
+        case "routing":
+          // TODO
+          this.setMode(null);
+          this.selectFeature(this.highlightedFeature);
+          if (this.selectedFeature) {
+            this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
+          }
+          break;
+        default: {
+          this.selectFeature(this.highlightedFeature);
+          if (this.selectedFeature) {
+            this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
+          }
+        }
       }
     } else {
       this.prevClickDate = null;
@@ -362,6 +417,10 @@ Controller.prototype = {
   onKeyPressed: function (event) { // TODO: Refactor
     const duration = event.shiftKey ? 2500 : 500;
     switch (event.keyCode) {
+      case 27: { // escape
+        this.setMode(null);
+        break;
+      }
       case 37: // left
       case 36: { // home
         const clientWidth = this.getClientWidth();

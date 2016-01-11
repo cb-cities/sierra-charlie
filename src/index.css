@@ -140,3 +140,7 @@ body {
   opacity: 0.6;
   padding-top: 6px;
 }
+
+#ui-highlighted-feature .ui-actions {
+  display: none;
+}

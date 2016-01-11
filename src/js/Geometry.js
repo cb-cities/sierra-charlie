@@ -1,6 +1,7 @@
 "use strict";
 
 const GeometryLoaderWorker = require("worker?inline!./GeometryLoaderWorker");
+const Queue = require("./Queue");
 
 const array = require("./array");
 const defs = require("./defs");
@@ -75,6 +76,90 @@ Geometry.prototype = {
     } else {
       return null;
     }
+  },
+
+  findShortestRouteBetweenRoadNodes: function (startNode, endNode) {
+    if (startNode === endNode) {
+      return null;
+    } else {
+      const parentNodes = {};
+      const nodesToVisit = new Queue();
+      nodesToVisit.enqueue(startNode);
+      while (!nodesToVisit.isEmpty()) {
+        let currentNode = nodesToVisit.dequeue();
+        if (currentNode === endNode) {
+          const roadLinks = this.recoverRoadLinksBetweenRoadNodes(startNode, endNode, parentNodes);
+          return {
+            tag: "road",
+            roadNode: null,
+            roadLink: null,
+            road: {
+              toid: "none",
+              group: "temporary",
+              term: null,
+              name: "Route from " + startNode.toid + " to " + endNode.toid,
+              roadLinks: roadLinks
+            }
+          };
+        } else {
+          const neighborNodes = this.getNeighborNodesForRoadNode(currentNode);
+          for (let i = 0; i < neighborNodes.length; i++) {
+            if (!(neighborNodes[i].toid in parentNodes)) {
+              parentNodes[neighborNodes[i].toid] = currentNode;
+              nodesToVisit.enqueue(neighborNodes[i]);
+            }
+          }
+        }
+      }
+      return null;
+    }
+  },
+
+  recoverRoadLinksBetweenRoadNodes: function (startNode, endNode, parentNodes) {
+    const results = [];
+    let currentNode = endNode;
+    while (currentNode && currentNode !== startNode) {
+      const parentNode = parentNodes[currentNode.toid];
+      if (parentNode) {
+        for (let i = 0; i < parentNode.roadLinks.length; i++) {
+          const roadLink = this.roadLinks[parentNode.roadLinks[i]];
+          if (roadLink.negativeNode === parentNode.toid && roadLink.positiveNode === currentNode.toid || roadLink.negativeNode === currentNode.toid && roadLink.positiveNode === parentNode.toid) {
+            results.push(roadLink.toid);
+          }
+        }
+      }
+      currentNode = parentNode;
+    }
+    return results;
+  },
+
+  recoverRoadNodesBetweenRoadNodes: function (startNode, endNode, parentNodes) {
+    const results = [];
+    let currentNode = endNode;
+    while (currentNode && currentNode !== startNode) {
+      results.push(currentNode.toid);
+      currentNode = parentNodes[currentNode.toid];
+    }
+    return results;
+  },
+
+  getNeighborNodesForRoadNode: function (roadNode) {
+    const neighborNodes = {};
+    for (let i = 0; i < roadNode.roadLinks.length; i++) {
+      const roadLink = this.roadLinks[roadNode.roadLinks[i]];
+      if (roadLink.negativeNode && roadLink.negativeNode !== roadNode.toid) {
+        neighborNodes[roadLink.negativeNode] = true;
+      }
+      if (roadLink.positiveNode && roadLink.positiveNode !== roadNode.toid) {
+        neighborNodes[roadLink.positiveNode] = true;
+      }
+    }
+    const toids = Object.keys(neighborNodes);
+    const results = [];
+    for (let i = 0; i < toids.length; i++) {
+      results.push(this.roadNodes[toids[i]]);
+    }
+    return results;
   },
 
   getPointForRoadNode: function (roadNode) {

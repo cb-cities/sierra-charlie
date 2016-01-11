@@ -54,8 +54,8 @@ viewLabeledList label view items =
         viewLabeled label (List.map view items)
 
 
-viewRoadNode : Trigger -> RoadNode -> Html
-viewRoadNode trigger roadNode =
+viewRoadNode : Trigger -> Maybe String -> RoadNode -> Html
+viewRoadNode trigger maybeMode roadNode =
     let
       tag =
         [viewFeatureTag "Road Node"]
@@ -65,12 +65,22 @@ viewRoadNode trigger roadNode =
             []
           Just address ->
             viewLabeled "Description" [text address]
+      actions =
+        [ div [class "ui-actions"]
+            [ viewFeatureLabel "Actions"
+            , case maybeMode of
+                Just "routing" ->
+                  a [onClick trigger (SetMode Nothing)] [text "Stop Routing"]
+                _ ->
+                  a [onClick trigger (SetMode (Just "routing"))] [text "Start Routing"]
+            ]
+        ]
       toid =
         viewLabeled "TOID" [viewTOID trigger roadNode.toid]
       roadLinks =
         viewLabeledList "Road Links" (viewTOIDItem trigger "*") roadNode.roadLinks
     in
-      div [] (tag ++ description ++ toid ++ roadLinks)
+      div [] (tag ++ description ++ actions ++ toid ++ roadLinks)
 
 
 viewRoadLinkDescription : RoadLink -> Html
@@ -145,8 +155,8 @@ viewRoad trigger road =
       div [] (tag ++ description ++ toid ++ roadLinks)
 
 
-viewFeature : Trigger -> String -> Maybe Feature -> Html
-viewFeature trigger featureId maybeFeature =
+viewFeature : Trigger -> Maybe String -> String -> Maybe Feature -> Html
+viewFeature trigger maybeMode featureId maybeFeature =
     let
       display =
         if maybeFeature == Nothing
@@ -159,7 +169,7 @@ viewFeature trigger featureId maybeFeature =
           Just feature ->
             case (feature.tag, feature.roadNode, feature.roadLink, feature.road) of
               ("roadNode", Just roadNode, Nothing, Nothing) ->
-                [viewRoadNode trigger roadNode]
+                [viewRoadNode trigger maybeMode roadNode]
               ("roadLink", Nothing, Just roadLink, Nothing) ->
                 [viewRoadLink trigger roadLink]
               ("road", Nothing, Nothing, Just road) ->
@@ -191,6 +201,6 @@ view : Trigger -> State -> Html
 view trigger state =
     div []
       [ viewLoadingProgress state.loadingProgress
-      , viewFeature trigger "ui-highlighted-feature" state.highlightedFeature
-      , viewFeature trigger "ui-selected-feature" state.selectedFeature
+      , viewFeature trigger state.mode "ui-highlighted-feature" state.highlightedFeature
+      , viewFeature trigger state.mode "ui-selected-feature" state.selectedFeature
       ]

@@ -38,7 +38,8 @@ type alias Feature =
 
 
 type alias State =
-  { loadingProgress : Float
+  { mode : Maybe String
+  , loadingProgress : Float
   , highlightedFeature : Maybe Feature
   , selectedFeature : Maybe Feature
   }
@@ -46,9 +47,11 @@ type alias State =
 
 type Action =
     Idle
-  | SetLoadingProgress Float
-  | SetHighlightedFeature (Maybe Feature)
-  | SetSelectedFeature (Maybe Feature)
+  | ReceiveMode (Maybe String)
+  | ReceiveLoadingProgress Float
+  | ReceiveHighlightedFeature (Maybe Feature)
+  | ReceiveSelectedFeature (Maybe Feature)
+  | SetMode (Maybe String)
   | HighlightFeature (Maybe String)
   | SelectFeature (Maybe String)
 
