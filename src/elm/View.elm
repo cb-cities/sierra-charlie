@@ -103,16 +103,16 @@ viewRoadLink trigger roadLink =
             []
           (Just negativeNode, Nothing) ->
             viewLabeled "Road Nodes"
-              [ viewTOIDItem trigger "-" negativeNode
+              [ viewTOIDItem trigger "-" negativeNode.toid
               ]
           (Nothing, Just positiveNode) ->
             viewLabeled "Road Nodes"
-              [ viewTOIDItem trigger "+" positiveNode
+              [ viewTOIDItem trigger "+" positiveNode.toid
               ]
           (Just negativeNode, Just positiveNode) ->
             viewLabeled "Road Nodes"
-              [ viewTOIDItem trigger "-" negativeNode
-              , viewTOIDItem trigger "+" positiveNode
+              [ viewTOIDItem trigger "-" negativeNode.toid
+              , viewTOIDItem trigger "+" positiveNode.toid
               ]
       roads =
         viewLabeledList "Roads" (viewRoadItem trigger) roadLink.roads

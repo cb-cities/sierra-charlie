@@ -14,8 +14,8 @@ type alias RoadLink =
   { toid : String
   , term : String
   , nature : String
-  , negativeNode : Maybe String
-  , positiveNode : Maybe String
+  , negativeNode : Maybe RoadNode
+  , positiveNode : Maybe RoadNode
   , roads : List Road
   }
 

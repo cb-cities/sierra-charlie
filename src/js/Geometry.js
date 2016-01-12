@@ -123,7 +123,7 @@ Geometry.prototype = {
       if (parentNode) {
         for (let i = 0; i < parentNode.roadLinks.length; i++) {
           const roadLink = this.roadLinks[parentNode.roadLinks[i]];
-          if (roadLink.negativeNode === parentNode.toid && roadLink.positiveNode === currentNode.toid || roadLink.negativeNode === currentNode.toid && roadLink.positiveNode === parentNode.toid) {
+          if (roadLink.negativeNode === parentNode && roadLink.positiveNode === currentNode || roadLink.negativeNode === currentNode && roadLink.positiveNode === parentNode) {
             results.push(roadLink.toid);
           }
         }
@@ -147,11 +147,11 @@ Geometry.prototype = {
     const neighborNodes = {};
     for (let i = 0; i < roadNode.roadLinks.length; i++) {
       const roadLink = this.roadLinks[roadNode.roadLinks[i]];
-      if (roadLink.negativeNode && roadLink.negativeNode !== roadNode.toid) {
-        neighborNodes[roadLink.negativeNode] = true;
+      if (roadLink.negativeNode && roadLink.negativeNode !== roadNode) {
+        neighborNodes[roadLink.negativeNode.toid] = true;
       }
-      if (roadLink.positiveNode && roadLink.positiveNode !== roadNode.toid) {
-        neighborNodes[roadLink.positiveNode] = true;
+      if (roadLink.positiveNode && roadLink.positiveNode !== roadNode) {
+        neighborNodes[roadLink.positiveNode.toid] = true;
       }
     }
     const toids = Object.keys(neighborNodes);
@@ -196,12 +196,10 @@ Geometry.prototype = {
     const results = new Uint32Array(indexCount);
     let indexOffset = 0;
     if (roadLink.negativeNode) {
-      const roadNode = this.roadNodes[roadLink.negativeNode];
-      results[indexOffset++] = this.getPointIndexForRoadNode(roadNode);
+      results[indexOffset++] = this.getPointIndexForRoadNode(roadLink.negativeNode);
     }
     if (roadLink.positiveNode) {
-      const roadNode = this.roadNodes[roadLink.positiveNode];
-      results[indexOffset++] = this.getPointIndexForRoadNode(roadNode);
+      results[indexOffset++] = this.getPointIndexForRoadNode(roadLink.positiveNode);
     }
     return results;
   },
@@ -314,12 +312,12 @@ Geometry.prototype = {
     roadNode.roadLinks = this.pendingRoadLinks[toid] || [];
     for (let i = 0; i < roadNode.roadLinks.length; i++) {
       const roadLink = this.roadLinks[roadNode.roadLinks[i]];
-      if (toid === roadLink.unloadedNegativeNode) {
-        roadLink.negativeNode = toid;
-        delete roadLink.unloadedNegativeNode;
-      } else if (toid === roadLink.unloadedPositiveNode) {
-        roadLink.positiveNode = toid;
-        delete roadLink.unloadedPositiveNode;
+      if (toid === roadLink.negativeNodeTOID) {
+        roadLink.negativeNode = roadNode;
+        delete roadLink.negativeNodeTOID;
+      } else if (toid === roadLink.positiveNodeTOID) {
+        roadLink.positiveNode = roadNode;
+        delete roadLink.positiveNodeTOID;
       }
     }
     this.roadNodes[toid] = roadNode;
@@ -342,19 +340,19 @@ Geometry.prototype = {
 
   insertRoadLink: function (roadLink) {
     const toid = roadLink.toid;
-    if (roadLink.unloadedNegativeNode in this.roadNodes) {
-      pushUnique(this.roadNodes[roadLink.unloadedNegativeNode], "roadLinks", toid);
-      roadLink.negativeNode = roadLink.unloadedNegativeNode;
-      delete roadLink.unloadedNegativeNode;
+    if (roadLink.negativeNodeTOID in this.roadNodes) {
+      roadLink.negativeNode = this.roadNodes[roadLink.negativeNodeTOID];
+      pushUnique(roadLink.negativeNode, "roadLinks", toid);
+      delete roadLink.negativeNodeTOID;
     } else {
-      pushUnique(this.pendingRoadLinks, roadLink.unloadedNegativeNode, toid);
+      pushUnique(this.pendingRoadLinks, roadLink.negativeNodeTOID, toid);
     }
-    if (roadLink.unloadedPositiveNode in this.roadNodes) {
-      pushUnique(this.roadNodes[roadLink.unloadedPositiveNode], "roadLinks", toid);
-      roadLink.positiveNode = roadLink.unloadedPositiveNode;
-      delete roadLink.unloadedPositiveNode;
+    if (roadLink.positiveNodeTOID in this.roadNodes) {
+      roadLink.positiveNode = this.roadNodes[roadLink.positiveNodeTOID];
+      pushUnique(roadLink.positiveNode, "roadLinks", toid);
+      delete roadLink.positiveNodeTOID;
     } else {
-      pushUnique(this.pendingRoadLinks, roadLink.unloadedPositiveNode, toid);
+      pushUnique(this.pendingRoadLinks, roadLink.positiveNodeTOID, toid);
     }
     roadLink.roads = this.pendingRoads[toid] || [];
     for (let i = 0; i < roadLink.roads.length; i++) {
