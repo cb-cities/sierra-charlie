@@ -66,27 +66,26 @@ viewRoadNode trigger maybeMode roadNode =
           Just address ->
             viewLabeled "Description" [text address]
       actions =
-        [ div [class "ui-actions"]
-            ( case roadNode.isDeleted of
-               False ->
-                 [ viewFeatureLabel "Actions"
-                 , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
-                 , case maybeMode of
-                     Just "routing" ->
-                       viewItem "*" (a [onClick trigger (SetMode Nothing)] [text "Stop Routing"])
-                     _ ->
-                       viewItem "*" (a [onClick trigger (SetMode (Just "routing"))] [text "Start Routing"])
-                 ]
-               True ->
-                 case roadNode.isUndeletable of
-                   True ->
-                     [ viewFeatureLabel "Actions"
-                     , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
-                     ]
-                   False ->
-                     []
-            ) 
-        ]
+        case (roadNode.isDeleted, roadNode.isUndeletable) of
+          (False, _) ->
+            [ div [class "ui-actions"]
+                [ viewFeatureLabel "Actions"
+                , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+                , case maybeMode of
+                    Just "routing" ->
+                      viewItem "*" (a [onClick trigger (SetMode Nothing)] [text "Stop Routing"])
+                    _ ->
+                      viewItem "*" (a [onClick trigger (SetMode (Just "routing"))] [text "Start Routing"])
+                ]
+            ]
+          (True, True) ->
+            [ div [class "ui-actions"]
+                [ viewFeatureLabel "Actions"
+                , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+                ]
+            ]
+          _ ->
+            []
       toid =
         viewLabeled "TOID" [viewTOID trigger roadNode.toid]
       roadLinks =
@@ -108,15 +107,21 @@ viewRoadLink trigger roadLink =
       description =
         viewLabeled "Description" [viewRoadLinkDescription roadLink]
       actions =
-        [ div [class "ui-actions"]
-            [ viewFeatureLabel "Actions"
-            , case roadLink.isDeleted of
-                False ->
-                  viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
-                True ->
-                  viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+        case (roadLink.isDeleted, roadLink.isUndeletable) of
+          (False, _) ->
+            [ div [class "ui-actions"]
+                [ viewFeatureLabel "Actions"
+                , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+                ]
             ]
-        ]
+          (True, True) ->
+            [ div [class "ui-actions"]
+                [ viewFeatureLabel "Actions"
+                , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+                ]
+            ]
+          _ ->
+            []
       toid =
         viewLabeled "TOID" [viewTOID trigger roadLink.toid]
       roadNodes =
@@ -169,12 +174,26 @@ viewRoad trigger road =
         [viewFeatureTag "Road"]
       description =
         viewLabeled "Description" [viewRoadDescription road]
+      actions =
+        case road.isDeleted of
+          False ->
+            [ div [class "ui-actions"]
+                [ viewFeatureLabel "Actions"
+                , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+                ]
+            ]
+          True ->
+            [ div [class "ui-actions"]
+                [ viewFeatureLabel "Actions"
+                , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+                ]
+            ]
       toid =
         viewLabeled "TOID" [viewTOID trigger road.toid]
       roadLinks =
         viewLabeledList "Road Links" (viewTOIDItem trigger "*") road.roadLinkTOIDs
     in
-      div [] (tag ++ description ++ toid ++ roadLinks)
+      div [] (tag ++ description ++ actions ++ toid ++ roadLinks)
 
 
 viewRoute : Trigger -> Route -> Html

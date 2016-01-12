@@ -108,7 +108,8 @@ Controller.prototype = {
       negativeNodeTOID: !roadLink.negativeNode ? null : roadLink.negativeNode.toid,
       positiveNodeTOID: !roadLink.positiveNode ? null : roadLink.positiveNode.toid,
       roads: roadLink.roads.map(this.exportRoad.bind(this)),
-      isDeleted: this.adjustment.isRoadLinkDeleted(roadLink)
+      isDeleted: this.adjustment.isRoadLinkDeleted(roadLink),
+      isUndeletable: this.adjustment.isRoadLinkUndeletable(roadLink)
     };
   },
 
@@ -120,7 +121,8 @@ Controller.prototype = {
       name: road.name,
       roadLinkTOIDs: road.roadLinks.map(function (roadLink) {
           return roadLink.toid;
-        })
+        }),
+      isDeleted: this.adjustment.isRoadDeleted(road)
     };
   },
 
