@@ -351,7 +351,7 @@ Controller.prototype = {
         }
       }
       this.renderDeletedFeatures();
-      this.sendSelectedFeature();
+      this.selectFeature(null);
     }
   },
 
@@ -369,7 +369,7 @@ Controller.prototype = {
         }
       }
       this.renderDeletedFeatures();
-      this.sendSelectedFeature();
+      this.selectFeature(null);
     }
   },
 
