@@ -20,6 +20,7 @@ type alias RoadLink =
   , positiveNodeTOID : Maybe String
   , roads : List Road
   , isDeleted : Bool
+  , isUndeletable : Bool
   }
 
 
@@ -29,6 +30,7 @@ type alias Road =
   , term : Maybe String
   , name : String
   , roadLinkTOIDs : List String
+  , isDeleted : Bool
   }
 
 
