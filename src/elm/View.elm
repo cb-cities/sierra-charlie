@@ -155,6 +155,22 @@ viewRoad trigger road =
       div [] (tag ++ description ++ toid ++ roadLinks)
 
 
+viewRoute : Trigger -> Route -> Html
+viewRoute trigger route =
+    let
+      tag =
+        [viewFeatureTag "Route"]
+      roadNodes =
+        viewLabeled "Road Nodes"
+          [ viewTOIDItem trigger "-" route.startNodeTOID
+          , viewTOIDItem trigger "+" route.endNodeTOID
+          ]
+      roadLinks =
+        viewLabeledList "Road Links" (viewTOIDItem trigger "*") route.roadLinkTOIDs
+    in
+      div [] (tag ++ roadNodes ++ roadLinks)
+
+
 viewFeature : Trigger -> Maybe String -> String -> Maybe Feature -> Html
 viewFeature trigger maybeMode featureId maybeFeature =
     let
@@ -167,13 +183,15 @@ viewFeature trigger maybeMode featureId maybeFeature =
           Nothing ->
             []
           Just feature ->
-            case (feature.tag, feature.roadNode, feature.roadLink, feature.road) of
-              ("roadNode", Just roadNode, Nothing, Nothing) ->
+            case (feature.tag, feature.roadNode, feature.roadLink, feature.road, feature.route) of
+              ("roadNode", Just roadNode, Nothing, Nothing, Nothing) ->
                 [viewRoadNode trigger maybeMode roadNode]
-              ("roadLink", Nothing, Just roadLink, Nothing) ->
+              ("roadLink", Nothing, Just roadLink, Nothing, Nothing) ->
                 [viewRoadLink trigger roadLink]
-              ("road", Nothing, Nothing, Just road) ->
+              ("road", Nothing, Nothing, Just road, Nothing) ->
                 [viewRoad trigger road]
+              ("route", Nothing, Nothing, Nothing, Just route) ->
+                [viewRoute trigger route]
               _ ->
                 []
     in

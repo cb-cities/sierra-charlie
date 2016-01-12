@@ -118,12 +118,23 @@ Controller.prototype = {
     };
   },
 
+  exportRoute: function (route) {
+    return !route ? null : {
+      startNodeTOID: route.startNode.toid,
+      endNodeTOID: route.endNode.toid,
+      roadLinkTOIDs: route.roadLinks.map(function (roadLink) {
+          return roadLink.toid;
+        })
+    };
+  },
+
   exportFeature: function (feature) {
     return !feature ? null : {
       tag: feature.tag,
       roadNode: this.exportRoadNode(feature.roadNode),
       roadLink: this.exportRoadLink(feature.roadLink),
-      road: this.exportRoad(feature.road)
+      road: this.exportRoad(feature.road),
+      route: this.exportRoute(feature.route)
     };
   },
 
@@ -194,16 +205,12 @@ Controller.prototype = {
     if (closestRoadNode && closestRoadNodeDistance <= closestRoadLinkDistance + 4) {
       return {
         tag: "roadNode",
-        roadNode: closestRoadNode,
-        roadLink: null,
-        road: null
+        roadNode: closestRoadNode
       };
     } else if (closestRoadLink) {
       return {
         tag: "roadLink",
-        roadLink: closestRoadLink,
-        roadNode: null,
-        road: null
+        roadLink: closestRoadLink
       };
     } else {
       return null;
@@ -228,10 +235,15 @@ Controller.prototype = {
           lineIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
         }
-        case "road": {
-          pointIndices.insert(this.geometry.getPointIndicesForRoad(feature.road));
+        case "road":
+        case "route": {
+          const roadLinks =
+            feature.tag === "road" ?
+              feature.road.roadLinks :
+              feature.route.roadLinks;
+          pointIndices.insert(this.geometry.getPointIndicesForRoadLinks(roadLinks));
           pointIndices.render(gl, gl.DYNAMIC_DRAW);
-          lineIndices.insert(this.geometry.getLineIndicesForRoad(feature.road));
+          lineIndices.insert(this.geometry.getLineIndicesForRoadLinks(roadLinks));
           lineIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
         }
@@ -399,13 +411,18 @@ Controller.prototype = {
         App.setZoom(compute.clampZoom(newZoom), duration);
         break;
       }
-      case "road": {
-        const p = this.geometry.getMidpointForRoad(feature.road);
+      case "road":
+      case "route": {
+        const roadLinks =
+          feature.tag === "road" ?
+            feature.road.roadLinks :
+            feature.route.roadLinks;
+        const p = this.geometry.getMidpointForRoadLinks(roadLinks);
         App.setCenter(p, duration);
         const clientWidth = this.getClientWidth();
         const clientHeight = this.getClientHeight();
         const zoom = App.getZoom();
-        const r = this.geometry.getBoundsForRoad(10, feature.road);
+        const r = this.geometry.getBoundsForRoadLinks(10, roadLinks);
         const fittedZoom = compute.zoomForRect(r, clientWidth, clientHeight);
         let newZoom;
         if (doZoom) {
