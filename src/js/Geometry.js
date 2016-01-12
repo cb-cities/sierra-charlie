@@ -55,22 +55,16 @@ Geometry.prototype = {
     if (toid in this.roadNodes) {
       return {
         tag: "roadNode",
-        roadNode: this.roadNodes[toid],
-        roadLink: null,
-        road: null
+        roadNode: this.roadNodes[toid]
       };
     } else if (toid in this.roadLinks) {
       return {
         tag: "roadLink",
-        roadNode: null,
-        roadLink: this.roadLinks[toid],
-        road: null
+        roadLink: this.roadLinks[toid]
       };
     } else if (toid in this.roads) {
       return {
         tag: "road",
-        roadNode: null,
-        roadLink: null,
         road: this.roads[toid]
       };
     } else {
@@ -90,14 +84,10 @@ Geometry.prototype = {
         if (currentNode === endNode) {
           const roadLinks = this.recoverRoadLinksBetweenRoadNodes(startNode, endNode, parentNodes);
           return {
-            tag: "road",
-            roadNode: null,
-            roadLink: null,
-            road: {
-              toid: "none",
-              group: "temporary",
-              term: null,
-              name: "Route from " + startNode.toid + " to " + endNode.toid,
+            tag: "route",
+            route: {
+              startNode: startNode,
+              endNode: endNode,
               roadLinks: roadLinks
             }
           };
@@ -218,53 +208,53 @@ Geometry.prototype = {
     return polyline.midpoint(this.getPointsForRoadLink(roadLink));
   },
 
-  getPointIndicesForRoad: function (road) {
+  getPointIndicesForRoadLinks: function (roadLinks) {
     let indexCount = 0;
     const parts = [];
-    for (let i = 0; i < road.roadLinks.length; i++) {
-      const roadLink = road.roadLinks[i];
+    for (let i = 0; i < roadLinks.length; i++) {
+      const roadLink = roadLinks[i];
       const part = this.getPointIndicesForRoadLink(roadLink);
       indexCount += part.length;
       parts.push(part);
     }
     const results = new Uint32Array(indexCount);
     let indexOffset = 0;
-    for (let i = 0; i < road.roadLinks.length; i++) {
+    for (let i = 0; i < roadLinks.length; i++) {
       results.set(parts[i], indexOffset);
       indexOffset += parts[i].length;
     }
     return results;
   },
 
-  getLineIndicesForRoad: function (road) {
+  getLineIndicesForRoadLinks: function (roadLinks) {
     let indexCount = 0;
     const parts = [];
-    for (let i = 0; i < road.roadLinks.length; i++) {
-      const roadLink = road.roadLinks[i];
+    for (let i = 0; i < roadLinks.length; i++) {
+      const roadLink = roadLinks[i];
       const part = this.getLineIndicesForRoadLink(roadLink);
       indexCount += part.length;
       parts.push(part);
     }
     const results = new Uint32Array(indexCount);
     let indexOffset = 0;
-    for (let i = 0; i < road.roadLinks.length; i++) {
+    for (let i = 0; i < roadLinks.length; i++) {
       results.set(parts[i], indexOffset);
       indexOffset += parts[i].length;
     }
     return results;
   },
 
-  getBoundsForRoad: function (margin, road) {
+  getBoundsForRoadLinks: function (margin, roadLinks) {
     let result = rect.invalid;
-    for (let i = 0; i < road.roadLinks.length; i++) {
-      const roadLink = road.roadLinks[i];
+    for (let i = 0; i < roadLinks.length; i++) {
+      const roadLink = roadLinks[i];
       result = rect.union(result, this.getBoundsForRoadLink(margin, roadLink));
     }
     return result;
   },
 
-  getMidpointForRoad: function (road) {
-    return rect.midpoint(this.getBoundsForRoad(0, road));
+  getMidpointForRoadLinks: function (roadLinks) {
+    return rect.midpoint(this.getBoundsForRoadLinks(0, roadLinks));
   },
 
   onMessage: function (event) {

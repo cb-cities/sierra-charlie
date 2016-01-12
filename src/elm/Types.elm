@@ -29,11 +29,19 @@ type alias Road =
   }
 
 
+type alias Route =
+  { startNodeTOID : String
+  , endNodeTOID : String
+  , roadLinkTOIDs : List String
+  }
+
+
 type alias Feature =
   { tag : String
   , roadNode : Maybe RoadNode
   , roadLink : Maybe RoadLink
   , road : Maybe Road
+  , route : Maybe Route
   }
 
 
