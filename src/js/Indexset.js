@@ -7,6 +7,10 @@ function Indexset() {
 }
 
 Indexset.prototype = {
+  size: function () {
+    return this.indexArr.length;
+  },
+
   clear: function () {
     this.indexArr = [];
   },

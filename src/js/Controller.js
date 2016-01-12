@@ -169,10 +169,10 @@ Controller.prototype = {
   },
 
   renderFeature: function (feature, pointIndices, lineIndices) {
+    pointIndices.clear();
+    lineIndices.clear();
     if (feature) {
       const gl = App.drawingContext.gl; // TODO
-      pointIndices.clear();
-      lineIndices.clear();
       switch (feature.tag) {
         case "roadNode": {
           pointIndices.insert([this.geometry.getPointIndexForRoadNode(feature.roadNode)]);
@@ -194,8 +194,8 @@ Controller.prototype = {
           break;
         }
       }
-      App.isDrawingNeeded = true; // TODO
     }
+    App.isDrawingNeeded = true; // TODO
   },
 
   renderHighlightedFeature: function () {
@@ -385,9 +385,11 @@ Controller.prototype = {
         case "routing":
           // TODO
           this.setMode(null);
-          this.selectFeature(this.highlightedFeature);
-          if (this.selectedFeature) {
-            this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
+          if (this.highlightedFeature) {
+            this.selectFeature(this.highlightedFeature);
+            if (this.selectedFeature) {
+              this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
+            }
           }
           break;
         default: {
