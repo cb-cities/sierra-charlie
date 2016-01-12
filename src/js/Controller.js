@@ -1,5 +1,6 @@
 "use strict";
 
+const Adjustment = require("./Adjustment");
 const Geometry = require("./Geometry");
 const Grid = require("./Grid");
 const Indexset = require("./Indexset");
@@ -30,7 +31,7 @@ function Controller() {
   this.selectedFeature = null;
   this.selectedPointIndices = new Indexset();
   this.selectedLineIndices = new Indexset();
-  this.deletedFeatures = {};
+  this.adjustment = new Adjustment();
   this.deletedPointIndices = new Indexset();
   this.deletedLineIndices = new Indexset();
   const frame = document.getElementById("map-frame");
@@ -87,18 +88,6 @@ Controller.prototype = {
     return compute.toClientPoint(p, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
-  isRoadNodeDeleted: function (roadNode) {
-    return (
-      roadNode.toid in this.deletedFeatures ||
-      roadNode.roadLinks.some(function (roadLink) {
-          return roadLink.toid in this.deletedFeatures;
-        }.bind(this)));
-  },
-
-  isRoadLinkDeleted: function (roadLink) {
-    return roadLink.toid in this.deletedFeatures;
-  },
-
   exportRoadNode: function (roadNode) {
     return !roadNode ? null : {
       toid: roadNode.toid,
@@ -106,7 +95,8 @@ Controller.prototype = {
       roadLinkTOIDs: roadNode.roadLinks.map(function (roadLink) {
           return roadLink.toid;
         }),
-      isDeleted: this.isRoadNodeDeleted(roadNode)
+      isDeleted: this.adjustment.isRoadNodeDeleted(roadNode),
+      isUndeletable: this.adjustment.isRoadNodeUndeletable(roadNode)
     };
   },
 
@@ -118,7 +108,7 @@ Controller.prototype = {
       negativeNodeTOID: !roadLink.negativeNode ? null : roadLink.negativeNode.toid,
       positiveNodeTOID: !roadLink.positiveNode ? null : roadLink.positiveNode.toid,
       roads: roadLink.roads.map(this.exportRoad.bind(this)),
-      isDeleted: this.isRoadLinkDeleted(roadLink)
+      isDeleted: this.adjustment.isRoadLinkDeleted(roadLink)
     };
   },
 
@@ -278,12 +268,12 @@ Controller.prototype = {
     this.renderFeature(this.selectedFeature, this.selectedPointIndices, this.selectedLineIndices);
   },
 
-  renderDeletedFeatures: function () {
+  renderDeletedFeatures: function () { // TODO
     this.deletedPointIndices.clear();
     this.deletedLineIndices.clear();
-    const toids = Object.keys(this.deletedFeatures);
+    const toids = Object.keys(this.adjustment.deletedFeatures);
     for (let i = 0; i < toids.length; i++) {
-      const feature = this.deletedFeatures[toids[i]];
+      const feature = this.adjustment.deletedFeatures[toids[i]];
       this.renderFeature(feature, this.deletedPointIndices, this.deletedLineIndices);
     }
   },
@@ -310,8 +300,8 @@ Controller.prototype = {
         case "routing":
           // TODO
           const roadNode = this.findClosestRoadNode();
-          if (roadNode && !(this.isRoadNodeDeleted(roadNode))) {
-            const route = this.geometry.findShortestRouteBetweenRoadNodes(this.selectedFeature.roadNode, roadNode, this.deletedFeatures);
+          if (roadNode && !(this.adjustment.isRoadNodeDeleted(roadNode))) {
+            const route = this.geometry.findShortestRouteBetweenRoadNodes(this.selectedFeature.roadNode, roadNode, this.adjustment);
             if (route) {
               this.highlightFeature(route);
             }
@@ -339,17 +329,7 @@ Controller.prototype = {
 
   deleteSelectedFeature: function () {
     if (this.selectedFeature) {
-      const feature = this.selectedFeature;
-      switch (feature.tag) {
-        case "roadNode": {
-          this.deletedFeatures[feature.roadNode.toid] = feature;
-          break;
-        }
-        case "roadLink": {
-          this.deletedFeatures[feature.roadLink.toid] = feature;
-          break;
-        }
-      }
+      this.adjustment.deleteFeature(this.selectedFeature);
       this.renderDeletedFeatures();
       this.selectFeature(null);
     }
@@ -357,17 +337,7 @@ Controller.prototype = {
 
   undeleteSelectedFeature: function () {
     if (this.selectedFeature) {
-      const feature = this.selectedFeature;
-      switch (feature.tag) {
-        case "roadNode": {
-          delete this.deletedFeatures[feature.roadNode.toid];
-          break;
-        }
-        case "roadLink": {
-          delete this.deletedFeatures[feature.roadLink.toid];
-          break;
-        }
-      }
+      this.adjustment.undeleteFeature(this.selectedFeature);
       this.renderDeletedFeatures();
       this.selectFeature(null);
     }

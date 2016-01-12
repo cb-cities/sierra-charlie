@@ -8,6 +8,7 @@ type alias RoadNode =
   , address : Maybe String
   , roadLinkTOIDs : List String
   , isDeleted : Bool
+  , isUndeletable : Bool
   }
 
 
