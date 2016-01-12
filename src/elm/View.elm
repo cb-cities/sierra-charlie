@@ -67,13 +67,19 @@ viewRoadNode trigger maybeMode roadNode =
             viewLabeled "Description" [text address]
       actions =
         [ div [class "ui-actions"]
-            [ viewFeatureLabel "Actions"
-            , case maybeMode of
-                Just "routing" ->
-                  a [onClick trigger (SetMode Nothing)] [text "Stop Routing"]
-                _ ->
-                  a [onClick trigger (SetMode (Just "routing"))] [text "Start Routing"]
-            ]
+            ( [viewFeatureLabel "Actions"] ++
+              case roadNode.isDeleted of
+                False ->
+                  [ viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+                  , case maybeMode of
+                      Just "routing" ->
+                        viewItem "*" (a [onClick trigger (SetMode Nothing)] [text "Stop Routing"])
+                      _ ->
+                        viewItem "*" (a [onClick trigger (SetMode (Just "routing"))] [text "Start Routing"])
+                  ]
+                True ->
+                  [viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])]
+            )
         ]
       toid =
         viewLabeled "TOID" [viewTOID trigger roadNode.toid]
@@ -95,6 +101,16 @@ viewRoadLink trigger roadLink =
         [viewFeatureTag "Road Link"]
       description =
         viewLabeled "Description" [viewRoadLinkDescription roadLink]
+      actions =
+        [ div [class "ui-actions"]
+            [ viewFeatureLabel "Actions"
+            , case roadLink.isDeleted of
+                False ->
+                  viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+                True ->
+                  viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+            ]
+        ]
       toid =
         viewLabeled "TOID" [viewTOID trigger roadLink.toid]
       roadNodes =
@@ -117,7 +133,7 @@ viewRoadLink trigger roadLink =
       roads =
         viewLabeledList "Roads" (viewRoadItem trigger) roadLink.roads
     in
-      div [] (tag ++ description ++ toid ++ roadNodes ++ roads)
+      div [] (tag ++ description ++ toid ++ actions ++ roadNodes ++ roads)
 
 
 viewRoadDescription : Road -> Html

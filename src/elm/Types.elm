@@ -7,6 +7,7 @@ type alias RoadNode =
   { toid : String
   , address : Maybe String
   , roadLinkTOIDs : List String
+  , isDeleted : Bool
   }
 
 
@@ -17,6 +18,7 @@ type alias RoadLink =
   , negativeNodeTOID : Maybe String
   , positiveNodeTOID : Maybe String
   , roads : List Road
+  , isDeleted : Bool
   }
 
 
@@ -62,6 +64,8 @@ type Action =
   | SetMode (Maybe String)
   | HighlightFeature (Maybe String)
   | SelectFeature (Maybe String)
+  | DeleteSelectedFeature
+  | UndeleteSelectedFeature
 
 
 type alias Trigger =

@@ -72,7 +72,7 @@ Geometry.prototype = {
     }
   },
 
-  findShortestRouteBetweenRoadNodes: function (startNode, endNode) {
+  findShortestRouteBetweenRoadNodes: function (startNode, endNode, deletedFeatures) {
     if (startNode === endNode) {
       return null;
     } else {
@@ -92,7 +92,7 @@ Geometry.prototype = {
             }
           };
         } else {
-          const neighborNodes = this.getNeighborNodesForRoadNode(currentNode);
+          const neighborNodes = this.getNeighborNodesForRoadNode(currentNode, deletedFeatures);
           for (let i = 0; i < neighborNodes.length; i++) {
             if (!(neighborNodes[i].toid in parentNodes)) {
               parentNodes[neighborNodes[i].toid] = currentNode;
@@ -133,18 +133,20 @@ Geometry.prototype = {
     return results;
   },
 
-  getNeighborNodesForRoadNode: function (roadNode) {
-    const neighborNodes = {};
+  getNeighborNodesForRoadNode: function (roadNode, deletedFeatures) {
+    const visitedNodes = {};
     for (let i = 0; i < roadNode.roadLinks.length; i++) {
       const roadLink = roadNode.roadLinks[i];
-      if (roadLink.negativeNode && roadLink.negativeNode !== roadNode) {
-        neighborNodes[roadLink.negativeNode.toid] = true;
-      }
-      if (roadLink.positiveNode && roadLink.positiveNode !== roadNode) {
-        neighborNodes[roadLink.positiveNode.toid] = true;
+      if (!(roadLink.toid in deletedFeatures)) {
+        if (roadLink.negativeNode && roadLink.negativeNode !== roadNode && !(roadLink.negativeNode.toid in deletedFeatures)) {
+          visitedNodes[roadLink.negativeNode.toid] = roadNode;
+        }
+        if (roadLink.positiveNode && roadLink.positiveNode !== roadNode && !(roadLink.positiveNode.toid in deletedFeatures)) {
+          visitedNodes[roadLink.positiveNode.toid] = roadNode;
+        }
       }
     }
-    const toids = Object.keys(neighborNodes);
+    const toids = Object.keys(visitedNodes);
     const results = [];
     for (let i = 0; i < toids.length; i++) {
       results.push(this.roadNodes[toids[i]]);
