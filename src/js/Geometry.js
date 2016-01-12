@@ -72,7 +72,7 @@ Geometry.prototype = {
     }
   },
 
-  findShortestRouteBetweenRoadNodes: function (startNode, endNode, deletedFeatures) {
+  findShortestRouteBetweenRoadNodes: function (startNode, endNode, adjustment) {
     if (startNode === endNode) {
       return null;
     } else {
@@ -92,7 +92,7 @@ Geometry.prototype = {
             }
           };
         } else {
-          const neighborNodes = this.getNeighborNodesForRoadNode(currentNode, deletedFeatures);
+          const neighborNodes = this.getNeighborNodesForRoadNode(currentNode, adjustment);
           for (let i = 0; i < neighborNodes.length; i++) {
             if (!(neighborNodes[i].toid in parentNodes)) {
               parentNodes[neighborNodes[i].toid] = currentNode;
@@ -115,6 +115,7 @@ Geometry.prototype = {
           const roadLink = parentNode.roadLinks[i];
           if (roadLink.negativeNode === parentNode && roadLink.positiveNode === currentNode || roadLink.negativeNode === currentNode && roadLink.positiveNode === parentNode) {
             results.push(roadLink);
+            break;
           }
         }
       }
@@ -133,15 +134,15 @@ Geometry.prototype = {
     return results;
   },
 
-  getNeighborNodesForRoadNode: function (roadNode, deletedFeatures) {
+  getNeighborNodesForRoadNode: function (roadNode, adjustment) {
     const visitedNodes = {};
     for (let i = 0; i < roadNode.roadLinks.length; i++) {
       const roadLink = roadNode.roadLinks[i];
-      if (!(roadLink.toid in deletedFeatures)) {
-        if (roadLink.negativeNode && roadLink.negativeNode !== roadNode && !(roadLink.negativeNode.toid in deletedFeatures)) {
+      if (!adjustment.isRoadLinkDeleted(roadLink)) {
+        if (roadLink.negativeNode && roadLink.negativeNode !== roadNode && !adjustment.isRoadNodeDeleted(roadLink.negativeNode)) {
           visitedNodes[roadLink.negativeNode.toid] = roadNode;
         }
-        if (roadLink.positiveNode && roadLink.positiveNode !== roadNode && !(roadLink.positiveNode.toid in deletedFeatures)) {
+        if (roadLink.positiveNode && roadLink.positiveNode !== roadNode && !adjustment.isRoadNodeDeleted(roadLink.positiveNode)) {
           visitedNodes[roadLink.positiveNode.toid] = roadNode;
         }
       }

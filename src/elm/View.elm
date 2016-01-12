@@ -67,19 +67,25 @@ viewRoadNode trigger maybeMode roadNode =
             viewLabeled "Description" [text address]
       actions =
         [ div [class "ui-actions"]
-            ( [viewFeatureLabel "Actions"] ++
-              case roadNode.isDeleted of
-                False ->
-                  [ viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
-                  , case maybeMode of
-                      Just "routing" ->
-                        viewItem "*" (a [onClick trigger (SetMode Nothing)] [text "Stop Routing"])
-                      _ ->
-                        viewItem "*" (a [onClick trigger (SetMode (Just "routing"))] [text "Start Routing"])
-                  ]
-                True ->
-                  [viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])]
-            )
+            ( case roadNode.isDeleted of
+               False ->
+                 [ viewFeatureLabel "Actions"
+                 , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+                 , case maybeMode of
+                     Just "routing" ->
+                       viewItem "*" (a [onClick trigger (SetMode Nothing)] [text "Stop Routing"])
+                     _ ->
+                       viewItem "*" (a [onClick trigger (SetMode (Just "routing"))] [text "Start Routing"])
+                 ]
+               True ->
+                 case roadNode.isUndeletable of
+                   True ->
+                     [ viewFeatureLabel "Actions"
+                     , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+                     ]
+                   False ->
+                     []
+            ) 
         ]
       toid =
         viewLabeled "TOID" [viewTOID trigger roadNode.toid]
