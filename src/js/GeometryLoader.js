@@ -172,7 +172,7 @@ GeometryLoader.prototype = {
               group: obj.group,
               term: obj.term || null,
               name: obj.name,
-              unloadedLinks: obj.members,
+              roadLinkTOIDs: obj.members,
               roadLinks: []
             });
           this.postRoads();

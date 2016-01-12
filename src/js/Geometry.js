@@ -122,9 +122,9 @@ Geometry.prototype = {
       const parentNode = parentNodes[currentNode.toid];
       if (parentNode) {
         for (let i = 0; i < parentNode.roadLinks.length; i++) {
-          const roadLink = this.roadLinks[parentNode.roadLinks[i]];
+          const roadLink = parentNode.roadLinks[i];
           if (roadLink.negativeNode === parentNode && roadLink.positiveNode === currentNode || roadLink.negativeNode === currentNode && roadLink.positiveNode === parentNode) {
-            results.push(roadLink.toid);
+            results.push(roadLink);
           }
         }
       }
@@ -146,7 +146,7 @@ Geometry.prototype = {
   getNeighborNodesForRoadNode: function (roadNode) {
     const neighborNodes = {};
     for (let i = 0; i < roadNode.roadLinks.length; i++) {
-      const roadLink = this.roadLinks[roadNode.roadLinks[i]];
+      const roadLink = roadNode.roadLinks[i];
       if (roadLink.negativeNode && roadLink.negativeNode !== roadNode) {
         neighborNodes[roadLink.negativeNode.toid] = true;
       }
@@ -222,7 +222,7 @@ Geometry.prototype = {
     let indexCount = 0;
     const parts = [];
     for (let i = 0; i < road.roadLinks.length; i++) {
-      const roadLink = this.roadLinks[road.roadLinks[i]];
+      const roadLink = road.roadLinks[i];
       const part = this.getPointIndicesForRoadLink(roadLink);
       indexCount += part.length;
       parts.push(part);
@@ -240,7 +240,7 @@ Geometry.prototype = {
     let indexCount = 0;
     const parts = [];
     for (let i = 0; i < road.roadLinks.length; i++) {
-      const roadLink = this.roadLinks[road.roadLinks[i]];
+      const roadLink = road.roadLinks[i];
       const part = this.getLineIndicesForRoadLink(roadLink);
       indexCount += part.length;
       parts.push(part);
@@ -257,7 +257,7 @@ Geometry.prototype = {
   getBoundsForRoad: function (margin, road) {
     let result = rect.invalid;
     for (let i = 0; i < road.roadLinks.length; i++) {
-      const roadLink = this.roadLinks[road.roadLinks[i]];
+      const roadLink = road.roadLinks[i];
       result = rect.union(result, this.getBoundsForRoadLink(margin, roadLink));
     }
     return result;
@@ -307,20 +307,19 @@ Geometry.prototype = {
   },
 
   insertRoadNode: function (roadNode) {
-    const toid = roadNode.toid;
-    roadNode.address = this.pendingAddresses[toid] || null;
-    roadNode.roadLinks = this.pendingRoadLinks[toid] || [];
+    roadNode.address = this.pendingAddresses[roadNode.toid] || null;
+    roadNode.roadLinks = this.pendingRoadLinks[roadNode.toid] || [];
     for (let i = 0; i < roadNode.roadLinks.length; i++) {
-      const roadLink = this.roadLinks[roadNode.roadLinks[i]];
-      if (toid === roadLink.negativeNodeTOID) {
+      const roadLink = roadNode.roadLinks[i];
+      if (roadNode.toid === roadLink.negativeNodeTOID) {
         roadLink.negativeNode = roadNode;
         delete roadLink.negativeNodeTOID;
-      } else if (toid === roadLink.positiveNodeTOID) {
+      } else if (roadNode.toid === roadLink.positiveNodeTOID) {
         roadLink.positiveNode = roadNode;
         delete roadLink.positiveNodeTOID;
       }
     }
-    this.roadNodes[toid] = roadNode;
+    this.roadNodes[roadNode.toid] = roadNode;
   },
 
   onRoadLinksLoaded: function (data) {
@@ -339,27 +338,26 @@ Geometry.prototype = {
   },
 
   insertRoadLink: function (roadLink) {
-    const toid = roadLink.toid;
     if (roadLink.negativeNodeTOID in this.roadNodes) {
       roadLink.negativeNode = this.roadNodes[roadLink.negativeNodeTOID];
-      pushUnique(roadLink.negativeNode, "roadLinks", toid);
+      pushUnique(roadLink.negativeNode, "roadLinks", roadLink);
       delete roadLink.negativeNodeTOID;
     } else {
-      pushUnique(this.pendingRoadLinks, roadLink.negativeNodeTOID, toid);
+      pushUnique(this.pendingRoadLinks, roadLink.negativeNodeTOID, roadLink);
     }
     if (roadLink.positiveNodeTOID in this.roadNodes) {
       roadLink.positiveNode = this.roadNodes[roadLink.positiveNodeTOID];
-      pushUnique(roadLink.positiveNode, "roadLinks", toid);
+      pushUnique(roadLink.positiveNode, "roadLinks", roadLink);
       delete roadLink.positiveNodeTOID;
     } else {
-      pushUnique(this.pendingRoadLinks, roadLink.positiveNodeTOID, toid);
+      pushUnique(this.pendingRoadLinks, roadLink.positiveNodeTOID, roadLink);
     }
-    roadLink.roads = this.pendingRoads[toid] || [];
+    roadLink.roads = this.pendingRoads[roadLink.toid] || [];
     for (let i = 0; i < roadLink.roads.length; i++) {
       const road = roadLink.roads[i];
-      pushUnique(road, "roadLinks", toid);
+      pushUnique(road, "roadLinks", roadLink);
     }
-    this.roadLinks[toid] = roadLink;
+    this.roadLinks[roadLink.toid] = roadLink;
   },
 
   onRoadsLoaded: function (data) {
@@ -373,18 +371,18 @@ Geometry.prototype = {
   },
 
   insertRoad: function (road) {
-    const toid = road.toid;
-    for (let i = 0; i < road.unloadedLinks.length; i++) {
-      const roadLink = road.unloadedLinks[i];
-      if (roadLink in this.roadLinks) {
-        pushUnique(this.roadLinks[roadLink], "roads", road);
+    for (let i = 0; i < road.roadLinkTOIDs.length; i++) {
+      const roadLinkTOID = road.roadLinkTOIDs[i];
+      if (roadLinkTOID in this.roadLinks) {
+        const roadLink = this.roadLinks[roadLinkTOID];
+        pushUnique(this.roadLinks[roadLinkTOID], "roads", road);
         pushUnique(road, "roadLinks", roadLink);
       } else {
-        pushUnique(this.pendingRoads, roadLink, road);
+        pushUnique(this.pendingRoads, roadLinkTOID, road);
       }
     }
-    delete road.unloadedLinks;
-    this.roads[toid] = road;
+    delete road.roadLinkTOIDs;
+    this.roads[road.toid] = road;
   },
 
   onAddressesLoaded: function (data) {
@@ -398,11 +396,10 @@ Geometry.prototype = {
   },
 
   insertAddress: function (address) {
-    const toid = address.toid;
-    if (toid in this.roadNodes) {
-      this.roadNodes[toid].address = address.text;
+    if (address.toid in this.roadNodes) {
+      this.roadNodes[address.toid].address = address.text;
     } else {
-      this.pendingAddresses[toid] = address.text;
+      this.pendingAddresses[address.toid] = address.text;
     }
   },
 

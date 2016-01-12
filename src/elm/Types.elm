@@ -6,7 +6,7 @@ import Signal
 type alias RoadNode =
   { toid : String
   , address : Maybe String
-  , roadLinks : List String
+  , roadLinkTOIDs : List String
   }
 
 
@@ -14,8 +14,8 @@ type alias RoadLink =
   { toid : String
   , term : String
   , nature : String
-  , negativeNode : Maybe RoadNode
-  , positiveNode : Maybe RoadNode
+  , negativeNodeTOID : Maybe String
+  , positiveNodeTOID : Maybe String
   , roads : List Road
   }
 
@@ -25,7 +25,7 @@ type alias Road =
   , group : String
   , term : Maybe String
   , name : String
-  , roadLinks : List String
+  , roadLinkTOIDs : List String
   }
 
 
