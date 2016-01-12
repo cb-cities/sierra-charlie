@@ -9,6 +9,7 @@ const Quadtree = require("./Quadtree");
 const compute = require("./compute");
 const defs = require("./defs");
 const polyline = require("./polyline");
+const ui = require("./ui");
 const vector = require("./vector");
 
 
@@ -94,11 +95,11 @@ Controller.prototype = {
   },
 
   sendHighlightedFeature: function () {
-    UI.ports.highlightedFeature.send(this.highlightedFeature);
+    UI.ports.highlightedFeature.send(ui.exportFeature(this.highlightedFeature));
   },
 
   sendSelectedFeature: function () {
-    UI.ports.selectedFeature.send(this.selectedFeature);
+    UI.ports.selectedFeature.send(ui.exportFeature(this.selectedFeature));
   },
 
   setMode: function (mode) {

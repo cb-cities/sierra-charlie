@@ -78,7 +78,7 @@ viewRoadNode trigger maybeMode roadNode =
       toid =
         viewLabeled "TOID" [viewTOID trigger roadNode.toid]
       roadLinks =
-        viewLabeledList "Road Links" (viewTOIDItem trigger "*") roadNode.roadLinks
+        viewLabeledList "Road Links" (viewTOIDItem trigger "*") roadNode.roadLinkTOIDs
     in
       div [] (tag ++ description ++ actions ++ toid ++ roadLinks)
 
@@ -98,21 +98,21 @@ viewRoadLink trigger roadLink =
       toid =
         viewLabeled "TOID" [viewTOID trigger roadLink.toid]
       roadNodes =
-        case (roadLink.negativeNode, roadLink.positiveNode) of
+        case (roadLink.negativeNodeTOID, roadLink.positiveNodeTOID) of
           (Nothing, Nothing) ->
             []
-          (Just negativeNode, Nothing) ->
+          (Just negativeNodeTOID, Nothing) ->
             viewLabeled "Road Nodes"
-              [ viewTOIDItem trigger "-" negativeNode.toid
+              [ viewTOIDItem trigger "-" negativeNodeTOID
               ]
-          (Nothing, Just positiveNode) ->
+          (Nothing, Just positiveNodeTOID) ->
             viewLabeled "Road Nodes"
-              [ viewTOIDItem trigger "+" positiveNode.toid
+              [ viewTOIDItem trigger "+" positiveNodeTOID
               ]
-          (Just negativeNode, Just positiveNode) ->
+          (Just negativeNodeTOID, Just positiveNodeTOID) ->
             viewLabeled "Road Nodes"
-              [ viewTOIDItem trigger "-" negativeNode.toid
-              , viewTOIDItem trigger "+" positiveNode.toid
+              [ viewTOIDItem trigger "-" negativeNodeTOID
+              , viewTOIDItem trigger "+" positiveNodeTOID
               ]
       roads =
         viewLabeledList "Roads" (viewRoadItem trigger) roadLink.roads
@@ -150,7 +150,7 @@ viewRoad trigger road =
       toid =
         viewLabeled "TOID" [viewTOID trigger road.toid]
       roadLinks =
-        viewLabeledList "Road Links" (viewTOIDItem trigger "*") road.roadLinks
+        viewLabeledList "Road Links" (viewTOIDItem trigger "*") road.roadLinkTOIDs
     in
       div [] (tag ++ description ++ toid ++ roadLinks)
 
