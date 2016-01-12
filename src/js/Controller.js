@@ -9,7 +9,6 @@ const Quadtree = require("./Quadtree");
 const compute = require("./compute");
 const defs = require("./defs");
 const polyline = require("./polyline");
-const ui = require("./ui");
 const vector = require("./vector");
 
 
@@ -85,6 +84,49 @@ Controller.prototype = {
     return compute.toClientPoint(p, clientWidth, clientHeight, centerX, centerY, zoom);
   },
 
+
+  exportRoadNode: function (roadNode) {
+    return !roadNode ? null : {
+      toid: roadNode.toid,
+      address: roadNode.address,
+      roadLinkTOIDs: roadNode.roadLinks.map(function (roadLink) {
+          return roadLink.toid;
+        })
+    };
+  },
+
+  exportRoadLink: function (roadLink) {
+    return !roadLink ? null : {
+      toid: roadLink.toid,
+      term: roadLink.term,
+      nature: roadLink.nature,
+      negativeNodeTOID: !roadLink.negativeNode ? null : roadLink.negativeNode.toid,
+      positiveNodeTOID: !roadLink.positiveNode ? null : roadLink.positiveNode.toid,
+      roads: roadLink.roads.map(this.exportRoad)
+    };
+  },
+
+  exportRoad: function (road) {
+    return !road ? null : {
+      toid: road.toid,
+      group: road.group,
+      term: road.term,
+      name: road.name,
+      roadLinkTOIDs: road.roadLinks.map(function (roadLink) {
+          return roadLink.toid;
+        })
+    };
+  },
+
+  exportFeature: function (feature) {
+    return !feature ? null : {
+      tag: feature.tag,
+      roadNode: this.exportRoadNode(feature.roadNode),
+      roadLink: this.exportRoadLink(feature.roadLink),
+      road: this.exportRoad(feature.road)
+    };
+  },
+
   sendMode: function () {
     UI.ports.mode.send(this.mode);
   },
@@ -95,11 +137,11 @@ Controller.prototype = {
   },
 
   sendHighlightedFeature: function () {
-    UI.ports.highlightedFeature.send(ui.exportFeature(this.highlightedFeature));
+    UI.ports.highlightedFeature.send(this.exportFeature(this.highlightedFeature));
   },
 
   sendSelectedFeature: function () {
-    UI.ports.selectedFeature.send(ui.exportFeature(this.selectedFeature));
+    UI.ports.selectedFeature.send(this.exportFeature(this.selectedFeature));
   },
 
   setMode: function (mode) {
