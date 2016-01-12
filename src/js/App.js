@@ -6,7 +6,7 @@ const EasedStateMixin = require("./EasedStateMixin");
 const compute = require("./compute");
 const defs = require("./defs");
 
-const glUtils = require("./gl-utils"); // TODO
+const glUtils = require("./gl-utils");
 const fragmentShader = require("../glsl/fragment-shader.glsl");
 const vertexShader = require("../glsl/vertex-shader.glsl");
 
@@ -183,12 +183,12 @@ module.exports = {
       gl.enable(gl.BLEND);
       gl.clearColor(0, 0, 0, 0);
       gl.getExtension("OES_element_index_uint");
-      Grid.render(gl); // TODO
+      Grid.render(gl);
     } else {
       cx = this.drawingContext;
       gl = cx.gl;
     }
-    if (Geometry.render(gl)) { // TODO
+    if (Geometry.render(gl)) {
       this.isDrawingNeeded = true;
     }
     if (cx.pixelRatio !== window.devicePixelRatio) { // TODO
@@ -204,7 +204,7 @@ module.exports = {
     this.isAnimationFrameRequested = requestAnimationFrame(this.onAnimationFrameReceived);
     const cx = this.drawingContext;
     const gl = cx.gl;
-    const canvas = document.getElementById("map-canvas"); // TODO
+    const canvas = document.getElementById("map-canvas");
     const clientWidth = canvas.clientWidth;
     const clientHeight = canvas.clientHeight;
     const deviceWidth = cx.pixelRatio * clientWidth;
@@ -234,9 +234,9 @@ module.exports = {
       // Draw grid
       gl.lineWidth(1);
       gl.uniform4f(cx.colorLoc, 0.2, 0.2, 0.2, 1);
-      Grid.draw(gl, cx.vertexLoc); // TODO
+      Grid.draw(gl, cx.vertexLoc);
 
-      if (Geometry.bindVertexBuffer(gl)) { // TODO
+      if (Geometry.bindVertexBuffer(gl)) {
         gl.enableVertexAttribArray(cx.vertexLoc);
         gl.vertexAttribPointer(cx.vertexLoc, 2, gl.FLOAT, false, 0, 0);
 
@@ -246,11 +246,11 @@ module.exports = {
         const roadLinkAlpha = Math.min(roadLinkSize, 1);
         gl.lineWidth(roadLinkSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
-        Geometry.drawAllRoadLinks(gl); // TODO
+        Geometry.drawAllRoadLinks(gl);
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-        Controller.selectedLineIndices.draw(gl, gl.LINES); // TODO
+        Controller.selectedLineIndices.draw(gl, gl.LINES);
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
-        Controller.highlightedLineIndices.draw(gl, gl.LINES); // TODO
+        Controller.highlightedLineIndices.draw(gl, gl.LINES);
 
         // Draw road nodes
         const baseRoadNodeSize = cx.pixelRatio * 8;
@@ -258,11 +258,11 @@ module.exports = {
         const roadNodeAlpha = Math.min(roadNodeSize, 1);
         gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
-        Geometry.drawAllRoadNodes(gl); // TODO
+        Geometry.drawAllRoadNodes(gl);
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-        Controller.selectedPointIndices.draw(gl, gl.POINTS); // TODO
+        Controller.selectedPointIndices.draw(gl, gl.POINTS);
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
-        Controller.highlightedPointIndices.draw(gl, gl.POINTS); // TODO
+        Controller.highlightedPointIndices.draw(gl, gl.POINTS);
       }
     }
   }
