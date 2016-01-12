@@ -43,6 +43,10 @@ update action state =
         (state, send highlightFeatureMailbox.address toid)
       SelectFeature toid ->
         (state, send selectFeatureMailbox.address toid)
+      DeleteSelectedFeature ->
+        (state, send deleteSelectedFeatureMailbox.address ())
+      UndeleteSelectedFeature ->
+        (state, send undeleteSelectedFeatureMailbox.address ())
 
 
 send : Address a -> a -> Effects Action
@@ -92,6 +96,16 @@ port selectFeature =
     selectFeatureMailbox.signal
 
 
+port deleteSelectedFeature : Signal ()
+port deleteSelectedFeature =
+    deleteSelectedFeatureMailbox.signal
+
+
+port undeleteSelectedFeature : Signal ()
+port undeleteSelectedFeature =
+    undeleteSelectedFeatureMailbox.signal
+
+
 setModeMailbox : Mailbox (Maybe String)
 setModeMailbox =
     Signal.mailbox Nothing
@@ -105,6 +119,16 @@ highlightFeatureMailbox =
 selectFeatureMailbox : Mailbox (Maybe String)
 selectFeatureMailbox =
     Signal.mailbox Nothing
+
+
+deleteSelectedFeatureMailbox : Mailbox ()
+deleteSelectedFeatureMailbox =
+    Signal.mailbox ()
+
+
+undeleteSelectedFeatureMailbox : Mailbox ()
+undeleteSelectedFeatureMailbox =
+    Signal.mailbox ()
 
 
 port tasks : Signal (Task Never ())

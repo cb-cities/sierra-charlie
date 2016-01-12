@@ -30,4 +30,10 @@ require("./index.appcache");
   window.UI.ports.selectFeature.subscribe(function (toid) {
       controller.selectFeatureByTOID(toid);
     });
+  window.UI.ports.deleteSelectedFeature.subscribe(function () {
+      controller.deleteSelectedFeature();
+    });
+  window.UI.ports.undeleteSelectedFeature.subscribe(function () {
+      controller.undeleteSelectedFeature();
+    });
 })();

@@ -247,6 +247,8 @@ module.exports = {
         gl.lineWidth(roadLinkSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
         Geometry.drawAllRoadLinks(gl);
+        gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
+        Controller.deletedLineIndices.draw(gl, gl.LINES);
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
         Controller.selectedLineIndices.draw(gl, gl.LINES);
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
@@ -259,6 +261,8 @@ module.exports = {
         gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
         Geometry.drawAllRoadNodes(gl);
+        gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
+        Controller.deletedPointIndices.draw(gl, gl.POINTS);
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
         Controller.selectedPointIndices.draw(gl, gl.POINTS);
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
