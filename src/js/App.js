@@ -269,8 +269,7 @@ module.exports = {
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
         Controller.highlightedPointIndices.draw(gl, gl.POINTS);
 
-        gl.lineWidth(1);
-        gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
+        gl.uniform4f(cx.colorLoc, 1, 1, 1, 0.4);
         Controller.tracingLines.draw(gl, cx.vertexLoc);
       }
     }
