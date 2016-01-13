@@ -20,6 +20,7 @@ require("./index.appcache");
       loadingProgress: 0,
       highlightedFeature: null,
       selectedFeature: null,
+      routes: [],
       adjustment: null
     });
   window.UI.ports.setMode.subscribe(function (mode) {
@@ -36,6 +37,9 @@ require("./index.appcache");
     });
   window.UI.ports.undeleteSelectedFeature.subscribe(function () {
       controller.undeleteSelectedFeature();
+    });
+  window.UI.ports.clearRoutes.subscribe(function () {
+      controller.clearRoutes();
     });
   window.UI.ports.clearAdjustment.subscribe(function () {
       controller.clearAdjustment();

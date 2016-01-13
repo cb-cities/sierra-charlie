@@ -16,6 +16,7 @@ initialState =
   , loadingProgress = 0
   , highlightedFeature = Nothing
   , selectedFeature = Nothing
+  , routes = []
   , adjustment = Nothing
   }
 
@@ -38,6 +39,8 @@ update action state =
         ({state | highlightedFeature = feature}, none)
       ReceiveSelectedFeature feature ->
         ({state | selectedFeature = feature}, none)
+      ReceiveRoutes routes ->
+        ({state | routes = routes}, none)
       ReceiveAdjustment adjustment ->
         ({state | adjustment = adjustment}, none)
       SetMode mode ->
@@ -50,6 +53,8 @@ update action state =
         (state, send deleteSelectedFeatureMailbox.address ())
       UndeleteSelectedFeature ->
         (state, send undeleteSelectedFeatureMailbox.address ())
+      ClearRoutes ->
+        (state, send clearRoutesMailbox.address ())
       ClearAdjustment ->
         (state, send clearAdjustmentMailbox.address ())
 
@@ -70,6 +75,7 @@ ui =
           , Signal.map ReceiveLoadingProgress loadingProgress
           , Signal.map ReceiveHighlightedFeature highlightedFeature
           , Signal.map ReceiveSelectedFeature selectedFeature
+          , Signal.map ReceiveRoutes routes
           , Signal.map ReceiveAdjustment adjustment
           ]
       }
@@ -85,6 +91,9 @@ port highlightedFeature : Signal (Maybe Feature)
 
 
 port selectedFeature : Signal (Maybe Feature)
+
+
+port routes : Signal (List Route)
 
 
 port adjustment : Signal (Maybe Adjustment)
@@ -115,6 +124,11 @@ port undeleteSelectedFeature =
     undeleteSelectedFeatureMailbox.signal
 
 
+port clearRoutes : Signal ()
+port clearRoutes =
+    clearRoutesMailbox.signal
+
+
 port clearAdjustment : Signal ()
 port clearAdjustment =
     clearAdjustmentMailbox.signal
@@ -142,6 +156,11 @@ deleteSelectedFeatureMailbox =
 
 undeleteSelectedFeatureMailbox : Mailbox ()
 undeleteSelectedFeatureMailbox =
+    Signal.mailbox ()
+
+
+clearRoutesMailbox : Mailbox ()
+clearRoutesMailbox =
     Signal.mailbox ()
 
 

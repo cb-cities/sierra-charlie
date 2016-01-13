@@ -35,9 +35,11 @@ type alias Road =
 
 
 type alias Route =
-  { startNodeTOID : String
+  { toid : String
+  , startNodeTOID : String
   , endNodeTOID : String
   , roadLinkTOIDs : List String
+  , isValid : Bool
   }
 
 
@@ -63,6 +65,7 @@ type alias State =
   , loadingProgress : Float
   , highlightedFeature : Maybe Feature
   , selectedFeature : Maybe Feature
+  , routes : List Route
   , adjustment : Maybe Adjustment
   }
 
@@ -73,12 +76,14 @@ type Action =
   | ReceiveLoadingProgress Float
   | ReceiveHighlightedFeature (Maybe Feature)
   | ReceiveSelectedFeature (Maybe Feature)
+  | ReceiveRoutes (List Route)
   | ReceiveAdjustment (Maybe Adjustment)
   | SetMode (Maybe String)
   | HighlightFeature (Maybe String)
   | SelectFeature (Maybe String)
   | DeleteSelectedFeature
   | UndeleteSelectedFeature
+  | ClearRoutes
   | ClearAdjustment
 
 
