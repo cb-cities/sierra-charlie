@@ -156,7 +156,7 @@ Geometry.prototype = {
     return results;
   },
 
-  getPointForRoadNode: function (roadNode) { 
+  getPointForRoadNode: function (roadNode) {
     const start = roadNode.vertexOffset * 2;
     const end = start + 2;
     return array.sliceFloat32(this.vertexArr, start, end);

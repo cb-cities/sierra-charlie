@@ -17,19 +17,19 @@ Adjustment.prototype = {
       roadLink.toid in this.deletedFeatures ||
       roadLink.roads.some(this.isRoadDeleted.bind(this)));
   },
-  
+
   isRoadDeleted: function (road) {
     return road.toid in this.deletedFeatures;
   },
-  
+
   isRoadNodeUndeletable: function (roadNode) {
     return roadNode.toid in this.deletedFeatures;
   },
-  
+
   isRoadLinkUndeletable: function (roadLink) {
     return roadLink.toid in this.deletedFeatures;
   },
-  
+
   deleteFeature: function (feature) {
     switch (feature.tag) {
       case "roadNode":
@@ -43,7 +43,7 @@ Adjustment.prototype = {
         break;
     }
   },
-  
+
   undeleteFeature: function (feature) {
     switch (feature.tag) {
       case "roadNode":

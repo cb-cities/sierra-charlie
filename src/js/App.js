@@ -183,7 +183,8 @@ module.exports = {
       gl.enable(gl.BLEND);
       gl.clearColor(0, 0, 0, 0);
       gl.getExtension("OES_element_index_uint");
-      Grid.render(gl);
+      Controller.grid.render(gl);
+      Controller.tracingLines.render(gl, gl.DYNAMIC_DRAW);
     } else {
       cx = this.drawingContext;
       gl = cx.gl;
@@ -234,7 +235,7 @@ module.exports = {
       // Draw grid
       gl.lineWidth(1);
       gl.uniform4f(cx.colorLoc, 0.2, 0.2, 0.2, 1);
-      Grid.draw(gl, cx.vertexLoc);
+      Controller.grid.draw(gl, cx.vertexLoc);
 
       if (Geometry.bindVertexBuffer(gl)) {
         gl.enableVertexAttribArray(cx.vertexLoc);
@@ -267,6 +268,10 @@ module.exports = {
         Controller.selectedPointIndices.draw(gl, gl.POINTS);
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
         Controller.highlightedPointIndices.draw(gl, gl.POINTS);
+
+        gl.lineWidth(1);
+        gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
+        Controller.tracingLines.draw(gl, cx.vertexLoc);
       }
     }
   }

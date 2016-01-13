@@ -3,6 +3,7 @@
 const Adjustment = require("./Adjustment");
 const Geometry = require("./Geometry");
 const Grid = require("./Grid");
+const Lineset = require("./Lineset");
 const Indexset = require("./Indexset");
 const Polyquadtree = require("./Polyquadtree");
 const Quadtree = require("./Quadtree");
@@ -22,9 +23,10 @@ function Controller() {
       onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this),
       onRoadsLoaded: this.onRoadsLoaded.bind(this)
     });
-  window.Grid = this.grid = new Grid(); // TODO
-  window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
-  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
+  this.grid = new Grid(); // TODO
+  this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
+  this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
+  this.tracingLines = new Lineset();
   this.highlightedFeature = null;
   this.highlightedPointIndices = new Indexset();
   this.highlightedLineIndices = new Indexset();
@@ -165,6 +167,10 @@ Controller.prototype = {
 
   setMode: function (mode) {
     this.mode = mode;
+    if (!this.mode) {
+      this.tracingLines.clear();
+      App.isDrawingNeeded = true; // TODO
+    }
     this.sendMode();
   },
 
@@ -277,6 +283,15 @@ Controller.prototype = {
     }
   },
 
+  renderTracerLines: function () {
+    const gl = App.drawingContext.gl; // TODO
+    const cursorP = this.fromClientPoint(this.prevCursor);
+    this.tracingLines.clear();
+    this.tracingLines.insertLine(this.selectedFeature.roadNode.point[0], this.selectedFeature.roadNode.point[1], cursorP[0], cursorP[1]);
+    this.tracingLines.render(gl, gl.DYNAMIC_DRAW);
+    App.isDrawingNeeded = true; // TODO;
+  },
+
   highlightFeature: function (feature) {
     if (feature !== this.highlightedFeature) {
       this.highlightedFeature = feature;
@@ -307,6 +322,7 @@ Controller.prototype = {
           } else {
             this.highlightFeature(null);
           }
+          this.renderTracerLines();
           break;
         default:
           this.highlightFeature(this.findClosestFeature());
