@@ -19,10 +19,10 @@ const _ = module.exports = {
 
   contains: function (r, p) {
     return (
-      r.left <= p.x &&
-      p.x <= r.right &&
-      r.top <= p.y &&
-      p.y <= r.bottom);
+      r.left <= p[0] &&
+      p[0] <= r.right &&
+      r.top <= p[1] &&
+      p[1] <= r.bottom);
   },
 
   intersects: function (r1, r2) {
@@ -43,18 +43,18 @@ const _ = module.exports = {
   },
 
   midpoint: function (r) {
-    return {
-      x: r.left + _.width(r) / 2,
-      y: r.top + _.height(r) / 2
-    };
+    return [
+      r.left + _.width(r) / 2,
+      r.top + _.height(r) / 2
+    ];
   },
 
   stretch: function (r, p) {
     return {
-      left: Math.min(r.left, p.x),
-      top: Math.min(r.top, p.y),
-      right: Math.max(r.right, p.x),
-      bottom: Math.max(r.bottom, p.y)
+      left: Math.min(r.left, p[0]),
+      top: Math.min(r.top, p[1]),
+      right: Math.max(r.right, p[0]),
+      bottom: Math.max(r.bottom, p[1])
     };
   },
 

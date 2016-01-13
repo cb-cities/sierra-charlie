@@ -5,6 +5,7 @@ const simplify = require("simplify-js");
 
 const array = require("./lib/array");
 const defs = require("./defs");
+const polyline = require("./lib/polyline");
 
 
 function GeometryLoader() {
@@ -93,19 +94,16 @@ GeometryLoader.prototype = {
     oboe(origin + "/json/roadnodes1.json.gz")
       .node("!.*", function (obj) {
           this.itemCount++;
-          const p = {
-            x: parseFloat(obj.point[0]),
-            y: parseFloat(obj.point[1])
-          };
           this.roadNodes.push({
               toid: obj.toid,
+              point: obj.point,
               address: null,
               roadLinks: [],
               vertexOffset: this.vertexCount,
               indexOffset: this.roadNodeIndexCount
             });
           this.roadNodeIndexArr[this.roadNodeIndexCount++] = this.vertexCount;
-          this.vertexArr.set([p.x, p.y], this.vertexCount * 2);
+          this.vertexArr.set(obj.point, this.vertexCount * 2);
           this.vertexCount++;
           this.postRoadNodes();
           return oboe.drop;
@@ -122,8 +120,8 @@ GeometryLoader.prototype = {
           let ps = [];
           for (let i = 0; i < obj.polyline.length / 2; i++) {
             ps.push({
-                x: parseFloat(obj.polyline[i * 2]),
-                y: parseFloat(obj.polyline[i * 2 + 1])
+                x: obj.polyline[i * 2],
+                y: obj.polyline[i * 2 + 1]
               });
           }
           if (obj.polyline.length > 4) {
@@ -135,6 +133,7 @@ GeometryLoader.prototype = {
           }
           this.roadLinks.push({
               toid: obj.toid,
+              bounds: polyline.bounds(0, vertices),
               term: obj.term,
               nature: obj.nature,
               negativeNodeTOID: obj.negativeNode,

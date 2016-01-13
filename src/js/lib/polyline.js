@@ -5,24 +5,26 @@ const segment = require("./segment");
 
 
 const _ = module.exports = {
-  length: function (ps) {
+  length: function (vertices) {
+    const pointCount = vertices.length / 2;
     let result = 0;
-    for (let i = 0; i < ps.length - 1; i++) {
-      result += segment.length({
-          p1: ps[i],
-          p2: ps[i + 1]
-        });
+    for (let i = 0; i < pointCount - 1; i++) {
+      result += segment.length([
+          [vertices[2 * i], vertices[2 * i + 1]],
+          [vertices[2 * (i + 1)], vertices[2 * (i + 1) + 1]]
+        ]);
     }
     return result;
   },
 
-  distance: function (v, ps) {
+  distance: function (v, vertices) {
+    const pointCount = vertices.length / 2;
     let result = Infinity;
-    for (let i = 0; i < ps.length - 1; i++) {
-      const d = segment.distance(v, {
-          p1: ps[i],
-          p2: ps[i + 1]
-        });
+    for (let i = 0; i < pointCount - 1; i++) {
+      const d = segment.distance(v, [
+          [vertices[2 * i], vertices[2 * i + 1]],
+          [vertices[2 * (i + 1)], vertices[2 * (i + 1) + 1]]
+        ]);
       if (d < result) {
         result = d;
       }
@@ -30,15 +32,16 @@ const _ = module.exports = {
     return result;
   },
 
-  bounds: function (margin, ps) {
+  bounds: function (margin, vertices) {
+    const pointCount = vertices.length / 2;
     let result = rect.invalid;
-    for (let i = 0; i < ps.length; i++) {
-      result = rect.stretch(result, ps[i]);
+    for (let i = 0; i < pointCount; i++) {
+      result = rect.stretch(result, [vertices[2 * i], vertices[2 * i + 1]]); // FIXME
     }
     return rect.bounds(margin, result);
   },
 
-  midpoint: function (ps) {
-    return rect.midpoint(_.bounds(0, ps));
+  midpoint: function (vertices) {
+    return rect.midpoint(_.bounds(0, vertices));
   }
 };

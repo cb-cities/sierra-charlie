@@ -45,8 +45,8 @@ module.exports = {
   },
 
   setCenter: function (p, duration) {
-    this.setCenterX(p.x, duration);
-    this.setCenterY(p.y, duration);
+    this.setCenterX(p[0], duration);
+    this.setCenterY(p[1], duration);
   },
 
   setZoom: function (zoom, duration) {

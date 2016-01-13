@@ -3,36 +3,36 @@
 
 const _ = module.exports = {
   add: function (v1, v2) {
-    return {
-      x: v1.x + v2.x,
-      y: v1.y + v2.y
-    };
+    return [
+      v1[0] + v2[0],
+      v1[1] + v2[1]
+    ];
   },
 
   subtract: function (v1, v2) {
-    return {
-      x: v1.x - v2.x,
-      y: v1.y - v2.y
-    };
+    return [
+      v1[0] - v2[0],
+      v1[1] - v2[1]
+    ];
   },
 
   dot: function (v1, v2) {
-    return v1.x * v2.x + v1.y * v2.y;
+    return v1[0] * v2[0] + v1[1] * v2[1];
   },
 
   perpDot: function (v1, v2) { // perpendicular dot product
-    return v1.x * v2.y - v1.y * v2.x;
+    return v1[0] * v2[1] - v1[1] * v2[0];
   },
 
   scale: function (ratio, v) {
-    return {
-      x: ratio * v.x,
-      y: ratio * v.y
-    };
+    return [
+      ratio * v[0],
+      ratio * v[1]
+    ];
   },
 
   length: function (v) {
-    return Math.sqrt(v.x * v.x + v.y * v.y);
+    return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
   },
 
   project: function (v1, v2) {
@@ -45,10 +45,10 @@ const _ = module.exports = {
 
   bounds: function (margin, v) {
     return {
-      left: v.x - margin,
-      top: v.y - margin,
-      right: v.x + margin,
-      bottom: v.y + margin
+      left: v[0] - margin,
+      top: v[1] - margin,
+      right: v[0] + margin,
+      bottom: v[1] + margin
     };
   }
 };

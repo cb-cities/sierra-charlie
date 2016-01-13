@@ -23,8 +23,8 @@ function Controller() {
       onRoadsLoaded: this.onRoadsLoaded.bind(this)
     });
   window.Grid = this.grid = new Grid(); // TODO
-  window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getPointForRoadNode.bind(this.geometry)); // TODO
-  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize, this.geometry.getBoundsForRoadLink.bind(this.geometry)); // TODO
+  window.RoadNodeTree = this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
+  window.RoadLinkTree = this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
   this.highlightedFeature = null;
   this.highlightedPointIndices = new Indexset();
   this.highlightedLineIndices = new Indexset();
@@ -406,10 +406,10 @@ Controller.prototype = {
   },
 
   onMouseMoved: function (event) {
-    this.prevCursor = {
-      x: event.clientX,
-      y: event.clientY
-    };
+    this.prevCursor = [
+      event.clientX,
+      event.clientY
+    ];
     this.highlightFeatureAtCursor();
   },
 

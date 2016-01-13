@@ -5,11 +5,10 @@ const rect = require("./lib/rect");
 
 const maxItemCount = 16;
 
-function Quadtree(left, top, size, getPoint) {
+function Quadtree(left, top, size) {
   this.left = left;
   this.top = top;
   this.size = size;
-  this.getPoint = getPoint;
   this.items = [];
 }
 
@@ -23,13 +22,13 @@ Quadtree.prototype = {
         this.insert(newItem);
       }
     } else {
-      if (this.topLeft.contains(this.getPoint(newItem))) {
+      if (this.topLeft.contains(newItem.point)) {
         this.topLeft.insert(newItem);
-      } else if (this.topRight.contains(this.getPoint(newItem))) {
+      } else if (this.topRight.contains(newItem.point)) {
         this.topRight.insert(newItem);
-      } else if (this.bottomLeft.contains(this.getPoint(newItem))) {
+      } else if (this.bottomLeft.contains(newItem.point)) {
         this.bottomLeft.insert(newItem);
-      } else if (this.bottomRight.contains(this.getPoint(newItem))) {
+      } else if (this.bottomRight.contains(newItem.point)) {
         this.bottomRight.insert(newItem);
       }
     }
@@ -39,10 +38,10 @@ Quadtree.prototype = {
     const halfSize = this.size / 2;
     const midWidth = this.left + halfSize;
     const midHeight = this.top + halfSize;
-    this.topLeft = new Quadtree(this.left, this.top, halfSize, this.getPoint);
-    this.topRight = new Quadtree(midWidth, this.top, halfSize, this.getPoint);
-    this.bottomLeft = new Quadtree(this.left, midHeight, halfSize, this.getPoint);
-    this.bottomRight = new Quadtree(midWidth, midHeight, halfSize, this.getPoint);
+    this.topLeft = new Quadtree(this.left, this.top, halfSize);
+    this.topRight = new Quadtree(midWidth, this.top, halfSize);
+    this.bottomLeft = new Quadtree(this.left, midHeight, halfSize);
+    this.bottomRight = new Quadtree(midWidth, midHeight, halfSize);
     const items = this.items;
     delete this.items;
     for (let i = 0; i < items.length; i++) {
@@ -55,7 +54,7 @@ Quadtree.prototype = {
     if (this.intersects(r)) {
       if (this.items) {
         for (let i = 0; i < this.items.length; i++) {
-          if (rect.contains(r, this.getPoint(this.items[i]))) {
+          if (rect.contains(r, this.items[i].point)) {
             results.push(this.items[i]);
           }
         }
@@ -71,10 +70,10 @@ Quadtree.prototype = {
 
   contains: function (p) {
     return (
-      this.left <= p.x &&
-      p.x <= this.left + this.size &&
-      this.top <= p.y &&
-      p.y <= this.top + this.size);
+      this.left <= p[0] &&
+      p[0] <= this.left + this.size &&
+      this.top <= p[1] &&
+      p[1] <= this.top + this.size);
   },
 
   intersects: function (r) {
