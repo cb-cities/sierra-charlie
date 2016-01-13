@@ -34,6 +34,7 @@ function Geometry(props) {
   this.pendingRoadLinks = {};
   this.pendingRoads = {};
   this.loadingStartDate = Date.now();
+  this.loadingMessageCount = 0;
   this.worker = new GeometryLoaderWorker();
   this.worker.addEventListener("message", this.onMessage.bind(this));
   this.worker.postMessage({
@@ -254,27 +255,24 @@ Geometry.prototype = {
   },
 
   onMessage: function (event) {
+    this.loadingMessageCount++;
     switch (event.data.message) {
-      case "roadNodesLoaded": {
+      case "roadNodesLoaded":
         this.onRoadNodesLoaded(event.data);
         break;
-      }
-      case "roadLinksLoaded": {
+      case "roadLinksLoaded":
         this.onRoadLinksLoaded(event.data);
         break;
-      }
-      case "roadsLoaded": {
+      case "roadsLoaded":
         this.onRoadsLoaded(event.data);
         break;
-      }
-      case "addressesLoaded": {
+      case "addressesLoaded":
         this.onAddressesLoaded(event.data);
         break;
-      }
     }
     if (this.isLoadingFinished()) {
       const loadingTime = (Date.now() - this.loadingStartDate) / 1000;
-      console.log("Loading finished in " + loadingTime + " seconds");
+      console.log("Loading finished in " + loadingTime + " seconds, using " + this.loadingMessageCount + " messages");
       this.onLoadingFinished();
     }
   },

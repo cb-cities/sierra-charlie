@@ -32,35 +32,29 @@ Adjustment.prototype = {
   
   deleteFeature: function (feature) {
     switch (feature.tag) {
-      case "roadNode": {
+      case "roadNode":
         this.deletedFeatures[feature.roadNode.toid] = feature;
         break;
-      }
-      case "roadLink": {
+      case "roadLink":
         this.deletedFeatures[feature.roadLink.toid] = feature;
         break;
-      }
-      case "road": {
+      case "road":
         this.deletedFeatures[feature.road.toid] = feature;
         break;
-      }
     }
   },
   
   undeleteFeature: function (feature) {
     switch (feature.tag) {
-      case "roadNode": {
+      case "roadNode":
         delete this.deletedFeatures[feature.roadNode.toid];
         break;
-      }
-      case "roadLink": {
+      case "roadLink":
         delete this.deletedFeatures[feature.roadLink.toid];
         break;
-      }
-      case "road": {
+      case "road":
         delete this.deletedFeatures[feature.road.toid];
         break;
-      }
     }
   }
 };

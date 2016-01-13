@@ -30,7 +30,11 @@ function GeometryLoader() {
 
 GeometryLoader.prototype = {
   post: function (data, isForced) {
-    if (isForced || this.itemCount - this.postedItemCount > defs.maxLoaderPostCount && this.prevPostingDate + defs.maxLoaderPostDelay < Date.now()) {
+    const postingDelay = Date.now() - this.prevPostingDate;
+    const postingCount = this.itemCount - this.postedItemCount;
+    if (isForced ||
+        postingCount > defs.maxLoaderPostingCount ||
+        (postingDelay > defs.maxLoaderPostingDelay && postingCount > defs.minLoaderPostingCount)) {
       this.prevPostingDate = Date.now();
       postMessage(data);
       return true;

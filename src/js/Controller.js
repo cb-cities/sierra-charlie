@@ -229,20 +229,18 @@ Controller.prototype = {
     if (feature) {
       const gl = App.drawingContext.gl; // TODO
       switch (feature.tag) {
-        case "roadNode": {
+        case "roadNode":
           pointIndices.insert([this.geometry.getPointIndexForRoadNode(feature.roadNode)]);
           pointIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
-        }
-        case "roadLink": {
+        case "roadLink":
           pointIndices.insert(this.geometry.getPointIndicesForRoadLink(feature.roadLink));
           pointIndices.render(gl, gl.DYNAMIC_DRAW);
           lineIndices.insert(this.geometry.getLineIndicesForRoadLink(feature.roadLink));
           lineIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
-        }
         case "road":
-        case "route": {
+        case "route":
           const roadLinks =
             feature.tag === "road" ?
               feature.road.roadLinks :
@@ -252,7 +250,6 @@ Controller.prototype = {
           lineIndices.insert(this.geometry.getLineIndicesForRoadLinks(roadLinks));
           lineIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
-        }
       }
     }
     App.isDrawingNeeded = true; // TODO
@@ -311,9 +308,8 @@ Controller.prototype = {
             this.highlightFeature(null);
           }
           break;
-        default: {
+        default:
           this.highlightFeature(this.findClosestFeature());
-        }
       }
     }
   },
@@ -487,12 +483,11 @@ Controller.prototype = {
             }
           }
           break;
-        default: {
+        default:
           this.selectFeature(this.highlightedFeature);
           if (this.selectedFeature) {
             this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
           }
-        }
       }
     } else {
       this.prevClickDate = null;
