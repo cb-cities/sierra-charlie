@@ -20,18 +20,6 @@ Lineset.prototype = {
     this.indexArr.push(index, index + 1);
   },
 
-  insertPolyline: function (ps) {
-    const baseIndex = this.vertexArr.length / 2;
-    for (let i = 0; i < ps.length; i++) {
-      this.vertexArr.push(ps[i].x, ps[i].y);
-      if (i > 0 && i < ps.length - 1) {
-        this.indexArr.push(baseIndex + i, baseIndex + i);
-      } else {
-        this.indexArr.push(baseIndex + i);
-      }
-    }
-  },
-
   extend: function (vertices, indices) {
     const baseIndex = this.vertexArr.length / 2;
     this.vertexArr.push.apply(this.vertexArr, vertices);
