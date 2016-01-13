@@ -3,7 +3,7 @@
 const oboe = require("oboe");
 const simplify = require("simplify-js");
 
-const array = require("./array");
+const array = require("./lib/array");
 const defs = require("./defs");
 
 

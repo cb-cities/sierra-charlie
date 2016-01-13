@@ -9,8 +9,8 @@ const Quadtree = require("./Quadtree");
 
 const compute = require("./compute");
 const defs = require("./defs");
-const polyline = require("./polyline");
-const vector = require("./vector");
+const polyline = require("./lib/polyline");
+const vector = require("./lib/vector");
 
 
 function Controller() {
