@@ -349,6 +349,7 @@ Controller.prototype = {
     if (this.selectedFeature) {
       this.adjustment.deleteFeature(this.selectedFeature);
       this.renderDeletedFeatures();
+      this.sendHighlightedFeature();
       this.selectFeature(null);
       this.sendAdjustment();
     }
@@ -358,6 +359,7 @@ Controller.prototype = {
     if (this.selectedFeature) {
       this.adjustment.undeleteFeature(this.selectedFeature);
       this.renderDeletedFeatures();
+      this.sendHighlightedFeature();
       this.selectFeature(null);
       this.sendAdjustment();
     }
@@ -366,6 +368,8 @@ Controller.prototype = {
   clearAdjustment: function () {
     this.adjustment.clear();
     this.renderDeletedFeatures();
+    this.sendHighlightedFeature();
+    this.sendSelectedFeature();
     this.sendAdjustment();
   },
 
