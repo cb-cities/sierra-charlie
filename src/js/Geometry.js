@@ -34,6 +34,7 @@ function Geometry(props) {
   this.pendingAddresses = {};
   this.pendingRoadLinks = {};
   this.pendingRoads = {};
+  this.loadingStartDate = Date.now();
   this.worker = new GeometryLoaderWorker();
   this.worker.addEventListener("message", this.onMessage.bind(this));
   this.worker.postMessage({
@@ -280,6 +281,8 @@ Geometry.prototype = {
       }
     }
     if (this.isLoadingFinished()) {
+      const loadingTime = (Date.now() - this.loadingStartDate) / 1000;
+      console.log("Loading finished in " + loadingTime + " seconds");
       this.onLoadingFinished();
     }
   },
