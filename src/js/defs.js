@@ -59,6 +59,7 @@ module.exports = {
   actualZoom: 2,
   maxZoom: 9,
 
-  maxLoaderPostCount: 256,
-  maxLoaderPostDelay: 100
+  minLoaderPostingCount: 256,
+  maxLoaderPostingCount: 1024,
+  maxLoaderPostingDelay: 1000
 };
