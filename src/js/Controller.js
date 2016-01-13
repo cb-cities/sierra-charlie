@@ -550,7 +550,11 @@ Controller.prototype = {
         break;
       }
       case 27: { // escape
-        this.setMode(null);
+        if (this.mode) {
+          this.setMode(null);
+        } else if (this.selectedFeature) {
+          this.selectFeature(null);
+        }
         break;
       }
       case 37: // left
