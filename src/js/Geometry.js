@@ -6,7 +6,6 @@ const Queue = require("./Queue");
 const array = require("./lib/array");
 const defs = require("./defs");
 const rect = require("./lib/rect");
-const polyline = require("./lib/polyline");
 
 
 function pushUnique(arr, key, val) {
@@ -156,11 +155,10 @@ Geometry.prototype = {
     return results;
   },
 
-  getPointForRoadNode: function (roadNode) {
-    return {
-      x: this.vertexArr[roadNode.vertexOffset * 2],
-      y: this.vertexArr[roadNode.vertexOffset * 2 + 1]
-    };
+  getPointForRoadNode: function (roadNode) { 
+    const start = roadNode.vertexOffset * 2;
+    const end = start + 2;
+    return array.sliceFloat32(this.vertexArr, start, end);
   },
 
   getPointIndexForRoadNode: function (roadNode) {
@@ -168,15 +166,9 @@ Geometry.prototype = {
   },
 
   getPointsForRoadLink: function (roadLink) {
-    const results = [];
-    for (let i = 0; i < roadLink.pointCount; i++) {
-      const vertexOffset = roadLink.vertexOffset + i;
-      results.push({
-          x: this.vertexArr[vertexOffset * 2],
-          y: this.vertexArr[vertexOffset * 2 + 1]
-        });
-    }
-    return results;
+    const start = roadLink.vertexOffset * 2;
+    const end = start + roadLink.pointCount * 2;
+    return array.sliceFloat32(this.vertexArr, start, end);
   },
 
   getPointIndicesForRoadLink: function (roadLink) {
@@ -205,11 +197,11 @@ Geometry.prototype = {
   },
 
   getBoundsForRoadLink: function (margin, roadLink) {
-    return polyline.bounds(margin, this.getPointsForRoadLink(roadLink));
+    return rect.bounds(margin, roadLink.bounds);
   },
 
   getMidpointForRoadLink: function (roadLink) {
-    return polyline.midpoint(this.getPointsForRoadLink(roadLink));
+    return rect.midpoint(roadLink.bounds);
   },
 
   getPointIndicesForRoadLinks: function (roadLinks) {
@@ -252,9 +244,9 @@ Geometry.prototype = {
     let result = rect.invalid;
     for (let i = 0; i < roadLinks.length; i++) {
       const roadLink = roadLinks[i];
-      result = rect.union(result, this.getBoundsForRoadLink(margin, roadLink));
+      result = rect.union(result, roadLink.bounds);
     }
-    return result;
+    return rect.bounds(margin, result);
   },
 
   getMidpointForRoadLinks: function (roadLinks) {

@@ -18,10 +18,10 @@ const _ = module.exports = {
   },
 
   clampPoint: function (p) {
-    return {
-      x: _.clampX(p.x),
-      y: _.clampY(p.y)
-    };
+    return [
+      _.clampX(p[0]),
+      _.clampY(p[1])
+    ];
   },
 
   clampZoom: function (zoom) {
@@ -75,10 +75,10 @@ const _ = module.exports = {
   },
 
   fromClientPoint: function (clientP, clientWidth, clientHeight, centerX, centerY, zoom) {
-    return {
-      x: _.fromClientX(clientP.x, clientWidth, centerX, zoom),
-      y: _.fromClientY(clientP.y, clientHeight, centerY, zoom)
-    };
+    return [
+      _.fromClientX(clientP[0], clientWidth, centerX, zoom),
+      _.fromClientY(clientP[1], clientHeight, centerY, zoom)
+    ];
   },
 
   fromClientRect: function (clientR, clientWidth, clientHeight, centerX, centerY, zoom) {
@@ -103,10 +103,10 @@ const _ = module.exports = {
   },
 
   toClientPoint: function (p, clientWidth, clientHeight, centerX, centerY, zoom) {
-    return {
-      x: _.toClientX(p.x, clientWidth, centerX, zoom),
-      y: _.toClientY(p.y, clientHeight, centerY, zoom)
-    };
+    return [
+      _.toClientX(p[0], clientWidth, centerX, zoom),
+      _.toClientY(p[1], clientHeight, centerY, zoom)
+    ];
   },
 
   toClientRect: function (r, clientWidth, clientHeight, centerX, centerY, zoom) {
