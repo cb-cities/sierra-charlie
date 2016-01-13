@@ -19,7 +19,8 @@ require("./index.appcache");
       mode: null,
       loadingProgress: 0,
       highlightedFeature: null,
-      selectedFeature: null
+      selectedFeature: null,
+      adjustment: null
     });
   window.UI.ports.setMode.subscribe(function (mode) {
       controller.setMode(mode);
@@ -35,5 +36,8 @@ require("./index.appcache");
     });
   window.UI.ports.undeleteSelectedFeature.subscribe(function () {
       controller.undeleteSelectedFeature();
+    });
+  window.UI.ports.clearAdjustment.subscribe(function () {
+      controller.clearAdjustment();
     });
 })();

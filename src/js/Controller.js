@@ -165,6 +165,10 @@ Controller.prototype = {
     UI.ports.selectedFeature.send(this.exportFeature(this.selectedFeature));
   },
 
+  sendAdjustment: function () {
+    UI.ports.adjustment.send(this.adjustment.dump());
+  },
+
   setMode: function (mode) {
     this.mode = mode;
     if (!this.mode) {
@@ -276,9 +280,9 @@ Controller.prototype = {
   renderDeletedFeatures: function () { // TODO
     this.deletedPointIndices.clear();
     this.deletedLineIndices.clear();
-    const toids = Object.keys(this.adjustment.deletedFeatures);
-    for (let i = 0; i < toids.length; i++) {
-      const feature = this.adjustment.deletedFeatures[toids[i]];
+    const deletedTOIDs = Object.keys(this.adjustment.deletedFeatures);
+    for (let i = 0; i < deletedTOIDs.length; i++) {
+      const feature = this.adjustment.deletedFeatures[deletedTOIDs[i]];
       this.renderFeature(feature, this.deletedPointIndices, this.deletedLineIndices);
     }
   },
@@ -346,6 +350,7 @@ Controller.prototype = {
       this.adjustment.deleteFeature(this.selectedFeature);
       this.renderDeletedFeatures();
       this.selectFeature(null);
+      this.sendAdjustment();
     }
   },
 
@@ -354,7 +359,14 @@ Controller.prototype = {
       this.adjustment.undeleteFeature(this.selectedFeature);
       this.renderDeletedFeatures();
       this.selectFeature(null);
+      this.sendAdjustment();
     }
+  },
+
+  clearAdjustment: function () {
+    this.adjustment.clear();
+    this.renderDeletedFeatures();
+    this.sendAdjustment();
   },
 
   onRoadNodesLoaded: function (roadNodes) {
@@ -526,6 +538,17 @@ Controller.prototype = {
   onKeyPressed: function (event) { // TODO: Refactor
     const duration = event.shiftKey ? 2500 : 500;
     switch (event.keyCode) {
+      case 8: { // backspace
+        event.preventDefault();
+        if (this.selectedFeature) {
+          if (this.adjustment.isFeatureUndeletable(this.selectedFeature)) {
+            this.undeleteSelectedFeature();
+          } else {
+            this.deleteSelectedFeature();
+          }
+        }
+        break;
+      }
       case 27: { // escape
         this.setMode(null);
         break;

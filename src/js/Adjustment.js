@@ -30,6 +30,26 @@ Adjustment.prototype = {
     return roadLink.toid in this.deletedFeatures;
   },
 
+  isFeatureUndeletable: function (feature) {
+    let result = false;
+    switch (feature.tag) {
+      case "roadNode":
+        result = this.isRoadNodeUndeletable(feature.roadNode);
+        break;
+      case "roadLink":
+        result = this.isRoadLinkUndeletable(feature.roadLink);
+        break;
+      case "road":
+        result = true;
+        break;
+    }
+    return result;
+  },
+
+  clear: function () {
+    this.deletedFeatures = {};
+  },
+
   deleteFeature: function (feature) {
     switch (feature.tag) {
       case "roadNode":
@@ -56,6 +76,36 @@ Adjustment.prototype = {
         delete this.deletedFeatures[feature.road.toid];
         break;
     }
+  },
+
+  dump: function () {
+    const deletedTOIDs = Object.keys(this.deletedFeatures);
+    let deletedRoadNodeTOIDs = [];
+    let deletedRoadLinkTOIDs = [];
+    let deletedRoadTOIDs = [];
+    for (let i = 0; i < deletedTOIDs.length; i++) {
+      const feature = this.deletedFeatures[deletedTOIDs[i]];
+      switch (feature.tag) {
+        case "roadNode":
+          deletedRoadNodeTOIDs.push(feature.roadNode.toid);
+          break;
+        case "roadLink":
+          deletedRoadLinkTOIDs.push(feature.roadLink.toid);
+          break;
+        case "road":
+          deletedRoadTOIDs.push(feature.road.toid);
+          break;
+      }
+    }
+    deletedRoadNodeTOIDs.sort();
+    deletedRoadLinkTOIDs.sort();
+    deletedRoadTOIDs.sort();
+    return {
+      deletedItemCount: deletedRoadNodeTOIDs.length + deletedRoadLinkTOIDs.length + deletedRoadTOIDs.length,
+      deletedRoadNodeTOIDs: deletedRoadNodeTOIDs,
+      deletedRoadLinkTOIDs: deletedRoadLinkTOIDs,
+      deletedRoadTOIDs: deletedRoadTOIDs
+    };
   }
 };
 
