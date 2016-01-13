@@ -1,6 +1,6 @@
 "use strict";
 
-const Lineset = require("./lineset");
+const Lineset = require("./Lineset");
 
 const defs = require("./defs");
 

@@ -1,6 +1,6 @@
 "use strict";
 
-const rect = require("./rect");
+const rect = require("./lib/rect");
 
 
 const maxItemCount = 16;

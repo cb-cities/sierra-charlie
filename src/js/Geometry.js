@@ -3,10 +3,10 @@
 const GeometryLoaderWorker = require("worker?inline!./GeometryLoaderWorker");
 const Queue = require("./Queue");
 
-const array = require("./array");
+const array = require("./lib/array");
 const defs = require("./defs");
-const rect = require("./rect");
-const polyline = require("./polyline");
+const rect = require("./lib/rect");
+const polyline = require("./lib/polyline");
 
 
 function pushUnique(arr, key, val) {

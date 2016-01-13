@@ -1,7 +1,7 @@
 "use strict";
 
 const defs = require("./defs");
-const rect = require("./rect");
+const rect = require("./lib/rect");
 
 
 const _ = module.exports = {

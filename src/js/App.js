@@ -6,7 +6,7 @@ const EasedStateMixin = require("./EasedStateMixin");
 const compute = require("./compute");
 const defs = require("./defs");
 
-const glUtils = require("./gl-utils");
+const webgl = require("./lib/webgl");
 const fragmentShader = require("../glsl/fragment-shader.glsl");
 const vertexShader = require("../glsl/vertex-shader.glsl");
 
@@ -160,7 +160,7 @@ module.exports = {
       gl = canvas.getContext("webgl", {
           alpha: false
         });
-      const program = glUtils.createProgram(gl, vertexShader, fragmentShader);
+      const program = webgl.createProgram(gl, vertexShader, fragmentShader);
       gl.useProgram(program);
       const vertexLoc = gl.getAttribLocation(program, "vertex");
       const pixelFitLoc = gl.getUniformLocation(program, "pixelFit");
