@@ -32,13 +32,10 @@ const _ = module.exports = {
 
   bounds: function (margin, ps) {
     let result = rect.invalid;
-    for (let i = 0; i < ps.length - 1; i++) {
-      result = rect.union(result, segment.bounds(margin, {
-          p1: ps[i],
-          p2: ps[i + 1]
-        }));
+    for (let i = 0; i < ps.length; i++) {
+      result = rect.stretch(result, ps[i]);
     }
-    return result;
+    return rect.bounds(margin, result);
   },
 
   midpoint: function (ps) {
