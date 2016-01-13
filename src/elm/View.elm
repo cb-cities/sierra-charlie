@@ -7,14 +7,14 @@ import Html.Events exposing (onMouseEnter, onMouseLeave, onClick)
 import Types exposing (..)
 
 
-viewFeatureTag : String -> Html
-viewFeatureTag tag =
-    div [class "ui-feature-tag"] [text tag]
+viewWindowTitle : String -> Html
+viewWindowTitle title =
+    div [class "ui-window-title"] [text title]
 
 
-viewFeatureLabel : String -> Html
-viewFeatureLabel label =
-    div [class "ui-feature-label"] [text (label ++ ": ")]
+viewWindowLabel : String -> Html
+viewWindowLabel label =
+    div [class "ui-window-label"] [text (label ++ ": ")]
 
 
 viewItem : String -> Html -> Html
@@ -42,7 +42,7 @@ viewTOIDItem trigger bullet toid =
 
 viewLabeled : String -> List Html -> List Html
 viewLabeled label contents =
-    [div [] ([viewFeatureLabel label] ++ contents)]
+    [div [] ([viewWindowLabel label] ++ contents)]
 
 
 viewLabeledList : String -> (a -> Html) -> List a -> List Html
@@ -54,11 +54,11 @@ viewLabeledList label view items =
         viewLabeled label (List.map view items)
 
 
-viewRoadNode : Trigger -> Maybe String -> RoadNode -> Html
-viewRoadNode trigger maybeMode roadNode =
+viewRoadNode : Trigger -> Maybe String -> String -> RoadNode -> Html
+viewRoadNode trigger maybeMode titlePrefix roadNode =
     let
-      tag =
-        [viewFeatureTag "Road Node"]
+      title =
+        [viewWindowTitle (titlePrefix ++ " Road Node")]
       description =
         case roadNode.address of
           Nothing ->
@@ -69,7 +69,7 @@ viewRoadNode trigger maybeMode roadNode =
         case (roadNode.isDeleted, roadNode.isUndeletable) of
           (False, _) ->
             [ div [class "ui-actions"]
-                [ viewFeatureLabel "Actions"
+                [ viewWindowLabel "Actions"
                 , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
                 , case maybeMode of
                     Just "routing" ->
@@ -80,7 +80,7 @@ viewRoadNode trigger maybeMode roadNode =
             ]
           (True, True) ->
             [ div [class "ui-actions"]
-                [ viewFeatureLabel "Actions"
+                [ viewWindowLabel "Actions"
                 , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
                 ]
             ]
@@ -91,7 +91,7 @@ viewRoadNode trigger maybeMode roadNode =
       roadLinks =
         viewLabeledList "Road Links" (viewTOIDItem trigger "*") roadNode.roadLinkTOIDs
     in
-      div [] (tag ++ description ++ actions ++ toid ++ roadLinks)
+      div [] (title ++ description ++ actions ++ toid ++ roadLinks)
 
 
 viewRoadLinkDescription : RoadLink -> Html
@@ -99,24 +99,24 @@ viewRoadLinkDescription roadLink =
     text (roadLink.term ++ ", " ++ roadLink.nature)
 
 
-viewRoadLink : Trigger -> RoadLink -> Html
-viewRoadLink trigger roadLink =
+viewRoadLink : Trigger -> String -> RoadLink -> Html
+viewRoadLink trigger titlePrefix roadLink =
     let
-      tag =
-        [viewFeatureTag "Road Link"]
+      title =
+        [viewWindowTitle (titlePrefix ++ " Road Link")]
       description =
         viewLabeled "Description" [viewRoadLinkDescription roadLink]
       actions =
         case (roadLink.isDeleted, roadLink.isUndeletable) of
           (False, _) ->
             [ div [class "ui-actions"]
-                [ viewFeatureLabel "Actions"
+                [ viewWindowLabel "Actions"
                 , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
                 ]
             ]
           (True, True) ->
             [ div [class "ui-actions"]
-                [ viewFeatureLabel "Actions"
+                [ viewWindowLabel "Actions"
                 , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
                 ]
             ]
@@ -144,7 +144,7 @@ viewRoadLink trigger roadLink =
       roads =
         viewLabeledList "Roads" (viewRoadItem trigger) roadLink.roads
     in
-      div [] (tag ++ description ++ toid ++ actions ++ roadNodes ++ roads)
+      div [] (title ++ description ++ toid ++ actions ++ roadNodes ++ roads)
 
 
 viewRoadDescription : Road -> Html
@@ -167,24 +167,24 @@ viewRoadItem trigger road =
       div [] (toid ++ description)
 
 
-viewRoad : Trigger -> Road -> Html
-viewRoad trigger road =
+viewRoad : Trigger -> String -> Road -> Html
+viewRoad trigger titlePrefix road =
     let
-      tag =
-        [viewFeatureTag "Road"]
+      title =
+        [viewWindowTitle (titlePrefix ++ " Road")]
       description =
         viewLabeled "Description" [viewRoadDescription road]
       actions =
         case road.isDeleted of
           False ->
             [ div [class "ui-actions"]
-                [ viewFeatureLabel "Actions"
+                [ viewWindowLabel "Actions"
                 , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
                 ]
             ]
           True ->
             [ div [class "ui-actions"]
-                [ viewFeatureLabel "Actions"
+                [ viewWindowLabel "Actions"
                 , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
                 ]
             ]
@@ -193,14 +193,14 @@ viewRoad trigger road =
       roadLinks =
         viewLabeledList "Road Links" (viewTOIDItem trigger "*") road.roadLinkTOIDs
     in
-      div [] (tag ++ description ++ actions ++ toid ++ roadLinks)
+      div [] (title ++ description ++ actions ++ toid ++ roadLinks)
 
 
-viewRoute : Trigger -> Route -> Html
-viewRoute trigger route =
+viewRoute : Trigger -> String -> Route -> Html
+viewRoute trigger titlePrefix route =
     let
-      tag =
-        [viewFeatureTag "Route"]
+      title =
+        [viewWindowTitle (titlePrefix ++ " Route")]
       roadNodes =
         viewLabeled "Road Nodes"
           [ viewTOIDItem trigger "-" route.startNodeTOID
@@ -209,12 +209,20 @@ viewRoute trigger route =
       roadLinks =
         viewLabeledList "Road Links" (viewTOIDItem trigger "*") route.roadLinkTOIDs
     in
-      div [] (tag ++ roadNodes ++ roadLinks)
+      div [] (title ++ roadNodes ++ roadLinks)
 
 
 viewFeature : Trigger -> Maybe String -> String -> Maybe Feature -> Html
-viewFeature trigger maybeMode featureId maybeFeature =
+viewFeature trigger maybeMode featureKind maybeFeature =
     let
+      featureId =
+        if featureKind == "highlighted"
+          then "ui-highlighted-feature"
+          else "ui-selected-feature"
+      titlePrefix =
+        if featureKind == "highlighted"
+          then "Highlighted"
+          else "Selected"
       display =
         if maybeFeature == Nothing
           then [style [("display", "none")]]
@@ -226,17 +234,52 @@ viewFeature trigger maybeMode featureId maybeFeature =
           Just feature ->
             case (feature.tag, feature.roadNode, feature.roadLink, feature.road, feature.route) of
               ("roadNode", Just roadNode, Nothing, Nothing, Nothing) ->
-                [viewRoadNode trigger maybeMode roadNode]
+                [viewRoadNode trigger maybeMode titlePrefix roadNode]
               ("roadLink", Nothing, Just roadLink, Nothing, Nothing) ->
-                [viewRoadLink trigger roadLink]
+                [viewRoadLink trigger titlePrefix roadLink]
               ("road", Nothing, Nothing, Just road, Nothing) ->
-                [viewRoad trigger road]
+                [viewRoad trigger titlePrefix road]
               ("route", Nothing, Nothing, Nothing, Just route) ->
-                [viewRoute trigger route]
+                [viewRoute trigger titlePrefix route]
               _ ->
                 []
     in
-      div ([id featureId, class "ui-feature"] ++ display) contents
+      div ([id featureId, class "ui-window"] ++ display) contents
+
+
+viewAdjustment : Trigger -> Maybe Adjustment -> Html
+viewAdjustment trigger maybeAdjustment =
+    let
+      isEmpty =
+        case maybeAdjustment of
+          Nothing ->
+            True
+          Just adjustment ->
+            if adjustment.deletedItemCount == 0
+              then True
+              else False
+      display =
+        if isEmpty
+          then [style [("display", "none")]]
+          else []
+      contents =
+        case maybeAdjustment of
+          Nothing ->
+            []
+          Just adjustment ->
+            [ div [] [viewWindowTitle "Active Adjustment"]
+            , div [class "ui-actions"]
+                [ viewWindowLabel "Actions"
+                , viewItem "*" (a [onClick trigger ClearAdjustment] [text "Clear"])
+                ]
+            , div [id "ui-deleted-items"]
+                ( viewLabeledList "Deleted Road Nodes" (viewTOIDItem trigger "*") adjustment.deletedRoadNodeTOIDs ++
+                  viewLabeledList "Deleted Road Links" (viewTOIDItem trigger "*") adjustment.deletedRoadLinkTOIDs ++
+                  viewLabeledList "Deleted Roads" (viewTOIDItem trigger "*") adjustment.deletedRoadTOIDs
+                )
+            ]
+    in
+      div ([id "ui-adjustment", class "ui-window"] ++ display) contents
 
 
 viewLoadingProgress : Float -> Html
@@ -260,6 +303,7 @@ view : Trigger -> State -> Html
 view trigger state =
     div []
       [ viewLoadingProgress state.loadingProgress
-      , viewFeature trigger state.mode "ui-highlighted-feature" state.highlightedFeature
-      , viewFeature trigger state.mode "ui-selected-feature" state.selectedFeature
+      , viewFeature trigger state.mode "highlighted" state.highlightedFeature
+      , viewFeature trigger state.mode "selected" state.selectedFeature
+      , viewAdjustment trigger state.adjustment
       ]

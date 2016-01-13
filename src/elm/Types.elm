@@ -50,11 +50,20 @@ type alias Feature =
   }
 
 
+type alias Adjustment =
+  { deletedItemCount : Int
+  , deletedRoadNodeTOIDs : List String
+  , deletedRoadLinkTOIDs : List String
+  , deletedRoadTOIDs : List String
+  }
+
+
 type alias State =
   { mode : Maybe String
   , loadingProgress : Float
   , highlightedFeature : Maybe Feature
   , selectedFeature : Maybe Feature
+  , adjustment : Maybe Adjustment
   }
 
 
@@ -64,11 +73,13 @@ type Action =
   | ReceiveLoadingProgress Float
   | ReceiveHighlightedFeature (Maybe Feature)
   | ReceiveSelectedFeature (Maybe Feature)
+  | ReceiveAdjustment (Maybe Adjustment)
   | SetMode (Maybe String)
   | HighlightFeature (Maybe String)
   | SelectFeature (Maybe String)
   | DeleteSelectedFeature
   | UndeleteSelectedFeature
+  | ClearAdjustment
 
 
 type alias Trigger =
