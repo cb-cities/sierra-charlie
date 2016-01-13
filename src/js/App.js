@@ -184,7 +184,10 @@ module.exports = {
       gl.clearColor(0, 0, 0, 0);
       gl.getExtension("OES_element_index_uint");
       Controller.grid.render(gl);
-      Controller.tracingLines.render(gl, gl.DYNAMIC_DRAW);
+      Controller.modeLines.render(gl, gl.DYNAMIC_DRAW);
+      Controller.highlightedLines.render(gl, gl.DYNAMIC_DRAW);
+      Controller.selectedLines.render(gl, gl.DYNAMIC_DRAW);
+      Controller.routingLines.render(gl, gl.DYNAMIC_DRAW);
     } else {
       cx = this.drawingContext;
       gl = cx.gl;
@@ -248,6 +251,8 @@ module.exports = {
         gl.lineWidth(roadLinkSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
         Geometry.drawAllRoadLinks(gl);
+        gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
+        Controller.routingLineIndices.draw(gl, gl.LINES);
         gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
         Controller.deletedLineIndices.draw(gl, gl.LINES);
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
@@ -262,6 +267,8 @@ module.exports = {
         gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
         Geometry.drawAllRoadNodes(gl);
+        gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
+        Controller.routingPointIndices.draw(gl, gl.POINTS);
         gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
         Controller.deletedPointIndices.draw(gl, gl.POINTS);
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
@@ -269,8 +276,21 @@ module.exports = {
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
         Controller.highlightedPointIndices.draw(gl, gl.POINTS);
 
-        gl.uniform4f(cx.colorLoc, 1, 1, 1, 0.4);
-        Controller.tracingLines.draw(gl, cx.vertexLoc);
+        // Draw lines
+        gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
+        Controller.routingLines.draw(gl, cx.vertexLoc);
+        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
+        Controller.selectedLines.draw(gl, cx.vertexLoc);
+        gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
+        Controller.highlightedLines.draw(gl, cx.vertexLoc);
+        switch (Controller.mode) {
+          case "routing":
+            gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
+            break;
+          default:
+            gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
+        }
+        Controller.modeLines.draw(gl, cx.vertexLoc);
       }
     }
   }

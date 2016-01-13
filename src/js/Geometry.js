@@ -75,7 +75,13 @@ Geometry.prototype = {
 
   findShortestRouteBetweenRoadNodes: function (startNode, endNode, adjustment) {
     if (startNode === endNode) {
-      return null;
+      return {
+        toid: "tmp" + Date.now(),
+        startNode: startNode,
+        endNode: endNode,
+        roadLinks: [],
+        isValid: true
+      };
     } else {
       const parentNodes = {};
       const nodesToVisit = new Queue();
@@ -85,12 +91,11 @@ Geometry.prototype = {
         if (currentNode === endNode) {
           const roadLinks = this.recoverRoadLinksBetweenRoadNodes(startNode, endNode, parentNodes);
           return {
-            tag: "route",
-            route: {
-              startNode: startNode,
-              endNode: endNode,
-              roadLinks: roadLinks
-            }
+            toid: "tmp" + Date.now(),
+            startNode: startNode,
+            endNode: endNode,
+            roadLinks: roadLinks,
+            isValid: true
           };
         } else {
           const neighborNodes = this.getNeighborNodesForRoadNode(currentNode, adjustment);
@@ -102,7 +107,13 @@ Geometry.prototype = {
           }
         }
       }
-      return null;
+      return {
+        toid: "tmp" + Date.now(),
+        startNode: startNode,
+        endNode: endNode,
+        roadLinks: [],
+        isValid: false
+      };
     }
   },
 
@@ -154,12 +165,6 @@ Geometry.prototype = {
       results.push(this.roadNodes[toids[i]]);
     }
     return results;
-  },
-
-  getPointForRoadNode: function (roadNode) {
-    const start = roadNode.vertexOffset * 2;
-    const end = start + 2;
-    return array.sliceFloat32(this.vertexArr, start, end);
   },
 
   getPointIndexForRoadNode: function (roadNode) {

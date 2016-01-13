@@ -28,8 +28,10 @@ Indexset.prototype = {
   },
 
   draw: function (gl, mode) {
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
-    gl.drawElements(mode, this.indexArr.length, gl.UNSIGNED_INT, 0);
+    if (this.indexBuf) {
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
+      gl.drawElements(mode, this.indexArr.length, gl.UNSIGNED_INT, 0);
+    }
   }
 };
 

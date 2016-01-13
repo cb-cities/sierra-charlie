@@ -11,6 +11,8 @@ const Quadtree = require("./Quadtree");
 const compute = require("./compute");
 const defs = require("./defs");
 const polyline = require("./lib/polyline");
+const rect = require("./lib/rect");
+const segment = require("./lib/segment");
 const vector = require("./lib/vector");
 
 
@@ -26,13 +28,19 @@ function Controller() {
   this.grid = new Grid(); // TODO
   this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
   this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
-  this.tracingLines = new Lineset();
+  this.modeLines = new Lineset();
   this.highlightedFeature = null;
+  this.highlightedLines = new Lineset();
   this.highlightedPointIndices = new Indexset();
   this.highlightedLineIndices = new Indexset();
   this.selectedFeature = null;
+  this.selectedLines = new Lineset();
   this.selectedPointIndices = new Indexset();
   this.selectedLineIndices = new Indexset();
+  this.routingFeatures = {};
+  this.routingLines = new Lineset();
+  this.routingPointIndices = new Indexset();
+  this.routingLineIndices = new Indexset();
   this.adjustment = new Adjustment();
   this.deletedPointIndices = new Indexset();
   this.deletedLineIndices = new Indexset();
@@ -130,11 +138,13 @@ Controller.prototype = {
 
   exportRoute: function (route) {
     return !route ? null : {
+      toid: route.toid,
       startNodeTOID: route.startNode.toid,
       endNodeTOID: route.endNode.toid,
       roadLinkTOIDs: route.roadLinks.map(function (roadLink) {
           return roadLink.toid;
-        })
+        }),
+      isValid: route.isValid
     };
   },
 
@@ -165,6 +175,16 @@ Controller.prototype = {
     UI.ports.selectedFeature.send(this.exportFeature(this.selectedFeature));
   },
 
+  sendRoutes: function () {
+    const routingTOIDs = Object.keys(this.routingFeatures);
+    const routes = [];
+    for (let i = 0; i < routingTOIDs.length; i++) {
+      const feature = this.routingFeatures[routingTOIDs[i]];
+      routes.push(this.exportRoute(feature.route));
+    }
+    UI.ports.routes.send(routes);
+  },
+
   sendAdjustment: function () {
     UI.ports.adjustment.send(this.adjustment.dump());
   },
@@ -172,7 +192,7 @@ Controller.prototype = {
   setMode: function (mode) {
     this.mode = mode;
     if (!this.mode) {
-      this.tracingLines.clear();
+      this.modeLines.clear();
       App.isDrawingNeeded = true; // TODO
     }
     this.sendMode();
@@ -185,8 +205,7 @@ Controller.prototype = {
     let closestRoadNode = null;
     const roadNodes = this.roadNodeTree.select(cursorR);
     for (let i = 0; i < roadNodes.length; i++) {
-      const p = this.geometry.getPointForRoadNode(roadNodes[i]);
-      const d1 = vector.distance(cursorP, p);
+      const d1 = vector.distance(cursorP, roadNodes[i].point);
       if (d1 < closestRoadNodeDistance) {
         closestRoadNodeDistance = d1;
         closestRoadNode = roadNodes[i];
@@ -202,8 +221,7 @@ Controller.prototype = {
     let closestRoadNode = null;
     const roadNodes = this.roadNodeTree.select(cursorR);
     for (let i = 0; i < roadNodes.length; i++) {
-      const p = this.geometry.getPointForRoadNode(roadNodes[i]);
-      const d1 = vector.distance(cursorP, p);
+      const d1 = vector.distance(cursorP, roadNodes[i].point);
       if (d1 < closestRoadNodeDistance) {
         closestRoadNodeDistance = d1;
         closestRoadNode = roadNodes[i];
@@ -235,7 +253,7 @@ Controller.prototype = {
     }
   },
 
-  renderFeature: function (feature, pointIndices, lineIndices) {
+  renderFeature: function (feature, lines, pointIndices, lineIndices) {
     if (feature) {
       const gl = App.drawingContext.gl; // TODO
       switch (feature.tag) {
@@ -251,6 +269,14 @@ Controller.prototype = {
           break;
         case "road":
         case "route":
+          if (feature.tag === "route") {
+            const route = feature.route;
+            pointIndices.insert([this.geometry.getPointIndexForRoadNode(route.startNode), this.geometry.getPointIndexForRoadNode(route.endNode)]);
+            if (!route.isValid) { // TODO
+              lines.insertLine(route.startNode.point[0], route.startNode.point[1], route.endNode.point[0], route.endNode.point[1]);
+              lines.render(gl, gl.DYNAMIC_DRAW);
+            }
+          }
           const roadLinks =
             feature.tag === "road" ?
               feature.road.roadLinks :
@@ -266,15 +292,28 @@ Controller.prototype = {
   },
 
   renderHighlightedFeature: function () {
+    this.highlightedLines.clear();
     this.highlightedPointIndices.clear();
     this.highlightedLineIndices.clear();
-    this.renderFeature(this.highlightedFeature, this.highlightedPointIndices, this.highlightedLineIndices);
+    this.renderFeature(this.highlightedFeature, this.highlightedLines, this.highlightedPointIndices, this.highlightedLineIndices);
   },
 
   renderSelectedFeature: function () {
+    this.selectedLines.clear();
     this.selectedPointIndices.clear();
     this.selectedLineIndices.clear();
-    this.renderFeature(this.selectedFeature, this.selectedPointIndices, this.selectedLineIndices);
+    this.renderFeature(this.selectedFeature, this.selectedLines, this.selectedPointIndices, this.selectedLineIndices);
+  },
+
+  renderRoutingFeatures: function () {
+    this.routingLines.clear();
+    this.routingPointIndices.clear();
+    this.routingLineIndices.clear();
+    const routingTOIDs = Object.keys(this.routingFeatures);
+    for (let i = 0; i < routingTOIDs.length; i++) {
+      const feature = this.routingFeatures[routingTOIDs[i]];
+      this.renderFeature(feature, this.routingLines, this.routingPointIndices, this.routingLineIndices);
+    }
   },
 
   renderDeletedFeatures: function () { // TODO
@@ -283,16 +322,16 @@ Controller.prototype = {
     const deletedTOIDs = Object.keys(this.adjustment.deletedFeatures);
     for (let i = 0; i < deletedTOIDs.length; i++) {
       const feature = this.adjustment.deletedFeatures[deletedTOIDs[i]];
-      this.renderFeature(feature, this.deletedPointIndices, this.deletedLineIndices);
+      this.renderFeature(feature, undefined, this.deletedPointIndices, this.deletedLineIndices); // TODO
     }
   },
 
-  renderTracerLines: function () {
+  renderModeLines: function () {
     const gl = App.drawingContext.gl; // TODO
     const cursorP = this.fromClientPoint(this.prevCursor);
-    this.tracingLines.clear();
-    this.tracingLines.insertLine(this.selectedFeature.roadNode.point[0], this.selectedFeature.roadNode.point[1], cursorP[0], cursorP[1]);
-    this.tracingLines.render(gl, gl.DYNAMIC_DRAW);
+    this.modeLines.clear();
+    this.modeLines.insertLine(this.selectedFeature.roadNode.point[0], this.selectedFeature.roadNode.point[1], cursorP[0], cursorP[1]);
+    this.modeLines.render(gl, gl.DYNAMIC_DRAW);
     App.isDrawingNeeded = true; // TODO;
   },
 
@@ -312,34 +351,14 @@ Controller.prototype = {
     }
   },
 
-  highlightFeatureAtCursor: function () {
-    if (this.prevCursor) {
-      switch (this.mode) {
-        case "routing":
-          // TODO
-          const roadNode = this.findClosestRoadNode();
-          if (roadNode && !(this.adjustment.isRoadNodeDeleted(roadNode))) {
-            const route = this.geometry.findShortestRouteBetweenRoadNodes(this.selectedFeature.roadNode, roadNode, this.adjustment);
-            if (route) {
-              this.highlightFeature(route);
-            }
-          } else {
-            this.highlightFeature(null);
-          }
-          this.renderTracerLines();
-          break;
-        default:
-          this.highlightFeature(this.findClosestFeature());
-      }
-    }
-  },
-
   highlightFeatureByTOID: function (toid) {
-    this.highlightFeature(this.geometry.getFeatureByTOID(toid));
+    const feature = this.geometry.getFeatureByTOID(toid) || this.routingFeatures[toid];
+    this.highlightFeature(feature);
   },
 
   selectFeatureByTOID: function (toid) {
-    this.selectFeature(this.geometry.getFeatureByTOID(toid));
+    const feature = this.geometry.getFeatureByTOID(toid) || this.routingFeatures[toid];
+    this.selectFeature(feature);
     if (this.selectedFeature) {
       this.displayFeature(this.selectedFeature, false, false); // TODO: Pass prev shift key state
     }
@@ -347,11 +366,22 @@ Controller.prototype = {
 
   deleteSelectedFeature: function () {
     if (this.selectedFeature) {
-      this.adjustment.deleteFeature(this.selectedFeature);
-      this.renderDeletedFeatures();
-      this.sendHighlightedFeature();
+      const feature = this.selectedFeature;
+      if (feature.tag === "route" && feature.route.toid in this.routingFeatures) {
+        delete this.routingFeatures[feature.route.toid];
+        this.renderRoutingFeatures();
+        this.sendRoutes();
+      } else {
+        this.adjustment.deleteFeature(feature);
+        this.renderDeletedFeatures();
+        this.sendAdjustment();
+      }
+      if (this.highlightedFeature === feature) {
+        this.highlightFeature(null);
+      } else {
+        this.sendHighlightedFeature();
+      }
       this.selectFeature(null);
-      this.sendAdjustment();
     }
   },
 
@@ -363,6 +393,18 @@ Controller.prototype = {
       this.selectFeature(null);
       this.sendAdjustment();
     }
+  },
+
+  clearRoutes: function () {
+    this.routingFeatures = {};
+    this.renderRoutingFeatures();
+    if (this.highlightedFeature && this.highlightedFeature.tag === "route") {
+      this.highlightFeature(null);
+    }
+    if (this.selectedFeature && this.selectedFeature.tag === "route") {
+      this.selectFeature(null);
+    }
+    this.sendRoutes();
   },
 
   clearAdjustment: function () {
@@ -450,8 +492,7 @@ Controller.prototype = {
     const duration = doSlowMotion ? 2500 : 500;
     switch (feature.tag) {
       case "roadNode": {
-        const p = this.geometry.getPointForRoadNode(feature.roadNode);
-        App.setCenter(p, duration);
+        App.setCenter(feature.roadNode.point, duration);
         if (doZoom) { // double-click only
           const zoom = App.getZoom();
           App.setZoom(compute.clampZoom(doReverseZoom ? zoom + 1 : Math.min(zoom - 1, defs.actualZoom)), duration);
@@ -477,16 +518,20 @@ Controller.prototype = {
       }
       case "road":
       case "route": {
+        const clientWidth = this.getClientWidth();
+        const clientHeight = this.getClientHeight();
+        const zoom = App.getZoom();
         const roadLinks =
           feature.tag === "road" ?
             feature.road.roadLinks :
             feature.route.roadLinks;
-        const p = this.geometry.getMidpointForRoadLinks(roadLinks);
-        App.setCenter(p, duration);
-        const clientWidth = this.getClientWidth();
-        const clientHeight = this.getClientHeight();
-        const zoom = App.getZoom();
-        const r = this.geometry.getBoundsForRoadLinks(10, roadLinks);
+        const r =
+          feature.tag === "road" || feature.tag === "route" && feature.route.isValid ?
+            this.geometry.getBoundsForRoadLinks(10, roadLinks) :
+            segment.bounds(10, [
+              feature.route.startNode.point,
+              feature.route.endNode.point
+            ]);
         const fittedZoom = compute.zoomForRect(r, clientWidth, clientHeight);
         let newZoom;
         if (doZoom) {
@@ -494,7 +539,29 @@ Controller.prototype = {
         } else {
           newZoom = Math.max(zoom, fittedZoom);
         }
+        App.setCenter(rect.midpoint(r), duration);
         App.setZoom(compute.clampZoom(newZoom), duration);
+      }
+    }
+  },
+
+  highlightFeatureAtCursor: function () {
+    if (this.prevCursor) {
+      switch (this.mode) {
+        case "routing": // TODO
+          const roadNode = this.findClosestRoadNode();
+          if (roadNode && !(this.adjustment.isRoadNodeDeleted(roadNode))) {
+            this.highlightFeature({
+                tag: "roadNode",
+                roadNode: roadNode
+              });
+          } else {
+            this.highlightFeature(null);
+          }
+          this.renderModeLines();
+          break;
+        default:
+          this.highlightFeature(this.findClosestFeature());
       }
     }
   },
@@ -505,14 +572,16 @@ Controller.prototype = {
     if (this.prevCursor && delta > 500) {
       this.prevClickDate = now;
       switch (this.mode) {
-        case "routing":
-          // TODO
+        case "routing": // TODO
           this.setMode(null);
           if (this.highlightedFeature) {
-            this.selectFeature(this.highlightedFeature);
-            if (this.selectedFeature) {
-              this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
-            }
+            const route = this.geometry.findShortestRouteBetweenRoadNodes(this.selectedFeature.roadNode, this.highlightedFeature.roadNode, this.adjustment);
+            this.routingFeatures[route.toid] = {
+              tag: "route",
+              route: route
+            };
+            this.renderRoutingFeatures();
+            this.sendRoutes();
           }
           break;
         default:
