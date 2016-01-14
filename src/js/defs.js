@@ -55,8 +55,12 @@ module.exports = {
   quadtreeTop: quadtreeTop,
   quadtreeSize: quadtreeSize,
 
+  defaultCenterX: 528180.744,
+  defaultCenterY: 182584.548,
+
   minZoom: 0,
   actualZoom: 2,
+  defaultZoom: 7,
   maxZoom: 9,
 
   minLoaderPostingCount: 256,
