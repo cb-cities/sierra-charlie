@@ -360,7 +360,7 @@ Controller.prototype = {
     const feature = this.geometry.getFeatureByTOID(toid) || this.routingFeatures[toid];
     this.selectFeature(feature);
     if (this.selectedFeature) {
-      this.displayFeature(this.selectedFeature, false);
+      this.displayFeature(this.selectedFeature, false, false);
     }
   },
 
@@ -494,8 +494,8 @@ Controller.prototype = {
     this.highlightFeature(null);
   },
 
-  displayFeature: function (feature, doZoom, doReverseZoom) { // TODO: Refactor
-    const duration = 500;
+  displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) { // TODO: Refactor
+    const duration = doSlowMotion ? 5000 : 500;
     switch (feature.tag) {
       case "roadNode": {
         const p = feature.roadNode.point;
@@ -602,10 +602,10 @@ Controller.prototype = {
 
   onMouseDoubleClicked: function (event) {
     if (this.prevCursor && this.selectedFeature) {
-      this.displayFeature(this.selectedFeature, true, !!event.altKey);
+      this.displayFeature(this.selectedFeature, !!event.shiftKey, true, !!event.altKey);
     } else {
       const zoom = App.getZoom();
-      const duration = 500;
+      const duration = event.shiftKey ? 5000 : 500;
       const newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
       const newCenter = compute.clampPoint(this.fromClientPoint(this.prevCursor));
       App.adaptiveSetCenterAndZoom(newCenter, newZoom, duration);
@@ -613,7 +613,7 @@ Controller.prototype = {
   },
 
   onKeyPressed: function (event) { // TODO: Refactor
-    const duration = 500;
+    const duration = event.shiftKey ? 5000 : 500;
     switch (event.keyCode) {
       case 8: { // backspace
         event.preventDefault();
