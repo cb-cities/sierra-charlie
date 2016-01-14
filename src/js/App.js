@@ -30,28 +30,28 @@ module.exports = {
       });
   },
 
-  setCenterX: function (centerX, duration) {
+  setCenterX: function (centerX, duration, easing) {
     this.isEasingCenterX = true;
-    this.setEasedState("centerX", centerX, duration, function () {
+    this.setEasedState("centerX", centerX, duration, easing, function () {
         this.isEasingCenterX = false;
       }.bind(this));
   },
 
-  setCenterY: function (centerY, duration) {
+  setCenterY: function (centerY, duration, easing) {
     this.isEasingCenterY = true;
-    this.setEasedState("centerY", centerY, duration, function () {
+    this.setEasedState("centerY", centerY, duration, easing, function () {
         this.isEasingCenterY = false;
       }.bind(this));
   },
 
-  setCenter: function (p, duration) {
-    this.setCenterX(p[0], duration);
-    this.setCenterY(p[1], duration);
+  setCenter: function (p, duration, easing) {
+    this.setCenterX(p[0], duration, easing);
+    this.setCenterY(p[1], duration, easing);
   },
 
-  setZoom: function (zoom, duration) {
+  setZoom: function (zoom, duration, easing) {
     this.isEasingZoom = true;
-    this.setEasedState("zoom", zoom, duration, function () {
+    this.setEasedState("zoom", zoom, duration, easing, function () {
         this.isEasingZoom = false;
       }.bind(this));
   },
@@ -91,8 +91,11 @@ module.exports = {
   },
 
   adaptiveSetCenter: function (newCenter, duration) {
-    this.adaptiveSetCenterX(newCenter[0], duration);
-    this.adaptiveSetCenterY(newCenter[1], duration);
+    const scaleX = this.computeScaleX(newCenter[0]);
+    const scaleY = this.computeScaleY(newCenter[1]);
+    const scale = Math.max(scaleX, scaleY);
+    this.setCenterX(newCenter[0], duration * scale);
+    this.setCenterY(newCenter[1], duration * scale);
   },
 
   adaptiveSetZoom: function (newZoom, duration) {
@@ -101,15 +104,17 @@ module.exports = {
   },
 
   adaptiveSetCenterAndZoom: function (newCenter, newZoom, duration) {
+    const scaleX = this.computeScaleX(newCenter[0]);
+    const scaleY = this.computeScaleY(newCenter[1]);
+    const scaleZoom = this.computeScaleZoom(newZoom);
+    const scale = Math.max(scaleX, scaleY, scaleZoom);
     const zoom = this.getZoom();
-    if (newZoom > zoom) {
-      this.adaptiveSetZoom(newZoom, duration);
-      setTimeout(function () {
-          this.adaptiveSetCenter(newCenter, duration);
-        }.bind(this));
-    } else {
-      this.adaptiveSetZoom(newZoom, duration);
-      this.adaptiveSetCenter(newCenter, duration);
+    if (newZoom <= zoom) {
+      this.setCenter(newCenter, duration * scale);
+      this.setZoom(newZoom, duration * scale, "reverse");
+    } else if (newZoom > zoom) {
+      this.setCenter(newCenter, duration * scale, "reverse");
+      this.setZoom(newZoom, duration * scale);
     }
   },
 
