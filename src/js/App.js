@@ -16,9 +16,9 @@ module.exports = {
 
   getInitialState: function () {
     return {
-      centerX: 530625,
-      centerY: 177563,
-      zoom: 7,
+      centerX: defs.defaultCenterX,
+      centerY: defs.defaultCenterY,
+      zoom: defs.defaultZoom,
       rawTime: 10 + 9 / 60
     };
   },
@@ -100,16 +100,16 @@ module.exports = {
   },
 
   componentDidMount: function () {
-    this.updateFrameSpace();
+    this.updateSpaceAndFrame();
     this.startDrawing();
   },
 
   componentDidUpdate: function () {
-    this.updateFrameSpace();
+    this.updateSpaceAndFrame();
     this.isDrawingNeeded = true;
   },
 
-  updateFrameSpace: function () {
+  updateSpaceAndFrame: function () {
     const centerX = this.getCenterX();
     const centerY = this.getCenterY();
     const zoom = this.getZoom();

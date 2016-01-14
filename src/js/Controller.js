@@ -45,11 +45,11 @@ function Controller() {
   this.deletedPointIndices = new Indexset();
   this.deletedLineIndices = new Indexset();
   const frame = document.getElementById("map-frame");
-  frame.addEventListener("scroll", this.onFrameScrolled.bind(this));
   const canvas = document.getElementById("map-canvas");
+  const space = document.getElementById("map-space");
+  frame.addEventListener("scroll", this.onFrameScrolled.bind(this));
   canvas.addEventListener("webglcontextlost", this.onCanvasContextLost.bind(this));
   canvas.addEventListener("webglcontextrestored", this.onCanvasContextRestored.bind(this));
-  const space = document.getElementById("map-space");
   space.addEventListener("mousemove", this.onMouseMoved.bind(this));
   space.addEventListener("mouseleave", this.onMouseLeft.bind(this));
   space.addEventListener("click", this.onMouseClicked.bind(this));
@@ -454,7 +454,13 @@ Controller.prototype = {
   },
 
   onFrameScrolled: function (event) {
-    if (!(App.isScrolling())) {
+    if (!this.appHasStarted) {
+      this.appHasStarted = true;
+    } else if (App.isScrolling()) {
+      this.appWasScrolling = true;
+    } else if (this.appWasScrolling) {
+      this.appWasScrolling = false;
+    } else {
       const frame = document.getElementById("map-frame");
       const zoom = App.getZoom();
       const newCenterX = compute.centerXFromScrollLeft(frame.scrollLeft, zoom);
