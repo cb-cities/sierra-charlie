@@ -220,7 +220,6 @@ module.exports = {
       const program = webgl.createProgram(gl, vertexShader, fragmentShader);
       gl.useProgram(program);
       const vertexLoc = gl.getAttribLocation(program, "vertex");
-      const pixelFitLoc = gl.getUniformLocation(program, "pixelFit");
       const scaleRatioLoc = gl.getUniformLocation(program, "scaleRatio");
       const centerLoc = gl.getUniformLocation(program, "center");
       const pointSizeLoc = gl.getUniformLocation(program, "pointSize");
@@ -230,7 +229,6 @@ module.exports = {
         program: program,
         pixelRatio: window.devicePixelRatio,
         vertexLoc: vertexLoc,
-        pixelFitLoc: pixelFitLoc,
         scaleRatioLoc: scaleRatioLoc,
         centerLoc: centerLoc,
         pointSizeLoc: pointSizeLoc,
@@ -284,7 +282,6 @@ module.exports = {
       // const time = compute.time(this.getRawTime());
       const zoomLevel = compute.zoomLevel(zoom);
 
-      gl.uniform2f(cx.pixelFitLoc, 1 / (clientWidth * 2), 1 / (clientHeight * 2));
       gl.uniform2f(cx.scaleRatioLoc,
         defs.baseClientTileSize / (zoomLevel * defs.tileSize) / (clientWidth / 2),
         defs.baseClientTileSize / (zoomLevel * defs.tileSize) / (clientHeight / 2));
