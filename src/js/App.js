@@ -56,6 +56,63 @@ module.exports = {
       }.bind(this));
   },
 
+  computeScaleX: function (newCenterX) { // TODO: Refactor
+    const clientWidth = Controller.getClientWidth(); // TODO
+    const centerX = this.getCenterX();
+    const zoom = this.getZoom();
+    const pageWidth = compute.fromClientSize(clientWidth, zoom);
+    const diff = Math.abs(newCenterX - centerX);
+    return Math.sqrt(1 + diff / pageWidth);
+  },
+
+  computeScaleY: function (newCenterY) { // TODO: Refactor
+    const clientHeight = Controller.getClientHeight(); // TODO
+    const centerY = this.getCenterY();
+    const zoom = this.getZoom();
+    const pageHeight = compute.fromClientSize(clientHeight, zoom);
+    const diff = Math.abs(newCenterY - centerY);
+    return Math.sqrt(1 + diff / pageHeight);
+  },
+
+  computeScaleZoom: function (newZoom) { // TODO: Refactor
+    const zoom = this.getZoom();
+    const diff = Math.abs(newZoom - zoom);
+    return 1 + diff / 10;
+  },
+
+  adaptiveSetCenterX: function (newCenterX, duration) {
+    const scaleX = this.computeScaleX(newCenterX);
+    this.setCenterX(newCenterX, duration * scaleX);
+  },
+
+  adaptiveSetCenterY: function (newCenterY, duration) {
+    const scaleY = this.computeScaleY(newCenterY);
+    this.setCenterY(newCenterY, duration * scaleY);
+  },
+
+  adaptiveSetCenter: function (newCenter, duration) {
+    this.adaptiveSetCenterX(newCenter[0], duration);
+    this.adaptiveSetCenterY(newCenter[1], duration);
+  },
+
+  adaptiveSetZoom: function (newZoom, duration) {
+    const scaleZoom = this.computeScaleZoom(newZoom);
+    this.setZoom(newZoom, duration * scaleZoom);
+  },
+
+  adaptiveSetCenterAndZoom: function (newCenter, newZoom, duration) {
+    const zoom = this.getZoom();
+    if (newZoom > zoom) {
+      this.adaptiveSetZoom(newZoom, duration);
+      setTimeout(function () {
+          this.adaptiveSetCenter(newCenter, duration);
+        }.bind(this));
+    } else {
+      this.adaptiveSetZoom(newZoom, duration);
+      this.adaptiveSetCenter(newCenter, duration);
+    }
+  },
+
   setRawTime: function (rawTime, duration) {
     this.isEasingRawTime = true;
     this.setEasedState("rawTime", rawTime, duration, function () {

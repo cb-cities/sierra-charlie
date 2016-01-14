@@ -38,12 +38,8 @@ const _ = module.exports = {
     return defs.tileCountY * defs.baseClientTileSize / _.zoomLevel(zoom);
   },
 
-  fromClientWidth: function (clientWidth, zoom) {
-    return clientWidth / _.totalClientWidth(zoom) * defs.totalWidth;
-  },
-
-  fromClientHeight: function (clientHeight, zoom) {
-    return clientHeight / _.totalClientHeight(zoom) * defs.totalHeight;
+  fromClientSize: function (clientSize, zoom) {
+    return clientSize / defs.baseClientTileSize * (_.zoomLevel(zoom) * defs.tileSize);
   },
 
   scrollLeftFromCenterX: function (centerX, zoom) {
