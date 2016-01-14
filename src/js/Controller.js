@@ -360,7 +360,7 @@ Controller.prototype = {
     const feature = this.geometry.getFeatureByTOID(toid) || this.routingFeatures[toid];
     this.selectFeature(feature);
     if (this.selectedFeature) {
-      this.displayFeature(this.selectedFeature, false, false); // TODO: Pass prev shift key state
+      this.displayFeature(this.selectedFeature, false);
     }
   },
 
@@ -494,20 +494,20 @@ Controller.prototype = {
     this.highlightFeature(null);
   },
 
-  displayFeature: function (feature, doSlowMotion, doZoom, doReverseZoom) { // TODO: Refactor
-    const duration = doSlowMotion ? 2500 : 500;
+  displayFeature: function (feature, doZoom, doReverseZoom) { // TODO: Refactor
+    const duration = 500;
     switch (feature.tag) {
       case "roadNode": {
-        App.setCenter(feature.roadNode.point, duration);
+        const p = feature.roadNode.point;
         if (doZoom) { // double-click only
           const zoom = App.getZoom();
-          App.setZoom(compute.clampZoom(doReverseZoom ? zoom + 1 : Math.min(zoom - 1, defs.actualZoom)), duration);
+          App.adaptiveSetCenterAndZoom(p, compute.clampZoom(doReverseZoom ? zoom + 1 : Math.min(zoom - 1, defs.actualZoom)), duration);
+        } else {
+          App.adaptiveSetCenter(p, duration);
         }
         break;
       }
       case "roadLink": {
-        const p = this.geometry.getMidpointForRoadLink(feature.roadLink);
-        App.setCenter(p, duration);
         const clientWidth = this.getClientWidth();
         const clientHeight = this.getClientHeight();
         const zoom = App.getZoom();
@@ -519,7 +519,7 @@ Controller.prototype = {
         } else {
           newZoom = Math.max(zoom, fittedZoom);
         }
-        App.setZoom(compute.clampZoom(newZoom), duration);
+        App.adaptiveSetCenterAndZoom(rect.midpoint(r), compute.clampZoom(newZoom), duration);
         break;
       }
       case "road":
@@ -545,8 +545,7 @@ Controller.prototype = {
         } else {
           newZoom = Math.max(zoom, fittedZoom);
         }
-        App.setCenter(rect.midpoint(r), duration);
-        App.setZoom(compute.clampZoom(newZoom), duration);
+        App.adaptiveSetCenterAndZoom(rect.midpoint(r), compute.clampZoom(newZoom), duration);
       }
     }
   },
@@ -593,7 +592,7 @@ Controller.prototype = {
         default:
           this.selectFeature(this.highlightedFeature);
           if (this.selectedFeature) {
-            this.displayFeature(this.selectedFeature, !!event.shiftKey, false);
+            this.displayFeature(this.selectedFeature, false);
           }
       }
     } else {
@@ -603,19 +602,18 @@ Controller.prototype = {
 
   onMouseDoubleClicked: function (event) {
     if (this.prevCursor && this.selectedFeature) {
-      this.displayFeature(this.selectedFeature, !!event.shiftKey, true, !!event.altKey);
+      this.displayFeature(this.selectedFeature, true, !!event.altKey);
     } else {
       const zoom = App.getZoom();
-      const duration = event.shiftKey ? 2500 : 500;
+      const duration = 500;
       const newZoom = compute.clampZoom(event.altKey ? zoom + 1 : zoom - 1);
       const newCenter = compute.clampPoint(this.fromClientPoint(this.prevCursor));
-      App.setZoom(newZoom, duration);
-      App.setCenter(newCenter, duration);
+      App.adaptiveSetCenterAndZoom(newCenter, newZoom, duration);
     }
   },
 
   onKeyPressed: function (event) { // TODO: Refactor
-    const duration = event.shiftKey ? 2500 : 500;
+    const duration = 500;
     switch (event.keyCode) {
       case 8: { // backspace
         event.preventDefault();
@@ -641,9 +639,9 @@ Controller.prototype = {
         const clientWidth = this.getClientWidth();
         const centerX = App.getStaticCenterX();
         const zoom = App.getStaticZoom();
-        const pageWidth = compute.fromClientWidth(clientWidth, zoom);
+        const pageWidth = compute.fromClientSize(clientWidth, zoom);
         const scale = event.keyCode === 36 ? 1 : 10;
-        App.setCenterX(compute.clampX(centerX - pageWidth / scale), duration);
+        App.adaptiveSetCenterX(compute.clampX(centerX - pageWidth / scale), duration);
         break;
       }
       case 39: // right
@@ -651,9 +649,9 @@ Controller.prototype = {
         const clientWidth = this.getClientWidth();
         const centerX = App.getStaticCenterX();
         const zoom = App.getStaticZoom();
-        const pageWidth = compute.fromClientWidth(clientWidth, zoom);
+        const pageWidth = compute.fromClientSize(clientWidth, zoom);
         const scale = event.keyCode === 35 ? 1 : 10;
-        App.setCenterX(compute.clampX(centerX + pageWidth / scale), duration);
+        App.adaptiveSetCenterX(compute.clampX(centerX + pageWidth / scale), duration);
         break;
       }
       case 38: // up
@@ -661,9 +659,9 @@ Controller.prototype = {
         const clientHeight = this.getClientHeight();
         const centerY = App.getStaticCenterY();
         const zoom = App.getStaticZoom();
-        const pageHeight = compute.fromClientHeight(clientHeight, zoom);
+        const pageHeight = compute.fromClientSize(clientHeight, zoom);
         const scale = event.keyCode === 33 ? 1 : 10;
-        App.setCenterY(compute.clampY(centerY + pageHeight / scale), duration);
+        App.adaptiveSetCenterY(compute.clampY(centerY + pageHeight / scale), duration);
         break;
       }
       case 40: // down
@@ -671,9 +669,9 @@ Controller.prototype = {
         const clientHeight = this.getClientHeight();
         const centerY = App.getStaticCenterY();
         const zoom = App.getStaticZoom();
-        const pageHeight = compute.fromClientHeight(clientHeight, zoom);
+        const pageHeight = compute.fromClientSize(clientHeight, zoom);
         const scale = event.keyCode === 34 ? 1 : 10;
-        App.setCenterY(compute.clampY(centerY - pageHeight / scale), duration);
+        App.adaptiveSetCenterY(compute.clampY(centerY - pageHeight / scale), duration);
         break;
       }
       // case 219: // left bracket
@@ -690,27 +688,24 @@ Controller.prototype = {
       //   break;
       case 187: { // plus
         const zoom = App.getStaticZoom();
-        const zoomDelta = event.altKey ? 2 : 10; // TODO
-        const newZoom = compute.clampZoom(Math.round((zoom * 10) - zoomDelta) / 10);
-        App.setZoom(newZoom, duration);
+        const newZoom = compute.clampZoom(zoom - 1);
+        App.adaptiveSetZoom(newZoom, duration);
         break;
       }
       case 189: { // minus
         const zoom = App.getStaticZoom();
-        const zoomDelta = event.altKey ? 2 : 10; // TODO
-        const newZoom = compute.clampZoom(Math.round((zoom * 10) + zoomDelta) / 10);
-        App.setZoom(newZoom, duration);
+        const newZoom = compute.clampZoom(zoom + 1);
+        App.adaptiveSetZoom(newZoom, duration);
         break;
       }
       case 48: { // 0
-        const newZoom = compute.clampZoom(10);
-        App.setZoom(newZoom, duration);
+        App.adaptiveSetZoom(defs.maxZoom, duration);
         break;
       }
-      default: { // 1-9, 0
+      default: { // 1-9
         if (event.keyCode >= 49 && event.keyCode <= 57) {
           const newZoom = compute.clampZoom(event.keyCode - 49);
-          App.setZoom(newZoom, duration);
+          App.adaptiveSetZoom(newZoom, duration);
         }
       }
     }
