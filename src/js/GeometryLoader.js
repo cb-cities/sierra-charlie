@@ -2,6 +2,7 @@
 
 const oboe = require("oboe");
 const simplify = require("simplify-js");
+const titlecase = require("titlecase");
 
 const array = require("./lib/array");
 const defs = require("./defs");
@@ -174,7 +175,7 @@ GeometryLoader.prototype = {
               toid: obj.toid,
               group: obj.group,
               term: obj.term || null,
-              name: obj.name,
+              name: titlecase(obj.name.toLowerCase()),
               roadLinkTOIDs: obj.members,
               roadLinks: []
             });
