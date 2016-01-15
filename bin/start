@@ -5,8 +5,6 @@ set -eu -o pipefail
 export PATH=node_modules/.bin:${PATH}
 export CONFIG=${CONFIG:-webpack.dev.config.js}
 
-npm install
-
 webpack --config=${CONFIG}
 
 find bin/server.js | entr -r node bin/server.js &
