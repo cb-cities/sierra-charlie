@@ -193,7 +193,7 @@ GeometryLoader.prototype = {
           this.itemCount++;
           this.addresses.push({
               toid: obj.toid,
-              text: obj.text
+              text: obj.text.replace(/, UK$/, "")
             });
           this.postAddresses();
           return oboe.drop;

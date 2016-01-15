@@ -76,7 +76,7 @@ Geometry.prototype = {
   findShortestRouteBetweenRoadNodes: function (startNode, endNode, adjustment) {
     if (startNode === endNode) {
       return {
-        toid: "tmp" + Date.now(),
+        toid: "route" + Date.now(),
         startNode: startNode,
         endNode: endNode,
         roadLinks: [],
@@ -91,7 +91,7 @@ Geometry.prototype = {
         if (currentNode === endNode) {
           const roadLinks = this.recoverRoadLinksBetweenRoadNodes(startNode, endNode, parentNodes);
           return {
-            toid: "tmp" + Date.now(),
+            toid: "route" + Date.now(),
             startNode: startNode,
             endNode: endNode,
             roadLinks: roadLinks,
@@ -108,7 +108,7 @@ Geometry.prototype = {
         }
       }
       return {
-        toid: "tmp" + Date.now(),
+        toid: "route" + Date.now(),
         startNode: startNode,
         endNode: endNode,
         roadLinks: [],
