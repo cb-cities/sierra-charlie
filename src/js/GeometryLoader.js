@@ -175,7 +175,7 @@ GeometryLoader.prototype = {
               toid: obj.toid,
               group: obj.group,
               term: obj.term || null,
-              name: titlecase(obj.name.toLowerCase()),
+              name: titlecase(obj.name.toLowerCase()).replace(/\(m\)/, "(M)"),
               roadLinkTOIDs: obj.members,
               roadLinks: []
             });
