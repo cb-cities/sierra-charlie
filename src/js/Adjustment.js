@@ -40,7 +40,7 @@ Adjustment.prototype = {
         result = this.isRoadLinkUndeletable(feature.roadLink);
         break;
       case "road":
-        result = true;
+        result = this.isRoadDeleted(feature.road);
         break;
     }
     return result;

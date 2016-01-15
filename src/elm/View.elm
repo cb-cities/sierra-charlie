@@ -56,6 +56,16 @@ viewActions contents =
     [div [class "ui-actions"] contents]
 
 
+viewAction : Trigger -> Action -> String -> Html
+viewAction trigger action label =
+    span [] [a [onClick trigger action] [text label]]
+
+
+viewActiveAction : Trigger -> Action -> String -> Html
+viewActiveAction trigger action label =
+    span [] [a [onClick trigger action, class "ui-active"] [text label]]
+
+
 viewRoadNode : Trigger -> Maybe String -> String -> RoadNode -> List Html
 viewRoadNode trigger maybeMode titlePrefix roadNode =
     let
@@ -73,14 +83,14 @@ viewRoadNode trigger maybeMode titlePrefix roadNode =
             viewActions
               [ case maybeMode of
                   Just "routing" ->
-                    viewItem (a [onClick trigger (SetMode Nothing), class "ui-active"] [text "Get Route…"])
+                    viewActiveAction trigger (SetMode Nothing) "Get Route…"
                   _ ->
-                    viewItem (a [onClick trigger (SetMode (Just "routing"))] [text "Get Route…"])
-              , viewItem (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+                    viewAction trigger (SetMode (Just "routing")) "Get Route…"
+              , viewAction trigger DeleteSelectedFeature "Delete"
               ]
           (True, True) ->
             viewActions
-              [ viewItem (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+              [ viewAction trigger UndeleteSelectedFeature "Undelete"
               ]
           _ ->
             []
@@ -108,11 +118,11 @@ viewRoadLink trigger titlePrefix roadLink =
         case (roadLink.isDeleted, roadLink.isUndeletable) of
           (False, _) ->
             viewActions
-              [ viewItem (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+              [ viewAction trigger DeleteSelectedFeature "Delete"
               ]
           (True, True) ->
             viewActions
-              [ viewItem (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+              [ viewAction trigger UndeleteSelectedFeature "Undelete"
               ]
           _ ->
             []
@@ -172,11 +182,11 @@ viewRoad trigger titlePrefix road =
         case road.isDeleted of
           False ->
             viewActions
-              [ viewItem (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+              [ viewAction trigger DeleteSelectedFeature "Delete"
               ]
           True ->
             viewActions
-              [ viewItem (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+              [ viewAction trigger UndeleteSelectedFeature "Undelete"
               ]
       toid =
         viewLabeled "TOID" [viewTOID trigger road.toid]
@@ -193,7 +203,7 @@ viewRoute trigger titlePrefix route =
         [viewWindowTitle (titlePrefix ++ " Route")]
       actions =
         viewActions
-          [ viewItem (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+          [ viewAction trigger DeleteSelectedFeature "Delete"
           ]
       toid =
         viewLabeled "TOID" [viewTOID trigger route.toid]
@@ -275,7 +285,7 @@ viewRoutesWindow trigger routes =
             in
               [viewWindowTitle "Routes"] ++
               viewActions
-                [ viewItem (a [onClick trigger ClearRoutes] [text "Clear"])
+                [ viewAction trigger ClearRoutes "Clear"
                 ] ++
               validRoutes ++
               invalidRoutes
@@ -305,7 +315,7 @@ viewAdjustmentWindow trigger maybeAdjustment =
           Just adjustment ->
             [viewWindowTitle "Adjustment"] ++
             viewActions
-              [ viewItem (a [onClick trigger ClearAdjustment] [text "Clear"])
+              [ viewAction trigger ClearAdjustment "Clear"
               ] ++
             [ div []
                 ( viewLabeledList "Deleted Nodes" (viewTOIDItem trigger) adjustment.deletedRoadNodeTOIDs ++
