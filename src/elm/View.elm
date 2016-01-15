@@ -53,7 +53,7 @@ viewLabeledList label view items =
 
 viewActions : List Html -> List Html
 viewActions contents =
-    [div [class "ui-actions"] ([viewLabel "Actions"] ++ contents)]
+    [div [class "ui-actions"] contents]
 
 
 viewRoadNode : Trigger -> Maybe String -> String -> RoadNode -> List Html
@@ -73,9 +73,9 @@ viewRoadNode trigger maybeMode titlePrefix roadNode =
             viewActions
               [ case maybeMode of
                   Just "routing" ->
-                    viewItem (a [onClick trigger (SetMode Nothing)] [text "Cancel Adding Route"])
+                    viewItem (a [onClick trigger (SetMode Nothing), class "ui-active"] [text "Get Route…"])
                   _ ->
-                    viewItem (a [onClick trigger (SetMode (Just "routing"))] [text "Add Route…"])
+                    viewItem (a [onClick trigger (SetMode (Just "routing"))] [text "Get Route…"])
               , viewItem (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
               ]
           (True, True) ->
