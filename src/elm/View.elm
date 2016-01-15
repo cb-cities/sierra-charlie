@@ -14,15 +14,12 @@ viewWindowTitle title =
 
 viewLabel : String -> Html
 viewLabel label =
-    div [class "ui-label"] [text (label ++ ": ")]
+    div [class "ui-label"] [text label]
 
 
-viewItem : String -> Html -> Html
-viewItem bullet item =
-    div []
-      [ span [] [text (bullet ++ " ")]
-      , span [] [item]
-      ]
+viewItem : Html -> Html
+viewItem item =
+    div [] [item]
 
 
 viewTOID : Trigger -> String -> Html
@@ -35,9 +32,9 @@ viewTOID trigger toid =
       [text toid]
 
 
-viewTOIDItem : Trigger -> String -> String -> Html
-viewTOIDItem trigger bullet toid =
-    viewItem bullet (viewTOID trigger toid)
+viewTOIDItem : Trigger -> String -> Html
+viewTOIDItem trigger toid =
+    viewItem (viewTOID trigger toid)
 
 
 viewLabeled : String -> List Html -> List Html
@@ -54,7 +51,12 @@ viewLabeledList label view items =
         viewLabeled label (List.map view items)
 
 
-viewRoadNode : Trigger -> Maybe String -> String -> RoadNode -> Html
+viewActions : List Html -> List Html
+viewActions contents =
+    [div [class "ui-actions"] ([viewLabel "Actions"] ++ contents)]
+
+
+viewRoadNode : Trigger -> Maybe String -> String -> RoadNode -> List Html
 viewRoadNode trigger maybeMode titlePrefix roadNode =
     let
       title =
@@ -64,34 +66,30 @@ viewRoadNode trigger maybeMode titlePrefix roadNode =
           Nothing ->
             []
           Just address ->
-            viewLabeled "Description" [text address]
+            [div [] [text address]]
       actions =
         case (roadNode.isDeleted, roadNode.isUndeletable) of
           (False, _) ->
-            [ div [class "ui-actions"]
-                [ viewLabel "Actions"
-                , case maybeMode of
-                    Just "routing" ->
-                      viewItem "*" (a [onClick trigger (SetMode Nothing)] [text "Cancel Routing"])
-                    _ ->
-                      viewItem "*" (a [onClick trigger (SetMode (Just "routing"))] [text "Route..."])
-                , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
-                ]
-            ]
+            viewActions
+              [ case maybeMode of
+                  Just "routing" ->
+                    viewItem (a [onClick trigger (SetMode Nothing)] [text "Cancel Adding Route"])
+                  _ ->
+                    viewItem (a [onClick trigger (SetMode (Just "routing"))] [text "Add Route…"])
+              , viewItem (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+              ]
           (True, True) ->
-            [ div [class "ui-actions"]
-                [ viewLabel "Actions"
-                , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
-                ]
-            ]
+            viewActions
+              [ viewItem (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+              ]
           _ ->
             []
       toid =
         viewLabeled "TOID" [viewTOID trigger roadNode.toid]
       roadLinks =
-        viewLabeledList "Road Links" (viewTOIDItem trigger "*") roadNode.roadLinkTOIDs
+        viewLabeledList "Road Links" (viewTOIDItem trigger) roadNode.roadLinkTOIDs
     in
-      div [] (title ++ description ++ actions ++ toid ++ roadLinks)
+      title ++ description ++ actions ++ toid ++ roadLinks
 
 
 viewRoadLinkDescription : RoadLink -> Html
@@ -99,27 +97,23 @@ viewRoadLinkDescription roadLink =
     text (roadLink.term ++ ", " ++ roadLink.nature)
 
 
-viewRoadLink : Trigger -> String -> RoadLink -> Html
+viewRoadLink : Trigger -> String -> RoadLink -> List Html
 viewRoadLink trigger titlePrefix roadLink =
     let
       title =
         [viewWindowTitle (titlePrefix ++ " Road Link")]
       description =
-        viewLabeled "Description" [viewRoadLinkDescription roadLink]
+        [div [] [viewRoadLinkDescription roadLink]]
       actions =
         case (roadLink.isDeleted, roadLink.isUndeletable) of
           (False, _) ->
-            [ div [class "ui-actions"]
-                [ viewLabel "Actions"
-                , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
-                ]
-            ]
+            viewActions
+              [ viewItem (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+              ]
           (True, True) ->
-            [ div [class "ui-actions"]
-                [ viewLabel "Actions"
-                , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
-                ]
-            ]
+            viewActions
+              [ viewItem (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+              ]
           _ ->
             []
       toid =
@@ -130,21 +124,21 @@ viewRoadLink trigger titlePrefix roadLink =
             []
           (Just negativeNodeTOID, Nothing) ->
             viewLabeled "Road Nodes"
-              [ viewTOIDItem trigger "-" negativeNodeTOID
+              [ viewItem (span [] [text "− ", viewTOID trigger negativeNodeTOID])
               ]
           (Nothing, Just positiveNodeTOID) ->
             viewLabeled "Road Nodes"
-              [ viewTOIDItem trigger "+" positiveNodeTOID
+              [ viewItem (span [] [text "+ ", viewTOID trigger positiveNodeTOID])
               ]
           (Just negativeNodeTOID, Just positiveNodeTOID) ->
             viewLabeled "Road Nodes"
-              [ viewTOIDItem trigger "-" negativeNodeTOID
-              , viewTOIDItem trigger "+" positiveNodeTOID
+              [ viewItem (span [] [text "− ", viewTOID trigger negativeNodeTOID])
+              , viewItem (span [] [text "+ ", viewTOID trigger positiveNodeTOID])
               ]
       roads =
         viewLabeledList "Roads" (viewRoadItem trigger) roadLink.roads
     in
-      div [] (title ++ description ++ toid ++ actions ++ roadNodes ++ roads)
+      title ++ description ++ actions ++ toid ++ roadNodes ++ roads
 
 
 viewRoadDescription : Road -> Html
@@ -160,64 +154,58 @@ viewRoadItem : Trigger -> Road -> Html
 viewRoadItem trigger road =
     let
       toid =
-        [viewTOIDItem trigger "*" road.toid]
+        [viewTOIDItem trigger road.toid]
       description =
-        [viewItem " " (viewRoadDescription road)]
+        [viewItem (viewRoadDescription road)]
     in
       div [] (toid ++ description)
 
 
-viewRoad : Trigger -> String -> Road -> Html
+viewRoad : Trigger -> String -> Road -> List Html
 viewRoad trigger titlePrefix road =
     let
       title =
         [viewWindowTitle (titlePrefix ++ " Road")]
       description =
-        viewLabeled "Description" [viewRoadDescription road]
+        [div [] [viewRoadDescription road]]
       actions =
         case road.isDeleted of
           False ->
-            [ div [class "ui-actions"]
-                [ viewLabel "Actions"
-                , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
-                ]
-            ]
+            viewActions
+              [ viewItem (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+              ]
           True ->
-            [ div [class "ui-actions"]
-                [ viewLabel "Actions"
-                , viewItem "*" (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
-                ]
-            ]
+            viewActions
+              [ viewItem (a [onClick trigger UndeleteSelectedFeature] [text "Undelete"])
+              ]
       toid =
         viewLabeled "TOID" [viewTOID trigger road.toid]
       roadLinks =
-        viewLabeledList "Road Links" (viewTOIDItem trigger "*") road.roadLinkTOIDs
+        viewLabeledList "Road Links" (viewTOIDItem trigger) road.roadLinkTOIDs
     in
-      div [] (title ++ description ++ actions ++ toid ++ roadLinks)
+      title ++ description ++ actions ++ toid ++ roadLinks
 
 
-viewRoute : Trigger -> String -> Route -> Html
+viewRoute : Trigger -> String -> Route -> List Html
 viewRoute trigger titlePrefix route =
     let
       title =
         [viewWindowTitle (titlePrefix ++ " Route")]
       actions =
-        [ div [class "ui-actions"]
-            [ viewLabel "Actions"
-            , viewItem "*" (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
-            ]
-        ]
+        viewActions
+          [ viewItem (a [onClick trigger DeleteSelectedFeature] [text "Delete"])
+          ]
       toid =
         viewLabeled "TOID" [viewTOID trigger route.toid]
       roadNodes =
         viewLabeled "Road Nodes"
-          [ viewTOIDItem trigger "-" route.startNodeTOID
-          , viewTOIDItem trigger "+" route.endNodeTOID
+          [ viewItem (span [] [text "< ", viewTOID trigger route.startNodeTOID])
+          , viewItem (span [] [text "> ", viewTOID trigger route.endNodeTOID])
           ]
       roadLinks =
-        viewLabeledList "Road Links" (viewTOIDItem trigger "*") route.roadLinkTOIDs
+        viewLabeledList "Road Links" (viewTOIDItem trigger) route.roadLinkTOIDs
     in
-      div [] (title ++ actions ++ toid ++ roadNodes ++ roadLinks)
+      title ++ actions ++ toid ++ roadNodes ++ roadLinks
 
 
 viewFeature : Trigger -> Maybe String -> String -> Maybe Feature -> Html
@@ -242,21 +230,26 @@ viewFeature trigger maybeMode featureKind maybeFeature =
           Just feature ->
             case (feature.tag, feature.roadNode, feature.roadLink, feature.road, feature.route) of
               ("roadNode", Just roadNode, Nothing, Nothing, Nothing) ->
-                [viewRoadNode trigger maybeMode titlePrefix roadNode]
+                viewRoadNode trigger maybeMode titlePrefix roadNode
               ("roadLink", Nothing, Just roadLink, Nothing, Nothing) ->
-                [viewRoadLink trigger titlePrefix roadLink]
+                viewRoadLink trigger titlePrefix roadLink
               ("road", Nothing, Nothing, Just road, Nothing) ->
-                [viewRoad trigger titlePrefix road]
+                viewRoad trigger titlePrefix road
               ("route", Nothing, Nothing, Nothing, Just route) ->
-                [viewRoute trigger titlePrefix route]
+                viewRoute trigger titlePrefix route
               _ ->
                 []
     in
       div ([id featureId, class "ui-window"] ++ display) contents
 
 
-viewRoutes : Trigger -> List Route -> Html
-viewRoutes trigger routes =
+viewRoutes : Trigger -> String -> List Route -> List Html
+viewRoutes trigger label routes =
+    viewLabeledList label (viewTOIDItem trigger) (List.map .toid routes)
+
+
+viewRoutesWindow : Trigger -> List Route -> Html
+viewRoutesWindow trigger routes =
     let
       display =
         if routes == []
@@ -266,21 +259,32 @@ viewRoutes trigger routes =
         if routes == []
           then []
           else
-            [ div [] [viewWindowTitle "Active Routes"]
-            , div [class "ui-actions"]
-                [ viewLabel "Actions"
-                , viewItem "*" (a [onClick trigger ClearRoutes] [text "Clear"]) -- TODO
-                ]
-            , div []
-                ( viewLabeledList "Routes" (viewTOIDItem trigger "*") (List.map .toid routes)
-                )
-            ]
+            let
+              validRoutes =
+                case List.filter .isValid routes of
+                  [] ->
+                    []
+                  validList ->
+                    viewRoutes trigger "Valid Routes" validList
+              invalidRoutes =
+                case List.filter (not << .isValid) routes of
+                  [] ->
+                    []
+                  invalidList ->
+                    viewRoutes trigger "Invalid Routes" invalidList
+            in
+              [viewWindowTitle "Routes"] ++
+              viewActions
+                [ viewItem (a [onClick trigger ClearRoutes] [text "Clear"])
+                ] ++
+              validRoutes ++
+              invalidRoutes
     in
-      div ([id "ui-routes", class "ui-window"] ++ display) contents
+      div ([class "ui-window"] ++ display) contents
 
 
-viewAdjustment : Trigger -> Maybe Adjustment -> Html
-viewAdjustment trigger maybeAdjustment =
+viewAdjustmentWindow : Trigger -> Maybe Adjustment -> Html
+viewAdjustmentWindow trigger maybeAdjustment =
     let
       isEmpty =
         case maybeAdjustment of
@@ -299,19 +303,18 @@ viewAdjustment trigger maybeAdjustment =
           Nothing ->
             []
           Just adjustment ->
-            [ div [] [viewWindowTitle "Active Adjustment"]
-            , div [class "ui-actions"]
-                [ viewLabel "Actions"
-                , viewItem "*" (a [onClick trigger ClearAdjustment] [text "Clear"])
-                ]
-            , div []
-                ( viewLabeledList "Deleted Road Nodes" (viewTOIDItem trigger "*") adjustment.deletedRoadNodeTOIDs ++
-                  viewLabeledList "Deleted Road Links" (viewTOIDItem trigger "*") adjustment.deletedRoadLinkTOIDs ++
-                  viewLabeledList "Deleted Roads" (viewTOIDItem trigger "*") adjustment.deletedRoadTOIDs
+            [viewWindowTitle "Adjustment"] ++
+            viewActions
+              [ viewItem (a [onClick trigger ClearAdjustment] [text "Clear"])
+              ] ++
+            [ div []
+                ( viewLabeledList "Deleted Nodes" (viewTOIDItem trigger) adjustment.deletedRoadNodeTOIDs ++
+                  viewLabeledList "Deleted Links" (viewTOIDItem trigger) adjustment.deletedRoadLinkTOIDs ++
+                  viewLabeledList "Deleted Roads" (viewTOIDItem trigger) adjustment.deletedRoadTOIDs
                 )
             ]
     in
-      div ([id "ui-adjustment", class "ui-window"] ++ display) contents
+      div ([class "ui-window"] ++ display) contents
 
 
 viewLoadingProgress : Float -> Html
@@ -334,9 +337,15 @@ viewLoadingProgress loadingProgress =
 view : Trigger -> State -> Html
 view trigger state =
     div []
-      [ viewLoadingProgress state.loadingProgress
-      , viewFeature trigger state.mode "highlighted" state.highlightedFeature
-      , viewFeature trigger state.mode "selected" state.selectedFeature
-      , viewRoutes trigger state.routes
-      , viewAdjustment trigger state.adjustment
+      [ div []
+          [ viewLoadingProgress state.loadingProgress
+          , viewFeature trigger state.mode "highlighted" state.highlightedFeature
+          , viewFeature trigger state.mode "selected" state.selectedFeature
+          ]
+      , div [id "ui-windows-top-left"]
+          []
+      , div [id "ui-windows-top-right"]
+          [ viewAdjustmentWindow trigger state.adjustment
+          , viewRoutesWindow trigger state.routes
+          ]
       ]

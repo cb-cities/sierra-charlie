@@ -6,11 +6,22 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: "Menlo", monospace;
-  font-size: 10px;
+  font: 10px "-apple-system", "Lucida Grande", sans-serif;
   line-height: 12px;
+  color: #999;
   background-color: #000;
 }
+
+a {
+  text-decoration: underline;
+  cursor: pointer;
+  color: #ccc;
+}
+
+a:hover {
+  color: #fff;
+}
+
 
 #map-frame {
   width: 100%;
@@ -41,14 +52,6 @@ body {
   padding-bottom: 100vh;
 }
 
-/*#ui {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  left: 0;
-  top: 0;
-  overflow: hidden;
-}*/
 
 #ui-loading-progress-track {
 /*  opacity: dynamic;*/
@@ -57,7 +60,7 @@ body {
   position: absolute;
   left: 0;
   top: 0;
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.5);
   transition: opacity 1s 1s;
   pointer-events: none;
   -moz-user-select: none;
@@ -77,31 +80,72 @@ body {
   transition: width 0.25s;
 }
 
-.ui-window {
-  width: 200px;
-  height: 324px;
+
+#ui-windows-top-left {
   position: absolute;
-  border: 1px rgba(255, 255, 255, 0.2) solid;
-  padding: 2px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #ccc;
+  left: 0;
+  top: 0;
+}
+
+#ui-windows-top-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.ui-window {
+  width: 160px;
+  height: 256px;
+  border: 1px rgba(255, 255, 255, 0.25) solid;
+  background: rgba(0, 0, 0, 0.75);
   overflow-x: hidden;
   overflow-y: auto;
   cursor: default;
 }
 
-.ui-window a {
-  text-decoration: underline;
-  cursor: pointer;
+#ui-windows-top-left .ui-window {
+  border-top: 0;
+  border-left: 0;
+  float: left;
+  left: 0;
 }
 
-.ui-window a:hover {
-  color: #fff;
+#ui-windows-top-right .ui-window {
+  border-top: 0;
+  border-right: 0;
+  float: right;
+  right: 0;
+}
+
+.ui-window > * {
+  margin: 2px;
+}
+
+.ui-window-title {
+  margin: 0;
+  padding: 2px;
+  font-variant: small-caps;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.ui-window-title + * {
+  margin-top: 4px;
+}
+
+.ui-label {
+  margin-top: 4px;
+  font-variant: small-caps;
+  text-transform: lowercase;
+  letter-spacing: 0.5px;
+  color: #666;
 }
 
 #ui-highlighted-feature {
-  border-left-width: 0;
-  border-bottom-width: 0;
+  border-left: 0;
+  border-bottom: 0;
+  position: absolute;
   left: 0;
   bottom: 0;
   pointer-events: none;
@@ -111,36 +155,14 @@ body {
   user-select: none;
 }
 
-#ui-selected-feature {
-  border-right-width: 0;
-  border-bottom-width: 0;
-  right: 0;
-  bottom: 0;
-}
-
-.ui-window-title {
-  font-weight: bold;
-}
-
-.ui-label {
-  opacity: 0.6;
-  padding-top: 6px;
-}
-
 #ui-highlighted-feature .ui-actions {
   display: none;
 }
 
-#ui-routes {
-  border-top: 0;
-  border-left: 0;
-  top: 0;
-  left: 0;
-}
-
-#ui-adjustment {
-  border-top: 0;
+#ui-selected-feature {
   border-right: 0;
-  top: 0;
+  border-bottom: 0;
+  position: absolute;
   right: 0;
+  bottom: 0;
 }
