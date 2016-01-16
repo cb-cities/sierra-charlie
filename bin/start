@@ -3,7 +3,7 @@
 set -eu -o pipefail
 
 export PATH=node_modules/.bin:${PATH}
-export CONFIG=${CONFIG:-webpack.dev.config.js}
+export CONFIG=${CONFIG:-webpack.dev-config.js}
 
 webpack --config=${CONFIG}
 
