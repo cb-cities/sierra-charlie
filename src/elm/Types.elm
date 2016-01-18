@@ -3,6 +3,33 @@ module Types where
 import Signal
 
 
+type alias State =
+  { mode : Maybe String
+  , loadingProgress : Float
+  , highlightedFeature : Maybe Feature
+  , selectedFeature : Maybe Feature
+  , routes : List Route
+  , adjustment : Maybe Adjustment
+  }
+
+
+type Action =
+    Idle
+  | ReceiveMode (Maybe String)
+  | ReceiveLoadingProgress Float
+  | ReceiveHighlightedFeature (Maybe Feature)
+  | ReceiveSelectedFeature (Maybe Feature)
+  | ReceiveRoutes (List Route)
+  | ReceiveAdjustment (Maybe Adjustment)
+  | SetMode (Maybe String)
+  | HighlightFeature (Maybe String)
+  | SelectFeature (Maybe String)
+  | DeleteSelectedFeature
+  | UndeleteSelectedFeature
+  | ClearRoutes
+  | ClearAdjustment
+
+
 type alias RoadNode =
   { toid : String
   , address : Maybe String
@@ -58,33 +85,6 @@ type alias Adjustment =
   , deletedRoadLinkTOIDs : List String
   , deletedRoadTOIDs : List String
   }
-
-
-type alias State =
-  { mode : Maybe String
-  , loadingProgress : Float
-  , highlightedFeature : Maybe Feature
-  , selectedFeature : Maybe Feature
-  , routes : List Route
-  , adjustment : Maybe Adjustment
-  }
-
-
-type Action =
-    Idle
-  | ReceiveMode (Maybe String)
-  | ReceiveLoadingProgress Float
-  | ReceiveHighlightedFeature (Maybe Feature)
-  | ReceiveSelectedFeature (Maybe Feature)
-  | ReceiveRoutes (List Route)
-  | ReceiveAdjustment (Maybe Adjustment)
-  | SetMode (Maybe String)
-  | HighlightFeature (Maybe String)
-  | SelectFeature (Maybe String)
-  | DeleteSelectedFeature
-  | UndeleteSelectedFeature
-  | ClearRoutes
-  | ClearAdjustment
 
 
 type alias Trigger =
