@@ -6,6 +6,7 @@ import Signal exposing (Address, Mailbox)
 import StartApp exposing (App)
 import Task exposing (Task, andThen)
 
+import Export
 import Types exposing (..)
 import View exposing (view)
 
@@ -40,6 +41,28 @@ update action state =
       ({state | adjustment = adjustment}, none)
     Send message ->
       (state, send message)
+    ExportRoutes ->
+      (state, exportRoutes state.routes)
+    ExportAdjustment ->
+      (state, exportAdjustment state.adjustment)
+
+
+exportRoutes : List Route -> Effects Action
+exportRoutes routes =
+  Effects.task
+    ( Export.viaBlobURL routes
+      `andThen`
+      \_ -> Task.succeed Idle
+    )
+
+
+exportAdjustment : Maybe Adjustment -> Effects Action
+exportAdjustment maybeAdjustment =
+  Effects.task
+    ( Export.viaBlobURL maybeAdjustment
+      `andThen`
+      \_ -> Task.succeed Idle
+    )
 
 
 type alias EncodedIncomingMessage =
