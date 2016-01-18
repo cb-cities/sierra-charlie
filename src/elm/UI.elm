@@ -10,8 +10,8 @@ import Types exposing (..)
 import View exposing (view)
 
 
-initialState : State
-initialState =
+defaultState : State
+defaultState =
   { mode = Nothing
   , loadingProgress = 0
   , highlightedFeature = Nothing
@@ -23,7 +23,7 @@ initialState =
 
 init : (State, Effects Action)
 init =
-    (initialState, Effects.task (Task.succeed Idle))
+    (defaultState, Effects.task (Task.succeed Idle))
 
 
 update : Action -> State -> (State, Effects Action)

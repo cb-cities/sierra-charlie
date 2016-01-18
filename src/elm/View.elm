@@ -7,63 +7,73 @@ import Html.Events exposing (onMouseEnter, onMouseLeave, onClick)
 import Types exposing (..)
 
 
-viewWindowTitle : String -> Html
-viewWindowTitle title =
-    div [class "ui-window-title"] [text title]
-
-
-viewLabel : String -> Html
-viewLabel label =
-    div [class "ui-label"] [text label]
-
-
-viewItem : Html -> Html
-viewItem item =
-    div [] [item]
-
-
-viewTOID : Trigger -> String -> Html
-viewTOID trigger toid =
-    a
-      [ onClick trigger (SelectFeature (Just toid))
-      , onMouseEnter trigger (HighlightFeature (Just toid))
-      , onMouseLeave trigger (HighlightFeature Nothing)
+view : Trigger -> State -> Html
+view trigger state =
+    div []
+      [ div []
+          [ viewLoadingProgress state.loadingProgress
+          , viewFeature trigger state.mode "highlighted" state.highlightedFeature
+          , viewFeature trigger state.mode "selected" state.selectedFeature
+          ]
+      , div [id "ui-windows-top-left"]
+          []
+      , div [id "ui-windows-top-right"]
+          [ viewAdjustmentWindow trigger state.adjustment
+          , viewRoutesWindow trigger state.routes
+          ]
       ]
-      [text toid]
 
 
-viewTOIDItem : Trigger -> String -> Html
-viewTOIDItem trigger toid =
-    viewItem (viewTOID trigger toid)
+viewLoadingProgress : Float -> Html
+viewLoadingProgress loadingProgress =
+    let
+      opacity =
+        if loadingProgress == 100
+          then [style [("opacity", "0")]]
+          else []
+    in
+      div ([id "ui-loading-progress-track"] ++ opacity)
+        [ div
+            [ id "ui-loading-progress-bar"
+            , style [("width", toString loadingProgress ++ "%")]
+            ]
+            []
+        ]
 
 
-viewLabeled : String -> List Html -> List Html
-viewLabeled label contents =
-    [div [] ([viewLabel label] ++ contents)]
-
-
-viewLabeledList : String -> (a -> Html) -> List a -> List Html
-viewLabeledList label view items =
-    case items of
-      [] ->
-        []
-      _ ->
-        viewLabeled label (List.map view items)
-
-
-viewActions : List Html -> List Html
-viewActions contents =
-    [div [class "ui-actions"] contents]
-
-
-viewAction : Trigger -> Action -> String -> Html
-viewAction trigger action label =
-    span [] [a [onClick trigger action] [text label]]
-
-
-viewActiveAction : Trigger -> Action -> String -> Html
-viewActiveAction trigger action label =
-    span [] [a [onClick trigger action, class "ui-active"] [text label]]
+viewFeature : Trigger -> Maybe String -> String -> Maybe Feature -> Html
+viewFeature trigger maybeMode featureKind maybeFeature =
+    let
+      featureId =
+        if featureKind == "highlighted"
+          then "ui-highlighted-feature"
+          else "ui-selected-feature"
+      titlePrefix =
+        if featureKind == "highlighted"
+          then "Highlighted"
+          else "Selected"
+      display =
+        if maybeFeature == Nothing
+          then [style [("display", "none")]]
+          else []
+      contents =
+        case maybeFeature of
+          Nothing ->
+            []
+          Just feature ->
+            case (feature.tag, feature.roadNode, feature.roadLink, feature.road, feature.route) of
+              ("roadNode", Just roadNode, Nothing, Nothing, Nothing) ->
+                viewRoadNode trigger maybeMode titlePrefix roadNode
+              ("roadLink", Nothing, Just roadLink, Nothing, Nothing) ->
+                viewRoadLink trigger titlePrefix roadLink
+              ("road", Nothing, Nothing, Just road, Nothing) ->
+                viewRoad trigger titlePrefix road
+              ("route", Nothing, Nothing, Nothing, Just route) ->
+                viewRoute trigger titlePrefix route
+              _ ->
+                []
+    in
+      div ([id featureId, class "ui-window"] ++ display) contents
 
 
 viewRoadNode : Trigger -> Maybe String -> String -> RoadNode -> List Html
@@ -100,11 +110,6 @@ viewRoadNode trigger maybeMode titlePrefix roadNode =
         viewLabeledList "Road Links" (viewTOIDItem trigger) roadNode.roadLinkTOIDs
     in
       title ++ description ++ actions ++ toid ++ roadLinks
-
-
-viewRoadLinkDescription : RoadLink -> Html
-viewRoadLinkDescription roadLink =
-    text (roadLink.term ++ ", " ++ roadLink.nature)
 
 
 viewRoadLink : Trigger -> String -> RoadLink -> List Html
@@ -151,13 +156,9 @@ viewRoadLink trigger titlePrefix roadLink =
       title ++ description ++ actions ++ toid ++ roadNodes ++ roads
 
 
-viewRoadDescription : Road -> Html
-viewRoadDescription road =
-    case road.term of
-      Nothing ->
-        text (road.name ++ ", " ++ road.group)
-      Just term ->
-        text (road.name ++ ", " ++ road.group ++ ", " ++ term)
+viewRoadLinkDescription : RoadLink -> Html
+viewRoadLinkDescription roadLink =
+    text (roadLink.term ++ ", " ++ roadLink.nature)
 
 
 viewRoadItem : Trigger -> Road -> Html
@@ -218,44 +219,13 @@ viewRoute trigger titlePrefix route =
       title ++ actions ++ toid ++ roadNodes ++ roadLinks
 
 
-viewFeature : Trigger -> Maybe String -> String -> Maybe Feature -> Html
-viewFeature trigger maybeMode featureKind maybeFeature =
-    let
-      featureId =
-        if featureKind == "highlighted"
-          then "ui-highlighted-feature"
-          else "ui-selected-feature"
-      titlePrefix =
-        if featureKind == "highlighted"
-          then "Highlighted"
-          else "Selected"
-      display =
-        if maybeFeature == Nothing
-          then [style [("display", "none")]]
-          else []
-      contents =
-        case maybeFeature of
-          Nothing ->
-            []
-          Just feature ->
-            case (feature.tag, feature.roadNode, feature.roadLink, feature.road, feature.route) of
-              ("roadNode", Just roadNode, Nothing, Nothing, Nothing) ->
-                viewRoadNode trigger maybeMode titlePrefix roadNode
-              ("roadLink", Nothing, Just roadLink, Nothing, Nothing) ->
-                viewRoadLink trigger titlePrefix roadLink
-              ("road", Nothing, Nothing, Just road, Nothing) ->
-                viewRoad trigger titlePrefix road
-              ("route", Nothing, Nothing, Nothing, Just route) ->
-                viewRoute trigger titlePrefix route
-              _ ->
-                []
-    in
-      div ([id featureId, class "ui-window"] ++ display) contents
-
-
-viewRoutes : Trigger -> String -> List Route -> List Html
-viewRoutes trigger label routes =
-    viewLabeledList label (viewTOIDItem trigger) (List.map .toid routes)
+viewRoadDescription : Road -> Html
+viewRoadDescription road =
+    case road.term of
+      Nothing ->
+        text (road.name ++ ", " ++ road.group)
+      Just term ->
+        text (road.name ++ ", " ++ road.group ++ ", " ++ term)
 
 
 viewRoutesWindow : Trigger -> List Route -> Html
@@ -293,6 +263,11 @@ viewRoutesWindow trigger routes =
       div ([class "ui-window"] ++ display) contents
 
 
+viewRoutes : Trigger -> String -> List Route -> List Html
+viewRoutes trigger label routes =
+    viewLabeledList label (viewTOIDItem trigger) (List.map .toid routes)
+
+
 viewAdjustmentWindow : Trigger -> Maybe Adjustment -> Html
 viewAdjustmentWindow trigger maybeAdjustment =
     let
@@ -327,35 +302,60 @@ viewAdjustmentWindow trigger maybeAdjustment =
       div ([class "ui-window"] ++ display) contents
 
 
-viewLoadingProgress : Float -> Html
-viewLoadingProgress loadingProgress =
-    let
-      opacity =
-        if loadingProgress == 100
-          then [style [("opacity", "0")]]
-          else []
-    in
-      div ([id "ui-loading-progress-track"] ++ opacity)
-        [ div
-            [ id "ui-loading-progress-bar"
-            , style [("width", toString loadingProgress ++ "%")]
-            ]
-            []
-        ]
+viewWindowTitle : String -> Html
+viewWindowTitle title =
+    div [class "ui-window-title"] [text title]
 
 
-view : Trigger -> State -> Html
-view trigger state =
-    div []
-      [ div []
-          [ viewLoadingProgress state.loadingProgress
-          , viewFeature trigger state.mode "highlighted" state.highlightedFeature
-          , viewFeature trigger state.mode "selected" state.selectedFeature
-          ]
-      , div [id "ui-windows-top-left"]
-          []
-      , div [id "ui-windows-top-right"]
-          [ viewAdjustmentWindow trigger state.adjustment
-          , viewRoutesWindow trigger state.routes
-          ]
+viewTOIDItem : Trigger -> String -> Html
+viewTOIDItem trigger toid =
+    viewItem (viewTOID trigger toid)
+
+
+viewTOID : Trigger -> String -> Html
+viewTOID trigger toid =
+    a
+      [ onClick trigger (SelectFeature (Just toid))
+      , onMouseEnter trigger (HighlightFeature (Just toid))
+      , onMouseLeave trigger (HighlightFeature Nothing)
       ]
+      [text toid]
+
+
+viewItem : Html -> Html
+viewItem item =
+    div [] [item]
+
+
+viewLabeledList : String -> (a -> Html) -> List a -> List Html
+viewLabeledList label view items =
+    case items of
+      [] ->
+        []
+      _ ->
+        viewLabeled label (List.map view items)
+
+
+viewLabeled : String -> List Html -> List Html
+viewLabeled label contents =
+    [div [] ([viewLabel label] ++ contents)]
+
+
+viewLabel : String -> Html
+viewLabel label =
+    div [class "ui-label"] [text label]
+
+
+viewActions : List Html -> List Html
+viewActions contents =
+    [div [class "ui-actions"] contents]
+
+
+viewAction : Trigger -> Action -> String -> Html
+viewAction trigger action label =
+    span [] [a [onClick trigger action] [text label]]
+
+
+viewActiveAction : Trigger -> Action -> String -> Html
+viewActiveAction trigger action label =
+    span [] [a [onClick trigger action, class "ui-active"] [text label]]
