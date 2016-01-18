@@ -3,6 +3,7 @@ module View where
 import Html exposing (Html, a, div, span, text)
 import Html.Attributes exposing (class, id, style)
 import Html.Events exposing (onMouseEnter, onMouseLeave, onClick)
+import Html.Lazy exposing (lazy, lazy2)
 
 import Types exposing (..)
 
@@ -15,15 +16,15 @@ view : Trigger -> State -> Html
 view trigger state =
     div []
       [ div []
-          [ viewLoadingProgress state.loadingProgress
-          , viewFeature trigger state.mode "highlighted" state.highlightedFeature
-          , viewFeature trigger state.mode "selected" state.selectedFeature
+          [ lazy viewLoadingProgress state.loadingProgress
+          , lazy2 (viewFeature trigger "highlighted") state.mode state.highlightedFeature
+          , lazy2 (viewFeature trigger "selected") state.mode state.selectedFeature
           ]
       , div [id "ui-windows-top-left"]
           []
       , div [id "ui-windows-top-right"]
-          [ viewAdjustmentWindow trigger state.adjustment
-          , viewRoutesWindow trigger state.routes
+          [ lazy (viewAdjustmentWindow trigger) state.adjustment
+          , lazy (viewRoutesWindow trigger) state.routes
           ]
       ]
 
@@ -45,8 +46,8 @@ viewLoadingProgress loadingProgress =
         ]
 
 
-viewFeature : Trigger -> Maybe String -> String -> Maybe Feature -> Html
-viewFeature trigger maybeMode featureKind maybeFeature =
+viewFeature : Trigger -> String -> Maybe String -> Maybe Feature -> Html
+viewFeature trigger featureKind maybeMode maybeFeature =
     let
       featureId =
         if featureKind == "highlighted"
