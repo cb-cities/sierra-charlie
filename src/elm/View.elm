@@ -95,17 +95,17 @@ viewRoadNode trigger maybeMode titlePrefix roadNode =
       actions =
         case (roadNode.isDeleted, roadNode.isUndeletable) of
           (False, _) ->
-            viewActions
+            viewButtons trigger
               [ case maybeMode of
                   Just "routing" ->
-                    viewActiveAction trigger (Send (SetMode Nothing)) "Get Route…"
+                    viewActiveButton (Send (SetMode Nothing)) "Get Route…"
                   _ ->
-                    viewAction trigger (Send (SetMode (Just "routing"))) "Get Route…"
-              , viewAction trigger (Send DeleteSelectedFeature) "Delete"
+                    viewButton (Send (SetMode (Just "routing"))) "Get Route…"
+              , viewButton (Send DeleteSelectedFeature) "Delete"
               ]
           (True, True) ->
-            viewActions
-              [ viewAction trigger (Send UndeleteSelectedFeature) "Undelete"
+            viewButtons trigger
+              [ viewButton (Send UndeleteSelectedFeature) "Undelete"
               ]
           _ ->
             []
@@ -127,12 +127,12 @@ viewRoadLink trigger titlePrefix roadLink =
       actions =
         case (roadLink.isDeleted, roadLink.isUndeletable) of
           (False, _) ->
-            viewActions
-              [ viewAction trigger (Send DeleteSelectedFeature) "Delete"
+            viewButtons trigger
+              [ viewButton (Send DeleteSelectedFeature) "Delete"
               ]
           (True, True) ->
-            viewActions
-              [ viewAction trigger (Send UndeleteSelectedFeature) "Undelete"
+            viewButtons trigger
+              [ viewButton (Send UndeleteSelectedFeature) "Undelete"
               ]
           _ ->
             []
@@ -187,12 +187,12 @@ viewRoad trigger titlePrefix road =
       actions =
         case road.isDeleted of
           False ->
-            viewActions
-              [ viewAction trigger (Send DeleteSelectedFeature) "Delete"
+            viewButtons trigger
+              [ viewButton (Send DeleteSelectedFeature) "Delete"
               ]
           True ->
-            viewActions
-              [ viewAction trigger (Send UndeleteSelectedFeature) "Undelete"
+            viewButtons trigger
+              [ viewButton (Send UndeleteSelectedFeature) "Undelete"
               ]
       toid =
         viewLabeled "TOID" [viewTOID trigger road.toid]
@@ -208,8 +208,8 @@ viewRoute trigger titlePrefix route =
       title =
         [viewWindowTitle (titlePrefix ++ " Route")]
       actions =
-        viewActions
-          [ viewAction trigger (Send DeleteSelectedFeature) "Delete"
+        viewButtons trigger
+          [ viewButton (Send DeleteSelectedFeature) "Delete"
           ]
       toid =
         viewLabeled "TOID" [viewTOID trigger route.toid]
@@ -259,8 +259,8 @@ viewRoutesWindow trigger routes =
                     viewRoutes trigger "Invalid Routes" invalidList
             in
               [viewWindowTitle "Routes"] ++
-              viewActions
-                [ viewAction trigger (Send ClearRoutes) "Clear"
+              viewButtons trigger
+                [ viewButton (Send ClearRoutes) "Clear"
                 ] ++
               validRoutes ++
               invalidRoutes
@@ -294,8 +294,8 @@ viewAdjustmentWindow trigger maybeAdjustment =
             []
           Just adjustment ->
             [viewWindowTitle "Adjustment"] ++
-            viewActions
-              [ viewAction trigger (Send ClearAdjustment) "Clear"
+            viewButtons trigger
+              [ viewButton (Send ClearAdjustment) "Clear"
               ] ++
             [ div []
                 ( viewLabeledList "Deleted Nodes" (viewTOIDItem trigger) adjustment.deletedRoadNodeTOIDs ++
@@ -351,16 +351,16 @@ viewLabel label =
     div [class "ui-label"] [text label]
 
 
-viewActions : List Html -> List Html
-viewActions contents =
-    [div [class "ui-actions"] contents]
+viewButtons : Trigger -> List (Trigger -> Html) -> List Html
+viewButtons trigger buttons =
+    [div [class "ui-actions"] (List.map (\button -> button trigger) buttons)]
 
 
-viewAction : Trigger -> Action -> String -> Html
-viewAction trigger action label =
+viewButton : Action -> String -> Trigger -> Html
+viewButton action label trigger =
     span [] [a [onClick trigger action] [text label]]
 
 
-viewActiveAction : Trigger -> Action -> String -> Html
-viewActiveAction trigger action label =
+viewActiveButton : Action -> String -> Trigger -> Html
+viewActiveButton action label trigger =
     span [] [a [onClick trigger action, class "ui-active"] [text label]]
