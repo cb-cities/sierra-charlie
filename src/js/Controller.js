@@ -159,20 +159,20 @@ Controller.prototype = {
   },
 
   sendMode: function () {
-    UI.ports.mode.send(this.mode);
+    UI.updateMode(this.mode);
   },
 
   sendLoadingProgress: function () {
     const loadingProgress = this.geometry.getItemCount() / defs.maxGeometryItemCount * 100;
-    UI.ports.loadingProgress.send(loadingProgress);
+    UI.updateLoadingProgress(loadingProgress);
   },
 
   sendHighlightedFeature: function () {
-    UI.ports.highlightedFeature.send(this.exportFeature(this.highlightedFeature));
+    UI.updateHighlightedFeature(this.exportFeature(this.highlightedFeature));
   },
 
   sendSelectedFeature: function () {
-    UI.ports.selectedFeature.send(this.exportFeature(this.selectedFeature));
+    UI.updateSelectedFeature(this.exportFeature(this.selectedFeature));
   },
 
   sendRoutes: function () {
@@ -182,11 +182,11 @@ Controller.prototype = {
       const feature = this.routingFeatures[routingTOIDs[i]];
       routes.push(this.exportRoute(feature.route));
     }
-    UI.ports.routes.send(routes);
+    UI.updateRoutes(routes);
   },
 
   sendAdjustment: function () {
-    UI.ports.adjustment.send(this.adjustment.dump());
+    UI.updateAdjustment(this.adjustment.dump());
   },
 
   setMode: function (mode) {

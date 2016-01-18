@@ -1,7 +1,5 @@
 module Types where
 
-import Signal
-
 
 type alias State =
   { mode : Maybe String
@@ -15,15 +13,23 @@ type alias State =
 
 type Action =
     Idle
-  | ReceiveMode (Maybe String)
-  | ReceiveLoadingProgress Float
-  | ReceiveHighlightedFeature (Maybe Feature)
-  | ReceiveSelectedFeature (Maybe Feature)
-  | ReceiveRoutes (List Route)
-  | ReceiveAdjustment (Maybe Adjustment)
-  | SetMode (Maybe String)
-  | HighlightFeature (Maybe String)
-  | SelectFeature (Maybe String)
+  | Receive IncomingMessage
+  | Send OutgoingMessage
+
+
+type IncomingMessage =
+    UpdateMode (Maybe String)
+  | UpdateLoadingProgress Float
+  | UpdateHighlightedFeature (Maybe Feature)
+  | UpdateSelectedFeature (Maybe Feature)
+  | UpdateRoutes (List Route)
+  | UpdateAdjustment (Maybe Adjustment)
+
+
+type OutgoingMessage =
+    SetMode (Maybe String)
+  | HighlightFeatureByTOID (Maybe String)
+  | SelectFeatureByTOID (Maybe String)
   | DeleteSelectedFeature
   | UndeleteSelectedFeature
   | ClearRoutes
@@ -85,7 +91,3 @@ type alias Adjustment =
   , deletedRoadLinkTOIDs : List String
   , deletedRoadTOIDs : List String
   }
-
-
-type alias Trigger =
-    Signal.Address Action

@@ -21,159 +21,155 @@ defaultState =
   }
 
 
-init : (State, Effects Action)
-init =
-    (defaultState, Effects.task (Task.succeed Idle))
-
-
 update : Action -> State -> (State, Effects Action)
 update action state =
-    case action of
-      Idle ->
-        (state, none)
-      ReceiveMode mode ->
-        ({state | mode = mode}, none)
-      ReceiveLoadingProgress progress ->
-        ({state | loadingProgress = progress}, none)
-      ReceiveHighlightedFeature feature ->
-        ({state | highlightedFeature = feature}, none)
-      ReceiveSelectedFeature feature ->
-        ({state | selectedFeature = feature}, none)
-      ReceiveRoutes routes ->
-        ({state | routes = routes}, none)
-      ReceiveAdjustment adjustment ->
-        ({state | adjustment = adjustment}, none)
-      SetMode mode ->
-        (state, send setModeMailbox.address mode)
-      HighlightFeature toid ->
-        (state, send highlightFeatureMailbox.address toid)
-      SelectFeature toid ->
-        (state, send selectFeatureMailbox.address toid)
-      DeleteSelectedFeature ->
-        (state, send deleteSelectedFeatureMailbox.address ())
-      UndeleteSelectedFeature ->
-        (state, send undeleteSelectedFeatureMailbox.address ())
-      ClearRoutes ->
-        (state, send clearRoutesMailbox.address ())
-      ClearAdjustment ->
-        (state, send clearAdjustmentMailbox.address ())
+  case action of
+    Idle ->
+      (state, none)
+    Receive (UpdateMode mode) ->
+      ({state | mode = mode}, none)
+    Receive (UpdateLoadingProgress progress) ->
+      ({state | loadingProgress = progress}, none)
+    Receive (UpdateHighlightedFeature feature) ->
+      ({state | highlightedFeature = feature}, none)
+    Receive (UpdateSelectedFeature feature) ->
+      ({state | selectedFeature = feature}, none)
+    Receive (UpdateRoutes routes) ->
+      ({state | routes = routes}, none)
+    Receive (UpdateAdjustment adjustment) ->
+      ({state | adjustment = adjustment}, none)
+    Send message ->
+      (state, send message)
 
 
-send : Address a -> a -> Effects Action
-send address message =
-    Effects.task (Signal.send address message `andThen` \_ -> Task.succeed Idle)
+type alias EncodedIncomingMessage =
+  { tag : String
+  , mode : Maybe String
+  , loadingProgress : Float
+  , feature : Maybe Feature
+  , routes : List Route
+  , adjustment : Maybe Adjustment
+  }
+
+
+decodeIncomingMessage : Maybe EncodedIncomingMessage -> Action
+decodeIncomingMessage maybeEncoded =
+  case maybeEncoded of
+    Nothing ->
+      Idle
+    Just encoded ->
+      case encoded.tag of
+        "UpdateMode" ->
+          Receive (UpdateMode encoded.mode)
+        "UpdateLoadingProgress" ->
+          Receive (UpdateLoadingProgress encoded.loadingProgress)
+        "UpdateHighlightedFeature" ->
+          Receive (UpdateHighlightedFeature encoded.feature)
+        "UpdateSelectedFeature" ->
+          Receive (UpdateSelectedFeature encoded.feature)
+        "UpdateRoutes" ->
+          Receive (UpdateRoutes encoded.routes)
+        "UpdateAdjustment" ->
+          Receive (UpdateAdjustment encoded.adjustment)
+        _ ->
+          Debug.crash ("Invalid incoming message: " ++ toString encoded)
+
+
+port incomingMessage : Signal (Maybe EncodedIncomingMessage)
+
+
+incomingAction : Signal Action
+incomingAction =
+  Signal.map decodeIncomingMessage incomingMessage
+
+
+type alias EncodedOutgoingMessage =
+  { tag : String
+  , mode : Maybe String
+  , toid : Maybe String
+  }
+
+
+encode : String -> EncodedOutgoingMessage
+encode tag =
+  { tag = tag
+  , mode = Nothing
+  , toid = Nothing
+  }
+
+
+encodeTOID : String -> Maybe String -> EncodedOutgoingMessage
+encodeTOID tag toid =
+  let
+    base = encode tag
+  in
+    {base | toid = toid}
+
+
+encodeOutgoingMessage : OutgoingMessage -> EncodedOutgoingMessage
+encodeOutgoingMessage message =
+  case message of
+    SetMode mode ->
+      let
+        base = encode "SetMode"
+      in
+        {base | mode = mode}
+    HighlightFeatureByTOID toid ->
+      encodeTOID "HighlightFeatureByTOID" toid
+    SelectFeatureByTOID toid ->
+      encodeTOID "SelectFeatureByTOID" toid
+    DeleteSelectedFeature ->
+      encode "DeleteSelectedFeature"
+    UndeleteSelectedFeature ->
+      encode "UndeleteSelectedFeature"
+    ClearRoutes ->
+      encode "ClearRoutes"
+    ClearAdjustment ->
+      encode "ClearAdjustment"
+
+
+outgoingMessageMailbox : Mailbox (Maybe EncodedOutgoingMessage)
+outgoingMessageMailbox =
+  Signal.mailbox Nothing
+
+
+send : OutgoingMessage -> Effects Action
+send message =
+  let
+    maybeEncoded = Just (encodeOutgoingMessage message)
+  in
+    Effects.task
+      ( Signal.send outgoingMessageMailbox.address maybeEncoded
+        `andThen`
+        \_ -> Task.succeed Idle
+      )
+
+
+port outgoingMessage : Signal (Maybe EncodedOutgoingMessage)
+port outgoingMessage =
+  outgoingMessageMailbox.signal
+
+
+init : (State, Effects Action)
+init =
+  (defaultState, Effects.task (Task.succeed Idle))
 
 
 ui : App State
 ui =
-    StartApp.start
-      { init = init
-      , update = update
-      , view = view
-      , inputs =
-          [ Signal.map ReceiveMode mode
-          , Signal.map ReceiveLoadingProgress loadingProgress
-          , Signal.map ReceiveHighlightedFeature highlightedFeature
-          , Signal.map ReceiveSelectedFeature selectedFeature
-          , Signal.map ReceiveRoutes routes
-          , Signal.map ReceiveAdjustment adjustment
-          ]
-      }
-
-
-port mode : Signal (Maybe String)
-
-
-port loadingProgress : Signal Float
-
-
-port highlightedFeature : Signal (Maybe Feature)
-
-
-port selectedFeature : Signal (Maybe Feature)
-
-
-port routes : Signal (List Route)
-
-
-port adjustment : Signal (Maybe Adjustment)
-
-
-port setMode : Signal (Maybe String)
-port setMode =
-    setModeMailbox.signal
-
-
-port highlightFeature : Signal (Maybe String)
-port highlightFeature =
-    highlightFeatureMailbox.signal
-
-
-port selectFeature : Signal (Maybe String)
-port selectFeature =
-    selectFeatureMailbox.signal
-
-
-port deleteSelectedFeature : Signal ()
-port deleteSelectedFeature =
-    deleteSelectedFeatureMailbox.signal
-
-
-port undeleteSelectedFeature : Signal ()
-port undeleteSelectedFeature =
-    undeleteSelectedFeatureMailbox.signal
-
-
-port clearRoutes : Signal ()
-port clearRoutes =
-    clearRoutesMailbox.signal
-
-
-port clearAdjustment : Signal ()
-port clearAdjustment =
-    clearAdjustmentMailbox.signal
-
-
-setModeMailbox : Mailbox (Maybe String)
-setModeMailbox =
-    Signal.mailbox Nothing
-
-
-highlightFeatureMailbox : Mailbox (Maybe String)
-highlightFeatureMailbox =
-    Signal.mailbox Nothing
-
-
-selectFeatureMailbox : Mailbox (Maybe String)
-selectFeatureMailbox =
-    Signal.mailbox Nothing
-
-
-deleteSelectedFeatureMailbox : Mailbox ()
-deleteSelectedFeatureMailbox =
-    Signal.mailbox ()
-
-
-undeleteSelectedFeatureMailbox : Mailbox ()
-undeleteSelectedFeatureMailbox =
-    Signal.mailbox ()
-
-
-clearRoutesMailbox : Mailbox ()
-clearRoutesMailbox =
-    Signal.mailbox ()
-
-
-clearAdjustmentMailbox : Mailbox ()
-clearAdjustmentMailbox =
-    Signal.mailbox ()
+  StartApp.start
+    { init = init
+    , update = update
+    , view = view
+    , inputs = [incomingAction]
+    }
 
 
 port tasks : Signal (Task Never ())
 port tasks =
-    ui.tasks
+  ui.tasks
 
 
 main : Signal Html
 main =
-    ui.html
+  ui.html
