@@ -1,47 +1,47 @@
 "use strict";
 
+require("./index.html");
+require("./index.css");
+require("./index.appcache");
+
 window.React = require("react/addons");
 const r = require("react-wrapper");
 
 const Controller = require("./js/Controller");
 const app = r.wrap(require("./js/App"));
-window.Elm = require("./elm/UI");
-
-require("./index.html");
-require("./index.css");
-require("./index.appcache");
+const UI = require("./js/UI");
 
 
-(function () {
-  const controller = window.Controller = new Controller();
-  window.App = r.render(app(), document.getElementById("app"));
-  window.UI = Elm.embed(Elm.UI, document.getElementById("ui"), {
-      mode: null,
-      loadingProgress: 0,
-      highlightedFeature: null,
-      selectedFeature: null,
-      routes: [],
-      adjustment: null
-    });
-  window.UI.ports.setMode.subscribe(function (mode) {
-      controller.setMode(mode);
-    });
-  window.UI.ports.highlightFeature.subscribe(function (toid) {
-      controller.highlightFeatureByTOID(toid);
-    });
-  window.UI.ports.selectFeature.subscribe(function (toid) {
-      controller.selectFeatureByTOID(toid);
-    });
-  window.UI.ports.deleteSelectedFeature.subscribe(function () {
-      controller.deleteSelectedFeature();
-    });
-  window.UI.ports.undeleteSelectedFeature.subscribe(function () {
-      controller.undeleteSelectedFeature();
-    });
-  window.UI.ports.clearRoutes.subscribe(function () {
-      controller.clearRoutes();
-    });
-  window.UI.ports.clearAdjustment.subscribe(function () {
-      controller.clearAdjustment();
-    });
-})();
+const controller = window.Controller = new Controller();
+
+window.App = r.render(app(), document.getElementById("app"));
+
+window.UI = new UI({
+  setMode: (mode) => {
+    controller.setMode(mode);
+  },
+
+  highlightFeatureByTOID: (toid) => {
+    controller.highlightFeatureByTOID(toid);
+  },
+
+  selectFeatureByTOID: (toid) => {
+    controller.selectFeatureByTOID(toid);
+  },
+
+  deleteSelectedFeature: () => {
+    controller.deleteSelectedFeature();
+  },
+
+  undeleteSelectedFeature: () => {
+    controller.undeleteSelectedFeature();
+  },
+
+  clearRoutes: () => {
+    controller.clearRoutes();
+  },
+
+  clearAdjustment: () => {
+    controller.clearAdjustment();
+  }
+});

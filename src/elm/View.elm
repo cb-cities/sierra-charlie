@@ -7,6 +7,10 @@ import Html.Events exposing (onMouseEnter, onMouseLeave, onClick)
 import Types exposing (..)
 
 
+type alias Trigger =
+    Signal.Address Action
+
+
 view : Trigger -> State -> Html
 view trigger state =
     div []
@@ -93,14 +97,14 @@ viewRoadNode trigger maybeMode titlePrefix roadNode =
             viewActions
               [ case maybeMode of
                   Just "routing" ->
-                    viewActiveAction trigger (SetMode Nothing) "Get Route…"
+                    viewActiveAction trigger (Send (SetMode Nothing)) "Get Route…"
                   _ ->
-                    viewAction trigger (SetMode (Just "routing")) "Get Route…"
-              , viewAction trigger DeleteSelectedFeature "Delete"
+                    viewAction trigger (Send (SetMode (Just "routing"))) "Get Route…"
+              , viewAction trigger (Send DeleteSelectedFeature) "Delete"
               ]
           (True, True) ->
             viewActions
-              [ viewAction trigger UndeleteSelectedFeature "Undelete"
+              [ viewAction trigger (Send UndeleteSelectedFeature) "Undelete"
               ]
           _ ->
             []
@@ -123,11 +127,11 @@ viewRoadLink trigger titlePrefix roadLink =
         case (roadLink.isDeleted, roadLink.isUndeletable) of
           (False, _) ->
             viewActions
-              [ viewAction trigger DeleteSelectedFeature "Delete"
+              [ viewAction trigger (Send DeleteSelectedFeature) "Delete"
               ]
           (True, True) ->
             viewActions
-              [ viewAction trigger UndeleteSelectedFeature "Undelete"
+              [ viewAction trigger (Send UndeleteSelectedFeature) "Undelete"
               ]
           _ ->
             []
@@ -183,11 +187,11 @@ viewRoad trigger titlePrefix road =
         case road.isDeleted of
           False ->
             viewActions
-              [ viewAction trigger DeleteSelectedFeature "Delete"
+              [ viewAction trigger (Send DeleteSelectedFeature) "Delete"
               ]
           True ->
             viewActions
-              [ viewAction trigger UndeleteSelectedFeature "Undelete"
+              [ viewAction trigger (Send UndeleteSelectedFeature) "Undelete"
               ]
       toid =
         viewLabeled "TOID" [viewTOID trigger road.toid]
@@ -204,7 +208,7 @@ viewRoute trigger titlePrefix route =
         [viewWindowTitle (titlePrefix ++ " Route")]
       actions =
         viewActions
-          [ viewAction trigger DeleteSelectedFeature "Delete"
+          [ viewAction trigger (Send DeleteSelectedFeature) "Delete"
           ]
       toid =
         viewLabeled "TOID" [viewTOID trigger route.toid]
@@ -255,7 +259,7 @@ viewRoutesWindow trigger routes =
             in
               [viewWindowTitle "Routes"] ++
               viewActions
-                [ viewAction trigger ClearRoutes "Clear"
+                [ viewAction trigger (Send ClearRoutes) "Clear"
                 ] ++
               validRoutes ++
               invalidRoutes
@@ -290,7 +294,7 @@ viewAdjustmentWindow trigger maybeAdjustment =
           Just adjustment ->
             [viewWindowTitle "Adjustment"] ++
             viewActions
-              [ viewAction trigger ClearAdjustment "Clear"
+              [ viewAction trigger (Send ClearAdjustment) "Clear"
               ] ++
             [ div []
                 ( viewLabeledList "Deleted Nodes" (viewTOIDItem trigger) adjustment.deletedRoadNodeTOIDs ++
@@ -315,9 +319,9 @@ viewTOIDItem trigger toid =
 viewTOID : Trigger -> String -> Html
 viewTOID trigger toid =
     a
-      [ onClick trigger (SelectFeature (Just toid))
-      , onMouseEnter trigger (HighlightFeature (Just toid))
-      , onMouseLeave trigger (HighlightFeature Nothing)
+      [ onClick trigger (Send (SelectFeatureByTOID (Just toid)))
+      , onMouseEnter trigger (Send (HighlightFeatureByTOID (Just toid)))
+      , onMouseLeave trigger (Send (HighlightFeatureByTOID Nothing))
       ]
       [text toid]
 
