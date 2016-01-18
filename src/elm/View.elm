@@ -261,6 +261,7 @@ viewRoutesWindow trigger routes =
               [viewWindowTitle "Routes"] ++
               viewButtons trigger
                 [ viewButton (Send ClearRoutes) "Clear"
+                , viewButton ExportRoutes "Export"
                 ] ++
               validRoutes ++
               invalidRoutes
@@ -296,6 +297,7 @@ viewAdjustmentWindow trigger maybeAdjustment =
             [viewWindowTitle "Adjustment"] ++
             viewButtons trigger
               [ viewButton (Send ClearAdjustment) "Clear"
+              , viewButton ExportAdjustment "Export"
               ] ++
             [ div []
                 ( viewLabeledList "Deleted Nodes" (viewTOIDItem trigger) adjustment.deletedRoadNodeTOIDs ++

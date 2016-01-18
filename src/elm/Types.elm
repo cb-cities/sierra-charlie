@@ -15,6 +15,8 @@ type Action =
     Idle
   | Receive IncomingMessage
   | Send OutgoingMessage
+  | ExportRoutes
+  | ExportAdjustment
 
 
 type IncomingMessage =
