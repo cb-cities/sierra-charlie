@@ -246,13 +246,13 @@ viewRoutesWindow trigger routes =
           else
             let
               validRoutes =
-                case List.filter .isValid routes of
+                case List.filter (\route -> route.roadLinkTOIDs /= []) routes of
                   [] ->
                     []
                   validList ->
                     viewRoutes trigger "Valid Routes" validList
               invalidRoutes =
-                case List.filter (not << .isValid) routes of
+                case List.filter (\route -> route.roadLinkTOIDs == []) routes of
                   [] ->
                     []
                   invalidList ->

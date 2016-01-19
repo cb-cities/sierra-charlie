@@ -144,8 +144,7 @@ Controller.prototype = {
       endNodeTOID: route.endNode.toid,
       roadLinkTOIDs: route.roadLinks.map(function (roadLink) {
           return roadLink.toid;
-        }),
-      isValid: route.isValid
+        })
     };
   },
 
@@ -287,7 +286,7 @@ Controller.prototype = {
           if (feature.tag === "route") {
             const route = feature.route;
             pointIndices.insert([this.geometry.getPointIndexForRoadNode(route.startNode), this.geometry.getPointIndexForRoadNode(route.endNode)]);
-            if (!route.isValid) { // TODO
+            if (!route.roadLinks.length) { // TODO
               lines.insertLine(route.startNode.point[0], route.startNode.point[1], route.endNode.point[0], route.endNode.point[1]);
               lines.render(gl, gl.DYNAMIC_DRAW);
             }
@@ -547,7 +546,7 @@ Controller.prototype = {
             feature.road.roadLinks :
             feature.route.roadLinks;
         const r =
-          feature.tag === "road" || feature.tag === "route" && feature.route.isValid ?
+          feature.tag === "road" || feature.tag === "route" && feature.route.roadLinks.length ?
             this.geometry.getBoundsForRoadLinks(10, roadLinks) :
             segment.bounds(10, [
               feature.route.startNode.point,
