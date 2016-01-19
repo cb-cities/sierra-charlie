@@ -85,11 +85,11 @@ function UI(callbacks) {
 
   this.receiveSpecial = (message) => {
     switch (message) {
-      case "ExportRoutes":
-        callbacks.exportRoutes();
+      case "SaveRoutesAsJSON":
+        callbacks.saveRoutesAsJSON();
         break;
-      case "ExportAdjustment":
-        callbacks.exportAdjustment();
+      case "SaveAdjustmentAsJSON":
+        callbacks.saveAdjustmentAsJSON();
         break;
       default:
         throw new Error("Invalid special outgoing message: " + message);

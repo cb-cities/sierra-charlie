@@ -189,7 +189,7 @@ Controller.prototype = {
     UI.updateAdjustment(this.adjustment.dump());
   },
 
-  exportRoutes: function () { // TODO: Refactor
+  saveRoutesAsJSON: function () { // TODO: Refactor
     const routingTOIDs = Object.keys(this.routingFeatures);
     const routes = [];
     for (let i = 0; i < routingTOIDs.length; i++) {
@@ -199,7 +199,7 @@ Controller.prototype = {
     open(url.encodeJSONAsBlob(routes));
   },
 
-  exportAdjustment: function () { // TODO: Refactor
+  saveAdjustmentAsJSON: function () { // TODO: Refactor
     open(url.encodeJSONAsBlob(this.adjustment.dump()));
   },
 

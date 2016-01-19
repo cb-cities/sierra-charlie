@@ -56,11 +56,11 @@ window.UI = new UI({
     controller.clearAdjustment();
   },
 
-  exportRoutes: () => {
-    controller.exportRoutes();
+  saveRoutesAsJSON: () => {
+    controller.saveRoutesAsJSON();
   },
 
-  exportAdjustment: () => {
-    controller.exportAdjustment();
+  saveAdjustmentAsJSON: () => {
+    controller.saveAdjustmentAsJSON();
   }
 });
