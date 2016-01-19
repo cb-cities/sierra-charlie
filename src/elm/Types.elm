@@ -38,8 +38,8 @@ type OutgoingMessage =
 
 
 type SpecialOutgoingMessage =
-    ExportRoutes
-  | ExportAdjustment
+    SaveRoutesAsJSON
+  | SaveAdjustmentAsJSON
 
 
 type alias RoadNode =

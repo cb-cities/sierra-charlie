@@ -151,10 +151,10 @@ send message =
 encodeSpecialOutgoingMessage : SpecialOutgoingMessage -> String
 encodeSpecialOutgoingMessage message =
   case message of
-    ExportRoutes ->
-      "ExportRoutes"
-    ExportAdjustment ->
-      "ExportAdjustment"
+    SaveRoutesAsJSON ->
+      "SaveRoutesAsJSON"
+    SaveAdjustmentAsJSON ->
+      "SaveAdjustmentAsJSON"
 
 
 sendSpecial : SpecialOutgoingMessage -> Effects Action
