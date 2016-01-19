@@ -78,7 +78,6 @@ type alias Route =
   , startNodeTOID : String
   , endNodeTOID : String
   , roadLinkTOIDs : List String
-  , isValid : Bool
   }
 
 

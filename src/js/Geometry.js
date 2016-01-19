@@ -79,8 +79,7 @@ Geometry.prototype = {
         toid: "route" + Date.now(),
         startNode: startNode,
         endNode: endNode,
-        roadLinks: [],
-        isValid: true
+        roadLinks: []
       };
     } else {
       const parentNodes = {};
@@ -94,8 +93,7 @@ Geometry.prototype = {
             toid: "route" + Date.now(),
             startNode: startNode,
             endNode: endNode,
-            roadLinks: roadLinks,
-            isValid: true
+            roadLinks: roadLinks
           };
         } else {
           const neighborNodes = this.getNeighborNodesForRoadNode(currentNode, adjustment);
@@ -111,8 +109,7 @@ Geometry.prototype = {
         toid: "route" + Date.now(),
         startNode: startNode,
         endNode: endNode,
-        roadLinks: [],
-        isValid: false
+        roadLinks: []
       };
     }
   },
