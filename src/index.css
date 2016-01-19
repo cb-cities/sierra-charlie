@@ -219,6 +219,11 @@ a.ui-active:active {
   display: none;
 }
 
+#ui-highlighted-feature a {
+  text-decoration: none;
+  color: #999;
+}
+
 #ui-selected-feature {
   border-right: 0;
   border-bottom: 0;
