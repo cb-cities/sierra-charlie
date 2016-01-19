@@ -4,12 +4,12 @@ const Elm = require("../elm/UI.elm");
 
 
 function UI(callbacks) {
-  const instance = Elm.embed(Elm.UI, document.getElementById("ui"), {
+  const localRuntime = Elm.embed(Elm.UI, document.getElementById("ui"), {
     incomingMessage: null
   });
 
   function send(message) {
-    instance.ports.incomingMessage.send(Object.assign({
+    localRuntime.ports.incomingMessage.send(Object.assign({
       mode: null,
       loadingProgress: 0,
       feature: null,
@@ -54,7 +54,7 @@ function UI(callbacks) {
     });
   };
 
-  instance.ports.outgoingMessage.subscribe((message) => {
+  this.receive = (message) => {
     switch (message.tag) {
       case "SetMode":
         callbacks.setMode(message.mode);
@@ -80,7 +80,21 @@ function UI(callbacks) {
       default:
         throw new Error("Invalid outgoing message: " + message.tag);
     }
-  });
+  };
+  localRuntime.ports.outgoingMessage.subscribe(this.receive);
+
+  this.receiveSpecial = (message) => {
+    switch (message) {
+      case "ExportRoutes":
+        callbacks.exportRoutes();
+        break;
+      case "ExportAdjustment":
+        callbacks.exportAdjustment();
+        break;
+      default:
+        throw new Error("Invalid special outgoing message: " + message);
+    }
+  };
 }
 
 module.exports = UI;

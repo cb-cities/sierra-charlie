@@ -15,8 +15,7 @@ type Action =
     Idle
   | Receive IncomingMessage
   | Send OutgoingMessage
-  | ExportRoutes
-  | ExportAdjustment
+  | SendSpecial SpecialOutgoingMessage
 
 
 type IncomingMessage =
@@ -36,6 +35,11 @@ type OutgoingMessage =
   | UndeleteSelectedFeature
   | ClearRoutes
   | ClearAdjustment
+
+
+type SpecialOutgoingMessage =
+    ExportRoutes
+  | ExportAdjustment
 
 
 type alias RoadNode =

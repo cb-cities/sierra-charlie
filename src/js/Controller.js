@@ -13,6 +13,7 @@ const defs = require("./defs");
 const polyline = require("./lib/polyline");
 const rect = require("./lib/rect");
 const segment = require("./lib/segment");
+const url = require("./lib/url");
 const vector = require("./lib/vector");
 
 
@@ -187,6 +188,20 @@ Controller.prototype = {
 
   sendAdjustment: function () {
     UI.updateAdjustment(this.adjustment.dump());
+  },
+
+  exportRoutes: function () { // TODO: Refactor
+    const routingTOIDs = Object.keys(this.routingFeatures);
+    const routes = [];
+    for (let i = 0; i < routingTOIDs.length; i++) {
+      const feature = this.routingFeatures[routingTOIDs[i]];
+      routes.push(this.exportRoute(feature.route));
+    }
+    open(url.encodeJSONAsBlob(routes));
+  },
+
+  exportAdjustment: function () { // TODO: Refactor
+    open(url.encodeJSONAsBlob(this.adjustment.dump()));
   },
 
   setMode: function (mode) {
