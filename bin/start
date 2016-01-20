@@ -7,6 +7,7 @@ export CONFIG=${CONFIG:-webpack.dev-config.js}
 
 webpack --config=${CONFIG}
 
+find bin/proxy.js | entr -r node bin/proxy.js &
 find bin/server.js | entr -r node bin/server.js &
 find out/index.appcache out/index.html out/index.js | entr -p reload-browsers &
 

@@ -347,7 +347,8 @@ module.exports = {
         if (Controller.prevCursor) {
           gl.lineWidth(Math.max(roadLinkSize, cx.pixelRatio));
           switch (Controller.mode) {
-            case "routing":
+            case "GetRoute":
+            case "AskGoogleForRoute":
               gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
               break;
             default:
