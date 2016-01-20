@@ -26,5 +26,5 @@ app.use("/json", express.static(dir + "/json", {
 }));
 
 app.listen(3000, "0.0.0.0", function (err) {
-  console.log(err ? err : "Listening at http://0.0.0.0:3000");
+  console.log(err ? err : "Server listening at http://0.0.0.0:3000");
 });

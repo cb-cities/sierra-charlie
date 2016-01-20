@@ -2,13 +2,18 @@ module Types where
 
 
 type alias State =
-  { mode : Maybe String
+  { mode : Maybe Mode
   , loadingProgress : Float
   , highlightedFeature : Maybe Feature
   , selectedFeature : Maybe Feature
   , routes : List Route
   , adjustment : Maybe Adjustment
   }
+
+
+type Mode =
+    GetRoute
+  | AskGoogleForRoute
 
 
 type Action =
@@ -19,7 +24,7 @@ type Action =
 
 
 type IncomingMessage =
-    UpdateMode (Maybe String)
+    UpdateMode (Maybe Mode)
   | UpdateLoadingProgress Float
   | UpdateHighlightedFeature (Maybe Feature)
   | UpdateSelectedFeature (Maybe Feature)
@@ -28,7 +33,7 @@ type IncomingMessage =
 
 
 type OutgoingMessage =
-    SetMode (Maybe String)
+    SetMode (Maybe Mode)
   | HighlightFeatureByTOID (Maybe String)
   | SelectFeatureByTOID (Maybe String)
   | DeleteSelectedFeature

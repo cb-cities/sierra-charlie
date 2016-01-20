@@ -55,6 +55,21 @@ type alias EncodedIncomingMessage =
   }
 
 
+decodeMode : Maybe String -> Maybe Mode
+decodeMode maybeEncoded =
+  case maybeEncoded of
+    Nothing ->
+      Nothing
+    Just encoded ->
+      case encoded of
+        "GetRoute" ->
+          Just GetRoute
+        "AskGoogleForRoute" ->
+          Just AskGoogleForRoute
+        _ ->
+          Debug.crash ("Invalid mode: " ++ toString encoded)
+
+
 decodeIncomingMessage : Maybe EncodedIncomingMessage -> Action
 decodeIncomingMessage maybeEncoded =
   case maybeEncoded of
@@ -63,7 +78,7 @@ decodeIncomingMessage maybeEncoded =
     Just encoded ->
       case encoded.tag of
         "UpdateMode" ->
-          Receive (UpdateMode encoded.mode)
+          Receive (UpdateMode (decodeMode encoded.mode))
         "UpdateLoadingProgress" ->
           Receive (UpdateLoadingProgress encoded.loadingProgress)
         "UpdateHighlightedFeature" ->
@@ -93,18 +108,39 @@ type alias EncodedOutgoingMessage =
   }
 
 
-encode : String -> EncodedOutgoingMessage
-encode tag =
+encodeMode : Maybe Mode -> Maybe String
+encodeMode maybeMode =
+  case maybeMode of
+    Nothing ->
+      Nothing
+    Just mode ->
+      case mode of
+        GetRoute ->
+          Just "GetRoute"
+        AskGoogleForRoute ->
+          Just "AskGoogleForRoute"
+
+
+encodeMessage : String -> EncodedOutgoingMessage
+encodeMessage tag =
   { tag = tag
   , mode = Nothing
   , toid = Nothing
   }
 
 
-encodeTOID : String -> Maybe String -> EncodedOutgoingMessage
-encodeTOID tag toid =
+encodeModeMessage : String -> Maybe Mode -> EncodedOutgoingMessage
+encodeModeMessage tag mode =
   let
-    base = encode tag
+    base = encodeMessage tag
+  in
+    {base | mode = encodeMode mode}
+
+
+encodeTOIDMessage : String -> Maybe String -> EncodedOutgoingMessage
+encodeTOIDMessage tag toid =
+  let
+    base = encodeMessage tag
   in
     {base | toid = toid}
 
@@ -113,22 +149,19 @@ encodeOutgoingMessage : OutgoingMessage -> EncodedOutgoingMessage
 encodeOutgoingMessage message =
   case message of
     SetMode mode ->
-      let
-        base = encode "SetMode"
-      in
-        {base | mode = mode}
+      encodeModeMessage "SetMode" mode
     HighlightFeatureByTOID toid ->
-      encodeTOID "HighlightFeatureByTOID" toid
+      encodeTOIDMessage "HighlightFeatureByTOID" toid
     SelectFeatureByTOID toid ->
-      encodeTOID "SelectFeatureByTOID" toid
+      encodeTOIDMessage "SelectFeatureByTOID" toid
     DeleteSelectedFeature ->
-      encode "DeleteSelectedFeature"
+      encodeMessage "DeleteSelectedFeature"
     UndeleteSelectedFeature ->
-      encode "UndeleteSelectedFeature"
+      encodeMessage "UndeleteSelectedFeature"
     ClearRoutes ->
-      encode "ClearRoutes"
+      encodeMessage "ClearRoutes"
     ClearAdjustment ->
-      encode "ClearAdjustment"
+      encodeMessage "ClearAdjustment"
 
 
 outgoingMessageMailbox : Mailbox (Maybe EncodedOutgoingMessage)

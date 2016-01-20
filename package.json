@@ -30,6 +30,7 @@
     "react-tween-state": "^0.1.3",
     "react-wrapper": "^1.0.1",
     "reload-browsers": "^1.1.0",
+    "request": "^2.67.0",
     "simplify-js": "^1.2.1",
     "style-loader": "^0.13.0",
     "titlecase": "^1.0.2",
@@ -40,7 +41,7 @@
     "postinstall": "node_modules/.bin/bower install && elm package install --yes",
     "build": "node_modules/.bin/webpack",
     "dev-build": "node_modules/.bin/webpack --config=webpack.dev-config.js",
-    "start": "node bin/server.js",
+    "start": "node bin/proxy.js && node bin/server.js",
     "upload": "s3cmd put out/index.appcache out/index.html out/index.js s3://sierracharlie.mietek.io --acl-public",
     "upload-json": "s3cmd sync json s3://sierracharlie.mietek.io --acl-public --delete-removed --exclude='*' --include='*.json.gz' --add-header='Cache-Control:max-age=3600' --add-header='Content-Type:application/json' --add-header='Content-Encoding:gzip'",
     "clean": "rm -rf .psci bower_components elm-stuff node_modules npm-debug.log out purescript_modules"

@@ -1,7 +1,11 @@
 "use strict";
 
+const googlePolyline = require("polyline");
+const nnng = require("nnng");
+
 const Adjustment = require("./Adjustment");
 const Geometry = require("./Geometry");
+const Google = require("./Google");
 const Grid = require("./Grid");
 const Lineset = require("./Lineset");
 const Indexset = require("./Indexset");
@@ -26,6 +30,9 @@ function Controller() {
       onRoadLinksLoaded: this.onRoadLinksLoaded.bind(this),
       onRoadsLoaded: this.onRoadsLoaded.bind(this)
     });
+  window.Google = this.google = new Google({
+      onRouteReceived: this.onRouteReceived.bind(this)
+    }); // TODO
   this.grid = new Grid(); // TODO
   this.roadNodeTree = new Quadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
   this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
@@ -287,7 +294,14 @@ Controller.prototype = {
             const route = feature.route;
             pointIndices.insert([this.geometry.getPointIndexForRoadNode(route.startNode), this.geometry.getPointIndexForRoadNode(route.endNode)]);
             if (!route.roadLinks.length) { // TODO
-              lines.insertLine(route.startNode.point[0], route.startNode.point[1], route.endNode.point[0], route.endNode.point[1]);
+              if (!route.importedPoints || !route.importedPoints.length) { // TODO
+                lines.insertLine(route.startNode.point[0], route.startNode.point[1], route.endNode.point[0], route.endNode.point[1]);
+              } else {
+                const ps = route.importedPoints;
+                for (let i = 0; i < ps.length - 1; i++) {
+                  lines.insertLine(ps[i][0], ps[i][1], ps[i + 1][0], ps[i + 1][1]);
+                }
+              }
               lines.render(gl, gl.DYNAMIC_DRAW);
             }
           }
@@ -567,7 +581,8 @@ Controller.prototype = {
   highlightFeatureAtCursor: function () {
     if (this.prevCursor) {
       switch (this.mode) {
-        case "routing": // TODO
+        case "GetRoute": // TODO
+        case "AskGoogleForRoute":
           const roadNode = this.findClosestRoadNode();
           if (roadNode && !(this.adjustment.isRoadNodeDeleted(roadNode))) {
             this.highlightFeature({
@@ -591,10 +606,28 @@ Controller.prototype = {
     if (this.prevCursor && delta > 500) {
       this.prevClickDate = now;
       switch (this.mode) {
-        case "routing": // TODO
+        case "GetRoute": // TODO
           this.setMode(null);
           if (this.highlightedFeature) {
             const route = this.geometry.findShortestRouteBetweenRoadNodes(this.selectedFeature.roadNode, this.highlightedFeature.roadNode, this.adjustment);
+            this.routingFeatures[route.toid] = {
+              tag: "route",
+              route: route
+            };
+            this.renderRoutingFeatures();
+            this.sendRoutes();
+          }
+          break;
+        case "AskGoogleForRoute": // TODO
+          this.setMode(null);
+          if (this.highlightedFeature) {
+            const route = {
+              toid: "route" + Date.now(),
+              startNode: this.selectedFeature.roadNode,
+              endNode: this.highlightedFeature.roadNode,
+              roadLinks: []
+            };
+            this.google.requestRoute(route.toid, route.startNode.point, route.endNode.point);
             this.routingFeatures[route.toid] = {
               tag: "route",
               route: route
@@ -611,6 +644,24 @@ Controller.prototype = {
       }
     } else {
       this.prevClickDate = null;
+    }
+  },
+
+  onRouteReceived: function (toid, response) {
+    if (toid in this.routingFeatures) {
+      if (response.status === "OK" && response.routes && response.routes.length) {
+        const route = response.routes[0];
+        const points = googlePolyline.decode(route.overview_polyline.points).map(function (latLon) {
+          return nnng.to(latLon[0], latLon[1]);
+        });
+        this.routingFeatures[toid].route.importedPoints = points;
+        this.renderRoutingFeatures();
+        this.sendRoutes();
+      } else {
+        console.log("Google failed:", toid, response); // TODO
+      }
+    } else {
+      console.log("Google was late:", toid, response); // TODO
     }
   },
 
