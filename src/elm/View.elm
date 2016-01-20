@@ -46,7 +46,7 @@ viewLoadingProgress loadingProgress =
         ]
 
 
-viewFeature : Trigger -> String -> Maybe String -> Maybe Feature -> Html
+viewFeature : Trigger -> String -> Maybe Mode -> Maybe Feature -> Html
 viewFeature trigger featureKind maybeMode maybeFeature =
     let
       featureId =
@@ -81,7 +81,7 @@ viewFeature trigger featureKind maybeMode maybeFeature =
       div ([id featureId, class "ui-window"] ++ display) contents
 
 
-viewRoadNode : Trigger -> Maybe String -> String -> RoadNode -> List Html
+viewRoadNode : Trigger -> Maybe Mode -> String -> RoadNode -> List Html
 viewRoadNode trigger maybeMode titlePrefix roadNode =
     let
       title =
@@ -95,14 +95,22 @@ viewRoadNode trigger maybeMode titlePrefix roadNode =
       actions =
         case (roadNode.isDeleted, roadNode.isUndeletable) of
           (False, _) ->
-            viewButtons trigger
-              [ case maybeMode of
-                  Just "routing" ->
-                    viewActiveButton (Send (SetMode Nothing)) "Get Route…"
-                  _ ->
-                    viewButton (Send (SetMode (Just "routing"))) "Get Route…"
-              , viewButton (Send DeleteSelectedFeature) "Delete"
-              ]
+            ( viewButtons trigger
+                [ case maybeMode of
+                    Just GetRoute ->
+                      viewActiveButton (Send (SetMode Nothing)) "Get Route…"
+                    _ ->
+                      viewButton (Send (SetMode (Just GetRoute))) "Get Route…"
+                , viewButton (Send DeleteSelectedFeature) "Delete"
+                ] ++
+              viewButtons trigger
+                [ case maybeMode of
+                    Just AskGoogleForRoute ->
+                      viewActiveButton (Send (SetMode Nothing)) "Ask Google For Route…"
+                    _ ->
+                      viewButton (Send (SetMode (Just AskGoogleForRoute))) "Ask Google For Route…"
+                ]
+            )
           (True, True) ->
             viewButtons trigger
               [ viewButton (Send UndeleteSelectedFeature) "Undelete"
