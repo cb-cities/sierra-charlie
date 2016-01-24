@@ -62,6 +62,7 @@ function Controller() {
   space.addEventListener("mouseleave", this.onMouseLeft.bind(this));
   space.addEventListener("click", this.onMouseClicked.bind(this));
   space.addEventListener("dblclick", this.onMouseDoubleClicked.bind(this));
+  space.addEventListener("mousewheel", this.onMouseWheeled.bind(this));
   window.addEventListener("keydown", this.onKeyPressed.bind(this));
   window.addEventListener("resize", this.onWindowResized.bind(this));
   window.addEventListener("orientationchange", this.onWindowResized.bind(this));
@@ -677,6 +678,12 @@ Controller.prototype = {
     }
   },
 
+  onMouseWheeled: function (event) {
+    if (event.ctrlKey) {
+      event.preventDefault();
+    }
+  },
+
   onKeyPressed: function (event) { // TODO: Refactor
     const duration = event.shiftKey ? 5000 : 500;
     switch (event.keyCode) {
@@ -752,12 +759,18 @@ Controller.prototype = {
       //   App.setRawTime(newRawTime, duration);
       //   break;
       case 187: { // plus
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+        }
         const zoom = App.getStaticZoom();
         const newZoom = compute.clampZoom(zoom - 1);
         App.adaptiveSetZoom(newZoom, duration);
         break;
       }
       case 189: { // minus
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+        }
         const zoom = App.getStaticZoom();
         const newZoom = compute.clampZoom(zoom + 1);
         App.adaptiveSetZoom(newZoom, duration);
