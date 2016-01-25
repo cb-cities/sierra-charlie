@@ -92,11 +92,15 @@ Geometry.prototype = {
         let current = frontier.dequeue();
         if (current === endNode) {
           const roadLinks = this.recoverRoadLinksBetweenRoadNodes(startNode, endNode, parents);
+          // const visited = Object.keys(parents).map(function (toid) {
+          //     return parents[toid];
+          //   });
           return {
             toid: "route" + Date.now(),
             startNode: startNode,
             endNode: endNode,
             roadLinks: roadLinks
+            // roadNodes: visited
           };
         } else {
           const neighborCosts = this.getNeighborCostsForRoadNode(current, adjustment);
