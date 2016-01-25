@@ -124,6 +124,8 @@ Controller.prototype = {
       toid: roadLink.toid,
       term: roadLink.term,
       nature: roadLink.nature,
+      length: roadLink.length,
+      penalty: this.geometry.getPenaltyForRoadLink(roadLink), // TODO
       negativeNodeTOID: !roadLink.negativeNode ? null : roadLink.negativeNode.toid,
       positiveNodeTOID: !roadLink.positiveNode ? null : roadLink.positiveNode.toid,
       roads: roadLink.roads.map(this.exportRoad.bind(this)),

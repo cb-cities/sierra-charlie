@@ -144,6 +144,8 @@ viewRoadLink trigger titlePrefix roadLink =
               ]
           _ ->
             []
+      cost =
+        viewLabeled "Cost" [text (toString (round roadLink.length) ++ " × " ++ toString roadLink.penalty)]
       toid =
         viewLabeled "TOID" [viewTOID trigger roadLink.toid]
       roadNodes =
@@ -166,7 +168,7 @@ viewRoadLink trigger titlePrefix roadLink =
       roads =
         viewLabeledList "Roads" (viewRoadItem trigger) roadLink.roads
     in
-      title ++ description ++ actions ++ toid ++ roadNodes ++ roads
+      title ++ description ++ actions ++ cost ++ toid ++ roadNodes ++ roads
 
 
 viewRoadLinkDescription : RoadLink -> Html
