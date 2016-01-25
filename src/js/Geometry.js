@@ -6,6 +6,7 @@ const PriorityQueue = require("./PriorityQueue");
 const array = require("./lib/array");
 const defs = require("./defs");
 const rect = require("./lib/rect");
+const vector = require("./lib/vector");
 
 
 function pushUnique(arr, key, val) {
@@ -105,9 +106,11 @@ Geometry.prototype = {
             const nextCost = costs[current.toid] + neighborCosts[nextTOID];
             if (!(nextTOID in costs) || nextCost < costs[nextTOID]) {
               const nextNode = this.roadNodes[nextTOID];
+              const nextHeuristic = this.getEuclideanDistanceBetweenRoadNodes(nextNode, endNode);
+              const nextPriority = nextCost + nextHeuristic;
               parents[nextTOID] = current;
               costs[nextTOID] = nextCost;
-              frontier.enqueue(nextNode, nextCost);
+              frontier.enqueue(nextNode, nextPriority);
             }
           }
         }
@@ -119,6 +122,10 @@ Geometry.prototype = {
         roadLinks: []
       };
     }
+  },
+
+  getEuclideanDistanceBetweenRoadNodes: function (startNode, endNode) {
+    return vector.distance(startNode.point, endNode.point);
   },
 
   recoverRoadLinksBetweenRoadNodes: function (startNode, endNode, parents) {
