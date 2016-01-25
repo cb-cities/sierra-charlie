@@ -6,6 +6,10 @@ function Adjustment() {
 }
 
 Adjustment.prototype = {
+  isEmpty: function () {
+    return !Object.keys(this.deletedFeatures).length;
+  },
+
   isRoadNodeDeleted: function (roadNode) {
     return (
       roadNode.toid in this.deletedFeatures ||

@@ -125,7 +125,7 @@ Controller.prototype = {
       term: roadLink.term,
       nature: roadLink.nature,
       length: roadLink.length,
-      penalty: this.geometry.getPenaltyForRoadLink(roadLink), // TODO
+      penalty: roadLink.penalty,
       negativeNodeTOID: !roadLink.negativeNode ? null : roadLink.negativeNode.toid,
       positiveNodeTOID: !roadLink.positiveNode ? null : roadLink.positiveNode.toid,
       roads: roadLink.roads.map(this.exportRoad.bind(this)),
@@ -619,7 +619,11 @@ Controller.prototype = {
         case "GetRoute": // TODO
           this.setMode(null);
           if (this.highlightedFeature) {
-            const route = this.geometry.findShortestRouteBetweenRoadNodes(this.selectedFeature.roadNode, this.highlightedFeature.roadNode, this.adjustment);
+            const route =
+              this.geometry.findShortestRouteBetweenRoadNodes(
+                this.selectedFeature.roadNode,
+                this.highlightedFeature.roadNode,
+                this.adjustment.isEmpty() ? null : this.adjustment);
             this.routingFeatures[route.toid] = {
               tag: "route",
               route: route
