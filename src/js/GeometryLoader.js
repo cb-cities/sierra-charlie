@@ -139,6 +139,7 @@ GeometryLoader.prototype = {
           this.roadLinks.push({
               toid: obj.toid,
               bounds: polyline.bounds(0, vertices),
+              length: polyline.length(vertices),
               term: obj.term,
               nature: obj.nature,
               negativeNodeTOID: obj.negativeNode,
