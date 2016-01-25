@@ -9,6 +9,46 @@ const defs = require("./defs");
 const polyline = require("./lib/polyline");
 
 
+function makePenalty(nature, term) {
+  let penalty = 1;
+  switch (nature) {
+    case "Dual Carriageway":
+      break;
+    case "Single Carriageway":
+    case "Slip Road":
+      penalty += 0.25;
+      break;
+    case "Roundabout":
+    case "Traffic Island Link":
+    case "Traffic Island Link At Junction":
+    case "Enclosed Traffic Area Link":
+    /* falls through */
+    default:
+      penalty += 0.5;
+  }
+  switch (term) {
+    case "Motorway":
+    case "A Road":
+      break;
+    case "B Road":
+      penalty += 0.125;
+      break;
+    case "Minor Road":
+    case "Local Street":
+      penalty += 0.25;
+      break;
+    case "Private Road - Publicly Accessible":
+    case "Private Road - Restricted Access":
+    case "Alley":
+    case "Pedestrianised Street":
+    /* falls through */
+    default:
+      penalty += 0.5;
+  }
+  return penalty;
+}
+
+
 function GeometryLoader() {
   this.itemCount = 0;
   this.vertexArr = new Float32Array(defs.maxVertexCount * 2);
@@ -140,6 +180,7 @@ GeometryLoader.prototype = {
               toid: obj.toid,
               bounds: polyline.bounds(0, vertices),
               length: polyline.length(vertices),
+              penalty: makePenalty(obj.nature, obj.term),
               term: obj.term,
               nature: obj.nature,
               negativeNodeTOID: obj.negativeNode,
