@@ -1,7 +1,7 @@
 "use strict";
 
 const GeometryLoaderWorker = require("worker?inline!./GeometryLoaderWorker");
-const Queue = require("./Queue");
+const PriorityQueue = require("./PriorityQueue");
 
 const array = require("./lib/array");
 const defs = require("./defs");
@@ -83,8 +83,10 @@ Geometry.prototype = {
       };
     } else {
       const parents = {};
-      const frontier = new Queue();
-      frontier.enqueue(startNode);
+      const costs = {};
+      const frontier = new PriorityQueue();
+      costs[startNode.toid] = 0;
+      frontier.enqueue(startNode, 0);
       while (!frontier.isEmpty()) {
         let current = frontier.dequeue();
         if (current === endNode) {
@@ -96,12 +98,16 @@ Geometry.prototype = {
             roadLinks: roadLinks
           };
         } else {
-          const neighbors = this.getNeighborNodesForRoadNode(current, adjustment);
-          for (let i = 0; i < neighbors.length; i++) {
-            const next = neighbors[i];
-            if (!(next.toid in parents)) {
-              parents[next.toid] = current;
-              frontier.enqueue(next);
+          const neighborCosts = this.getNeighborCostsForRoadNode(current, adjustment);
+          const neighborTOIDs = Object.keys(neighborCosts);
+          for (let i = 0; i < neighborTOIDs.length; i++) {
+            const nextTOID = neighborTOIDs[i];
+            const nextCost = costs[current.toid] + neighborCosts[nextTOID];
+            if (!(nextTOID in costs) || nextCost < costs[nextTOID]) {
+              const nextNode = this.roadNodes[nextTOID];
+              parents[nextTOID] = current;
+              costs[nextTOID] = nextCost;
+              frontier.enqueue(nextNode, nextCost);
             }
           }
         }
@@ -144,25 +150,37 @@ Geometry.prototype = {
     return results;
   },
 
-  getNeighborNodesForRoadNode: function (roadNode, adjustment) {
-    const visitedNodes = {};
+  getNeighborCostsForRoadNode: function (roadNode, adjustment) {
+    const results = {};
+    for (let i = 0; i < roadNode.roadLinks.length; i++) {
+      const roadLink = roadNode.roadLinks[i];
+      const cost = roadLink.length; // TODO
+      if (!adjustment.isRoadLinkDeleted(roadLink)) {
+        if (roadLink.negativeNode && roadLink.negativeNode !== roadNode && !adjustment.isRoadNodeDeleted(roadLink.negativeNode)) {
+          results[roadLink.negativeNode.toid] = cost;
+        }
+        if (roadLink.positiveNode && roadLink.positiveNode !== roadNode && !adjustment.isRoadNodeDeleted(roadLink.positiveNode)) {
+          results[roadLink.positiveNode.toid] = cost;
+        }
+      }
+    }
+    return results;
+  },
+
+  getNeighborTOIDsForRoadNode: function (roadNode, adjustment) {
+    const results = {};
     for (let i = 0; i < roadNode.roadLinks.length; i++) {
       const roadLink = roadNode.roadLinks[i];
       if (!adjustment.isRoadLinkDeleted(roadLink)) {
         if (roadLink.negativeNode && roadLink.negativeNode !== roadNode && !adjustment.isRoadNodeDeleted(roadLink.negativeNode)) {
-          visitedNodes[roadLink.negativeNode.toid] = roadNode;
+          results[roadLink.negativeNode.toid] = true;
         }
         if (roadLink.positiveNode && roadLink.positiveNode !== roadNode && !adjustment.isRoadNodeDeleted(roadLink.positiveNode)) {
-          visitedNodes[roadLink.positiveNode.toid] = roadNode;
+          results[roadLink.positiveNode.toid] = true;
         }
       }
     }
-    const toids = Object.keys(visitedNodes);
-    const results = [];
-    for (let i = 0; i < toids.length; i++) {
-      results.push(this.roadNodes[toids[i]]);
-    }
-    return results;
+    return Object.keys(results);
   },
 
   getPointIndexForRoadNode: function (roadNode) {
