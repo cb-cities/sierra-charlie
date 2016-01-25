@@ -307,6 +307,13 @@ Controller.prototype = {
               }
               lines.render(gl, gl.DYNAMIC_DRAW);
             }
+            // if (route.roadNodes) { // TODO
+            //   const indices = [];
+            //   for (let i = 0; i < route.roadNodes.length; i++) {
+            //     indices.push(this.geometry.getPointIndexForRoadNode(route.roadNodes[i]));
+            //   }
+            //   pointIndices.insert(indices);
+            // }
           }
           const roadLinks =
             feature.tag === "road" ?
