@@ -157,11 +157,50 @@ Geometry.prototype = {
     return results;
   },
 
+  getPenaltyForRoadLink: function (roadLink) {
+    let penalty = 1;
+    switch (roadLink.nature) {
+      case "Dual Carriageway":
+        break;
+      case "Single Carriageway":
+      case "Slip Road":
+        penalty += 0.25;
+        break;
+      case "Roundabout":
+      case "Traffic Island Link":
+      case "Traffic Island Link At Junction":
+      case "Enclosed Traffic Area Link":
+      /* falls through */
+      default:
+        penalty += 0.5;
+    }
+    switch (roadLink.term) {
+      case "Motorway":
+      case "A Road":
+        break;
+      case "B Road":
+        penalty += 0.125;
+        break;
+      case "Minor Road":
+      case "Local Street":
+        penalty += 0.25;
+        break;
+      case "Private Road - Publicly Accessible":
+      case "Private Road - Restricted Access":
+      case "Alley":
+      case "Pedestrianised Street":
+      /* falls through */
+      default:
+        penalty += 0.5;
+    }
+    return penalty;
+  },
+
   getNeighborCostsForRoadNode: function (roadNode, adjustment) {
     const results = {};
     for (let i = 0; i < roadNode.roadLinks.length; i++) {
       const roadLink = roadNode.roadLinks[i];
-      const cost = roadLink.length; // TODO
+      const cost = roadLink.length * this.getPenaltyForRoadLink(roadLink); // TODO
       if (!adjustment.isRoadLinkDeleted(roadLink)) {
         if (roadLink.negativeNode && roadLink.negativeNode !== roadNode && !adjustment.isRoadNodeDeleted(roadLink.negativeNode)) {
           results[roadLink.negativeNode.toid] = cost;
