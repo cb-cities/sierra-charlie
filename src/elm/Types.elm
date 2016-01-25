@@ -60,6 +60,8 @@ type alias RoadLink =
   { toid : String
   , term : String
   , nature : String
+  , length : Float
+  , penalty : Float
   , negativeNodeTOID : Maybe String
   , positiveNodeTOID : Maybe String
   , roads : List Road
