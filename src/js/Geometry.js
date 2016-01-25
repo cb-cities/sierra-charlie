@@ -82,13 +82,13 @@ Geometry.prototype = {
         roadLinks: []
       };
     } else {
-      const parentNodes = {};
-      const nodesToVisit = new Queue();
-      nodesToVisit.enqueue(startNode);
-      while (!nodesToVisit.isEmpty()) {
-        let currentNode = nodesToVisit.dequeue();
-        if (currentNode === endNode) {
-          const roadLinks = this.recoverRoadLinksBetweenRoadNodes(startNode, endNode, parentNodes);
+      const parents = {};
+      const frontier = new Queue();
+      frontier.enqueue(startNode);
+      while (!frontier.isEmpty()) {
+        let current = frontier.dequeue();
+        if (current === endNode) {
+          const roadLinks = this.recoverRoadLinksBetweenRoadNodes(startNode, endNode, parents);
           return {
             toid: "route" + Date.now(),
             startNode: startNode,
@@ -96,11 +96,12 @@ Geometry.prototype = {
             roadLinks: roadLinks
           };
         } else {
-          const neighborNodes = this.getNeighborNodesForRoadNode(currentNode, adjustment);
-          for (let i = 0; i < neighborNodes.length; i++) {
-            if (!(neighborNodes[i].toid in parentNodes)) {
-              parentNodes[neighborNodes[i].toid] = currentNode;
-              nodesToVisit.enqueue(neighborNodes[i]);
+          const neighbors = this.getNeighborNodesForRoadNode(current, adjustment);
+          for (let i = 0; i < neighbors.length; i++) {
+            const next = neighbors[i];
+            if (!(next.toid in parents)) {
+              parents[next.toid] = current;
+              frontier.enqueue(next);
             }
           }
         }
@@ -114,31 +115,31 @@ Geometry.prototype = {
     }
   },
 
-  recoverRoadLinksBetweenRoadNodes: function (startNode, endNode, parentNodes) {
+  recoverRoadLinksBetweenRoadNodes: function (startNode, endNode, parents) {
     const results = [];
-    let currentNode = endNode;
-    while (currentNode && currentNode !== startNode) {
-      const parentNode = parentNodes[currentNode.toid];
-      if (parentNode) {
-        for (let i = 0; i < parentNode.roadLinks.length; i++) {
-          const roadLink = parentNode.roadLinks[i];
-          if (roadLink.negativeNode === parentNode && roadLink.positiveNode === currentNode || roadLink.negativeNode === currentNode && roadLink.positiveNode === parentNode) {
+    let current = endNode;
+    while (current && current !== startNode) {
+      const parent = parents[current.toid];
+      if (parent) {
+        for (let i = 0; i < parent.roadLinks.length; i++) {
+          const roadLink = parent.roadLinks[i];
+          if (roadLink.negativeNode === parent && roadLink.positiveNode === current || roadLink.negativeNode === current && roadLink.positiveNode === parent) {
             results.push(roadLink);
             break;
           }
         }
       }
-      currentNode = parentNode;
+      current = parent;
     }
     return results;
   },
 
-  recoverRoadNodesBetweenRoadNodes: function (startNode, endNode, parentNodes) {
+  recoverRoadNodesBetweenRoadNodes: function (startNode, endNode, parents) {
     const results = [];
-    let currentNode = endNode;
-    while (currentNode && currentNode !== startNode) {
-      results.push(currentNode.toid);
-      currentNode = parentNodes[currentNode.toid];
+    let current = endNode;
+    while (current && current !== startNode) {
+      results.push(current.toid);
+      current = parents[current.toid];
     }
     return results;
   },
