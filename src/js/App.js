@@ -310,6 +310,17 @@ module.exports = {
         gl.lineWidth(roadLinkSize);
         gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
         Geometry.drawAllRoadLinks(gl);
+
+        // Draw routing lines
+        gl.lineWidth(Math.max(roadLinkSize, cx.pixelRatio));
+        gl.uniform4f(cx.colorLoc, 0.6, 0, 1, 1);
+        Controller.routingLines.draw(gl, cx.vertexLoc);
+
+        Geometry.bindVertexBuffer(gl); // TODO
+        gl.enableVertexAttribArray(cx.vertexLoc); // TODO
+        gl.vertexAttribPointer(cx.vertexLoc, 2, gl.FLOAT, false, 0, 0); // TODO
+
+        // Draw more road links
         gl.lineWidth(Math.max(roadLinkSize, cx.pixelRatio));
         gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
         Controller.routingLineIndices.draw(gl, gl.LINES);
@@ -338,8 +349,6 @@ module.exports = {
         Controller.highlightedPointIndices.draw(gl, gl.POINTS);
 
         // Draw lines
-        gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
-        Controller.routingLines.draw(gl, cx.vertexLoc);
         gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
         Controller.selectedLines.draw(gl, cx.vertexLoc);
         gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
