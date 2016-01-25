@@ -35,7 +35,7 @@ PriorityQueue.prototype = {
   peek: function () {
     return this.items[0];
   },
-  
+
   bubbleUp: function (i) {
     while (i > 0) {
       const parent = (i - 1) >>> 1;
@@ -48,7 +48,7 @@ PriorityQueue.prototype = {
       }
     }
   },
-  
+
   bubbleDown: function (i) {
     const last = this.items.length - 1;
     while (true) {
