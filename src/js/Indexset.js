@@ -23,12 +23,14 @@ Indexset.prototype = {
     if (!this.indexBuf) { // TODO
       this.indexBuf = gl.createBuffer();
     }
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indexArr), usage);
+    if (this.indexArr.length) {
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indexArr), usage);
+    }
   },
 
   draw: function (gl, mode) {
-    if (this.indexBuf) {
+    if (this.indexBuf && this.indexArr.length) {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
       gl.drawElements(mode, this.indexArr.length, gl.UNSIGNED_INT, 0);
     }

@@ -1,23 +1,23 @@
 "use strict";
 
 
-function Lineset() {
+function Pointset() {
   this.vertexArr = [];
   this.indexArr = [];
   this.vertexBuf = null;
   this.indexBuf = null;
 }
 
-Lineset.prototype = {
+Pointset.prototype = {
   clear: function () {
     this.vertexArr = [];
     this.indexArr = [];
   },
 
-  insertLine: function (pointA, pointB) {
+  insertPoint: function (point) {
     const index = this.vertexArr.length / 2;
-    this.vertexArr.push(pointA[0], pointA[1], pointB[0], pointB[1]);
-    this.indexArr.push(index, index + 1);
+    this.vertexArr.push(point[0], point[1]);
+    this.indexArr.push(index);
   },
 
   render: function (gl, usage) {
@@ -39,9 +39,9 @@ Lineset.prototype = {
       gl.enableVertexAttribArray(vertexLoc);
       gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
-      gl.drawElements(gl.LINES, this.indexArr.length, gl.UNSIGNED_INT, 0);
+      gl.drawElements(gl.POINTS, this.indexArr.length, gl.UNSIGNED_INT, 0);
     }
   }
 };
 
-module.exports = Lineset;
+module.exports = Pointset;

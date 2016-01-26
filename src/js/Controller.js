@@ -9,6 +9,7 @@ const Google = require("./Google");
 const Grid = require("./Grid");
 const Lineset = require("./Lineset");
 const Indexset = require("./Indexset");
+const Pointset = require("./Pointset");
 const Polyquadtree = require("./Polyquadtree");
 const Quadtree = require("./Quadtree");
 
@@ -38,14 +39,17 @@ function Controller() {
   this.roadLinkTree = new Polyquadtree(defs.quadtreeLeft, defs.quadtreeTop, defs.quadtreeSize); // TODO
   this.modeLines = new Lineset();
   this.highlightedFeature = null;
+  this.highlightedPoints = new Pointset();
   this.highlightedLines = new Lineset();
   this.highlightedPointIndices = new Indexset();
   this.highlightedLineIndices = new Indexset();
   this.selectedFeature = null;
+  this.selectedPoints = new Pointset();
   this.selectedLines = new Lineset();
   this.selectedPointIndices = new Indexset();
   this.selectedLineIndices = new Indexset();
   this.routingFeatures = {};
+  this.routingPoints = new Pointset();
   this.routingLines = new Lineset();
   this.routingPointIndices = new Indexset();
   this.routingLineIndices = new Indexset();
@@ -277,9 +281,10 @@ Controller.prototype = {
     }
   },
 
-  renderFeature: function (feature, lines, pointIndices, lineIndices) {
+  renderFeature: function (feature, points, lines, pointIndices, lineIndices) {
     if (feature) {
       const gl = App.drawingContext.gl; // TODO
+      this.geometry.bindVertexBuffer(gl);
       switch (feature.tag) {
         case "roadNode":
           pointIndices.insert([this.geometry.getPointIndexForRoadNode(feature.roadNode)]);
@@ -287,80 +292,110 @@ Controller.prototype = {
           break;
         case "roadLink":
           pointIndices.insert(this.geometry.getPointIndicesForRoadLink(feature.roadLink));
-          pointIndices.render(gl, gl.DYNAMIC_DRAW);
           lineIndices.insert(this.geometry.getLineIndicesForRoadLink(feature.roadLink));
-          lineIndices.render(gl, gl.DYNAMIC_DRAW);
-          break;
-        case "road":
-        case "route":
-          if (feature.tag === "route") {
-            const route = feature.route;
-            pointIndices.insert([this.geometry.getPointIndexForRoadNode(route.startNode), this.geometry.getPointIndexForRoadNode(route.endNode)]);
-            if (!route.roadLinks.length) { // TODO
-              if (!route.importedPoints || !route.importedPoints.length) { // TODO
-                lines.insertLine(route.startNode.point, route.endNode.point);
-              } else {
-                const ps = route.importedPoints;
-                for (let i = 0; i < ps.length - 1; i++) {
-                  lines.insertLine(ps[i], ps[i + 1]);
-                }
-              }
-              lines.render(gl, gl.DYNAMIC_DRAW);
-            }
-            // if (route.roadNodes) { // TODO
-            //   const indices = [];
-            //   for (let i = 0; i < route.roadNodes.length; i++) {
-            //     indices.push(this.geometry.getPointIndexForRoadNode(route.roadNodes[i]));
-            //   }
-            //   pointIndices.insert(indices);
-            // }
-          }
-          const roadLinks =
-            feature.tag === "road" ?
-              feature.road.roadLinks :
-              feature.route.roadLinks;
-          pointIndices.insert(this.geometry.getPointIndicesForRoadLinks(roadLinks));
           pointIndices.render(gl, gl.DYNAMIC_DRAW);
-          lineIndices.insert(this.geometry.getLineIndicesForRoadLinks(roadLinks));
           lineIndices.render(gl, gl.DYNAMIC_DRAW);
           break;
+        case "road": {
+          const roadLinks = feature.road.roadLinks;
+          pointIndices.insert(this.geometry.getPointIndicesForRoadLinks(roadLinks));
+          lineIndices.insert(this.geometry.getLineIndicesForRoadLinks(roadLinks));
+          pointIndices.render(gl, gl.DYNAMIC_DRAW);
+          lineIndices.render(gl, gl.DYNAMIC_DRAW);
+          break;
+        }
+        case "route": {
+          const route = feature.route;
+          const roadLinks = route.roadLinks;
+          const ps = route.importedPoints;
+          if (roadLinks.length) {
+            pointIndices.insert(this.geometry.getPointIndicesForRoadLinks(roadLinks));
+            lineIndices.insert(this.geometry.getLineIndicesForRoadLinks(roadLinks));
+          } else {
+            pointIndices.insert([
+                this.geometry.getPointIndexForRoadNode(route.startNode),
+                this.geometry.getPointIndexForRoadNode(route.endNode)
+              ]);
+            if (!ps || !ps.length) {
+              points.insertPoint(route.startNode.point);
+              points.insertPoint(route.endNode.point);
+              lines.insertLine(route.startNode.point, route.endNode.point);
+            }
+          }
+          if (ps) {
+            for (let i = 0; i < ps.length; i++) {
+              points.insertPoint(ps[i]);
+            }
+            for (let i = 0; i < ps.length - 1; i++) {
+              lines.insertLine(ps[i], ps[i + 1]);
+            }
+          }
+          pointIndices.render(gl, gl.DYNAMIC_DRAW);
+          lineIndices.render(gl, gl.DYNAMIC_DRAW);
+          points.render(gl, gl.DYNAMIC_DRAW);
+          lines.render(gl, gl.DYNAMIC_DRAW);
+          break;
+        }
       }
     }
     App.isDrawingNeeded = true; // TODO
   },
 
   renderHighlightedFeature: function () {
+    this.highlightedPoints.clear();
     this.highlightedLines.clear();
     this.highlightedPointIndices.clear();
     this.highlightedLineIndices.clear();
-    this.renderFeature(this.highlightedFeature, this.highlightedLines, this.highlightedPointIndices, this.highlightedLineIndices);
+    this.renderFeature(
+      this.highlightedFeature,
+      this.highlightedPoints,
+      this.highlightedLines,
+      this.highlightedPointIndices,
+      this.highlightedLineIndices);
   },
 
   renderSelectedFeature: function () {
+    this.selectedPoints.clear();
     this.selectedLines.clear();
     this.selectedPointIndices.clear();
     this.selectedLineIndices.clear();
-    this.renderFeature(this.selectedFeature, this.selectedLines, this.selectedPointIndices, this.selectedLineIndices);
+    this.renderFeature(
+      this.selectedFeature,
+      this.selectedPoints,
+      this.selectedLines,
+      this.selectedPointIndices,
+      this.selectedLineIndices);
   },
 
   renderRoutingFeatures: function () {
+    this.routingPoints.clear();
     this.routingLines.clear();
     this.routingPointIndices.clear();
     this.routingLineIndices.clear();
     const routingTOIDs = Object.keys(this.routingFeatures);
     for (let i = 0; i < routingTOIDs.length; i++) {
       const feature = this.routingFeatures[routingTOIDs[i]];
-      this.renderFeature(feature, this.routingLines, this.routingPointIndices, this.routingLineIndices);
+      this.renderFeature(
+        feature,
+        this.routingPoints,
+        this.routingLines,
+        this.routingPointIndices,
+        this.routingLineIndices);
     }
   },
 
-  renderDeletedFeatures: function () { // TODO
+  renderDeletedFeatures: function () {
     this.deletedPointIndices.clear();
     this.deletedLineIndices.clear();
     const deletedTOIDs = Object.keys(this.adjustment.deletedFeatures);
     for (let i = 0; i < deletedTOIDs.length; i++) {
       const feature = this.adjustment.deletedFeatures[deletedTOIDs[i]];
-      this.renderFeature(feature, undefined, this.deletedPointIndices, this.deletedLineIndices); // TODO
+      this.renderFeature(
+        feature,
+        undefined,
+        undefined,
+        this.deletedPointIndices,
+        this.deletedLineIndices);
     }
   },
 
