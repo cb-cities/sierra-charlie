@@ -74,7 +74,7 @@ Geometry.prototype = {
     }
   },
 
-  findShortestRouteBetweenRoadNodes: function (startNode, endNode, adjustment) {
+  findShortestRouteBetweenRoadNodes: function (startNode, endNode, adjustment, whiteList) {
     if (startNode === endNode) {
       return {
         toid: "route" + Date.now(),
@@ -93,24 +93,20 @@ Geometry.prototype = {
         let current = frontier.dequeue();
         if (current === endNode) {
           const roadLinks = this.recoverRoadLinksBetweenRoadNodes(startNode, endNode, parentNodes, parentLinks);
-          // const visited = Object.keys(parentNodes).map(function (toid) {
-          //     return parentNodes[toid];
-          //   });
           return {
             toid: "route" + Date.now(),
             startNode: startNode,
             endNode: endNode,
             roadLinks: roadLinks
-            // roadNodes: visited
           };
         } else {
           const neighbors = this.getNeighborsForRoadNode(current, adjustment);
           for (let i = 0; i < neighbors.length; i++) {
             const next = neighbors[i].roadNode;
-            const linkCost = neighbors[i].roadLink.length * neighbors[i].roadLink.penalty; // TODO
+            const linkCost = neighbors[i].roadLink.length * (neighbors[i].roadLink.penalty + ((whiteList && whiteList.indexOf(next) === -1) ? 10 : 1)); // TODO
             const nextCost = costs[current.toid] + linkCost;
             if (!(next.toid in costs) || nextCost < costs[next.toid]) {
-              const nextHeuristic = this.getEuclideanDistanceBetweenRoadNodes(next, endNode);
+              const nextHeuristic = this.getDistanceBetweenRoadNodes(next, endNode);
               const nextPriority = nextCost + nextHeuristic;
               parentNodes[next.toid] = current;
               parentLinks[next.toid] = neighbors[i].roadLink;
@@ -129,7 +125,7 @@ Geometry.prototype = {
     }
   },
 
-  getEuclideanDistanceBetweenRoadNodes: function (startNode, endNode) {
+  getDistanceBetweenRoadNodes: function (startNode, endNode) {
     return vector.distance(startNode.point, endNode.point);
   },
 
@@ -156,7 +152,7 @@ Geometry.prototype = {
     return results;
   },
 
-  getNeighborsForRoadNode: function (roadNode, adjustment) {
+  getNeighborsForRoadNode: function (roadNode, adjustment) { // TODO: Refactor
     const results = [];
     if (adjustment) {
       for (let i = 0; i < roadNode.roadLinks.length; i++) {
@@ -204,6 +200,14 @@ Geometry.prototype = {
 
   getPointIndexForRoadNode: function (roadNode) {
     return this.roadNodeIndexArr[roadNode.indexOffset];
+  },
+
+  getPointIndicesForRoadNodes: function (roadNodes) {
+    const results = [];
+    for (let i = 0; i < roadNodes.length; i++) {
+      results.push(this.roadNodeIndexArr[roadNodes[i].indexOffset]);
+    }
+    return results;
   },
 
   getPointsForRoadLink: function (roadLink) {

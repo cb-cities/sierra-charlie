@@ -117,12 +117,16 @@ viewRoadNode trigger maybeMode titlePrefix roadNode =
               ]
           _ ->
             []
+      location =
+        case roadNode.point of
+          (x, y) ->
+            viewLabeled "Location" [text (toString (round x) ++ " " ++ toString (round y))]
       toid =
         viewLabeled "TOID" [viewTOID trigger roadNode.toid]
       roadLinks =
         viewLabeledList "Road Links" (viewTOIDItem trigger) roadNode.roadLinkTOIDs
     in
-      title ++ description ++ actions ++ toid ++ roadLinks
+      title ++ description ++ actions ++ location ++ toid ++ roadLinks
 
 
 viewRoadLink : Trigger -> String -> RoadLink -> List Html
