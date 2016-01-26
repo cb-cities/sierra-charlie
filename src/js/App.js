@@ -324,21 +324,21 @@ module.exports = {
 
         // Draw special lines
         gl.lineWidth(Math.max(roadLinkSize, cx.pixelRatio));
-        gl.uniform4f(cx.colorLoc, 0.6, 0, 1, 1);
+        gl.uniform4f(cx.colorLoc, 0, 0, 1, 1);
         Controller.routingLines.draw(gl, cx.vertexLoc);
-        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-        Controller.selectedLines.draw(gl, cx.vertexLoc);
-        gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
-        Controller.highlightedLines.draw(gl, cx.vertexLoc);
+        // gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
+        // Controller.selectedLines.draw(gl, cx.vertexLoc);
+        // gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
+        // Controller.highlightedLines.draw(gl, cx.vertexLoc);
 
         // Draw special points
         gl.uniform1f(cx.pointSizeLoc, Math.max(roadNodeSize, cx.pixelRatio * 2));
-        gl.uniform4f(cx.colorLoc, 0.6, 0, 1, 1);
+        gl.uniform4f(cx.colorLoc, 0, 0, 1, 1);
         Controller.routingPoints.draw(gl, cx.vertexLoc);
-        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-        Controller.selectedPoints.draw(gl, cx.vertexLoc);
-        gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
-        Controller.highlightedPoints.draw(gl, cx.vertexLoc);
+        // gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
+        // Controller.selectedPoints.draw(gl, cx.vertexLoc);
+        // gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
+        // Controller.highlightedPoints.draw(gl, cx.vertexLoc);
 
         Geometry.bindVertexBuffer(gl, cx.vertexLoc);
         gl.enableVertexAttribArray(cx.vertexLoc); // TODO
@@ -371,7 +371,7 @@ module.exports = {
               gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
               break;
             case "AskGoogleForRoute":
-              gl.uniform4f(cx.colorLoc, 0.6, 0, 1, 1);
+              gl.uniform4f(cx.colorLoc, 0, 0, 1, 1);
               break;
             default:
               gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);

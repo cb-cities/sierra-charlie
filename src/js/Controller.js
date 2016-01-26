@@ -115,6 +115,7 @@ Controller.prototype = {
     return !roadNode ? null : {
       toid: roadNode.toid,
       address: roadNode.address,
+      point: roadNode.point,
       roadLinkTOIDs: roadNode.roadLinks.map(function (roadLink) {
           return roadLink.toid;
         }),
@@ -226,14 +227,12 @@ Controller.prototype = {
     this.sendMode();
   },
 
-  findClosestRoadNode: function () { // TODO: Refactor
-    const cursorP = this.fromClientPoint(this.prevCursor);
-    const cursorR = this.fromClientRect(vector.bounds(10, this.prevCursor));
+  findClosestRoadNodeToPoint: function (p, r) {
     let closestRoadNodeDistance = Infinity;
     let closestRoadNode = null;
-    const roadNodes = this.roadNodeTree.select(cursorR);
+    const roadNodes = this.roadNodeTree.select(r);
     for (let i = 0; i < roadNodes.length; i++) {
-      const d1 = vector.distance(cursorP, roadNodes[i].point);
+      const d1 = vector.distance(p, roadNodes[i].point);
       if (d1 < closestRoadNodeDistance) {
         closestRoadNodeDistance = d1;
         closestRoadNode = roadNodes[i];
@@ -242,14 +241,12 @@ Controller.prototype = {
     return closestRoadNode;
   },
 
-  findClosestFeature: function () { // TODO: Refactor
-    const cursorP = this.fromClientPoint(this.prevCursor);
-    const cursorR = this.fromClientRect(vector.bounds(10, this.prevCursor));
+  findClosestFeatureToPoint: function (p, r) { // TODO: Refactor
     let closestRoadNodeDistance = Infinity;
     let closestRoadNode = null;
-    const roadNodes = this.roadNodeTree.select(cursorR);
+    const roadNodes = this.roadNodeTree.select(r);
     for (let i = 0; i < roadNodes.length; i++) {
-      const d1 = vector.distance(cursorP, roadNodes[i].point);
+      const d1 = vector.distance(p, roadNodes[i].point);
       if (d1 < closestRoadNodeDistance) {
         closestRoadNodeDistance = d1;
         closestRoadNode = roadNodes[i];
@@ -257,10 +254,10 @@ Controller.prototype = {
     }
     let closestRoadLinkDistance = Infinity;
     let closestRoadLink = null;
-    const roadLinks = this.roadLinkTree.select(cursorR);
+    const roadLinks = this.roadLinkTree.select(r);
     for (let j = 0; j < roadLinks.length; j++) {
       const ps = this.geometry.getPointsForRoadLink(roadLinks[j]);
-      const d2 = polyline.distance(cursorP, ps);
+      const d2 = polyline.distance(p, ps);
       if (d2 < closestRoadLinkDistance) {
         closestRoadLinkDistance = d2;
         closestRoadLink = roadLinks[j];
@@ -281,7 +278,19 @@ Controller.prototype = {
     }
   },
 
-  renderFeature: function (feature, points, lines, pointIndices, lineIndices) {
+  findClosestRoadNodeToCursor: function () { // TODO: Refactor
+    const p = this.fromClientPoint(this.prevCursor);
+    const r = this.fromClientRect(vector.bounds(10, this.prevCursor));
+    return this.findClosestRoadNodeToPoint(p, r);
+  },
+
+  findClosestFeatureToCursor: function () { // TODO: Refactor
+    const p = this.fromClientPoint(this.prevCursor);
+    const r = this.fromClientRect(vector.bounds(10, this.prevCursor));
+    return this.findClosestFeatureToPoint(p, r);
+  },
+
+  renderFeature: function (feature, pointIndices, lineIndices) {
     if (feature) {
       const gl = App.drawingContext.gl; // TODO
       this.geometry.bindVertexBuffer(gl);
@@ -317,23 +326,23 @@ Controller.prototype = {
                 this.geometry.getPointIndexForRoadNode(route.endNode)
               ]);
             if (!ps || !ps.length) {
-              points.insertPoint(route.startNode.point);
-              points.insertPoint(route.endNode.point);
-              lines.insertLine(route.startNode.point, route.endNode.point);
+              this.routingPoints.insertPoint(route.startNode.point);
+              this.routingPoints.insertPoint(route.endNode.point);
+              this.routingLines.insertLine(route.startNode.point, route.endNode.point);
             }
           }
           if (ps) {
             for (let i = 0; i < ps.length; i++) {
-              points.insertPoint(ps[i]);
+              this.routingPoints.insertPoint(ps[i]);
             }
             for (let i = 0; i < ps.length - 1; i++) {
-              lines.insertLine(ps[i], ps[i + 1]);
+              this.routingLines.insertLine(ps[i], ps[i + 1]);
             }
           }
           pointIndices.render(gl, gl.DYNAMIC_DRAW);
           lineIndices.render(gl, gl.DYNAMIC_DRAW);
-          points.render(gl, gl.DYNAMIC_DRAW);
-          lines.render(gl, gl.DYNAMIC_DRAW);
+          this.routingPoints.render(gl, gl.DYNAMIC_DRAW);
+          this.routingLines.render(gl, gl.DYNAMIC_DRAW);
           break;
         }
       }
@@ -348,8 +357,6 @@ Controller.prototype = {
     this.highlightedLineIndices.clear();
     this.renderFeature(
       this.highlightedFeature,
-      this.highlightedPoints,
-      this.highlightedLines,
       this.highlightedPointIndices,
       this.highlightedLineIndices);
   },
@@ -361,8 +368,6 @@ Controller.prototype = {
     this.selectedLineIndices.clear();
     this.renderFeature(
       this.selectedFeature,
-      this.selectedPoints,
-      this.selectedLines,
       this.selectedPointIndices,
       this.selectedLineIndices);
   },
@@ -375,10 +380,8 @@ Controller.prototype = {
     const routingTOIDs = Object.keys(this.routingFeatures);
     for (let i = 0; i < routingTOIDs.length; i++) {
       const feature = this.routingFeatures[routingTOIDs[i]];
-      this.renderFeature(
+      this.renderFeature( // TODO: Remove repeated render calls inside renderFeature
         feature,
-        this.routingPoints,
-        this.routingLines,
         this.routingPointIndices,
         this.routingLineIndices);
     }
@@ -392,8 +395,6 @@ Controller.prototype = {
       const feature = this.adjustment.deletedFeatures[deletedTOIDs[i]];
       this.renderFeature(
         feature,
-        undefined,
-        undefined,
         this.deletedPointIndices,
         this.deletedLineIndices);
     }
@@ -628,7 +629,7 @@ Controller.prototype = {
       switch (this.mode) {
         case "GetRoute": // TODO
         case "AskGoogleForRoute":
-          const roadNode = this.findClosestRoadNode();
+          const roadNode = this.findClosestRoadNodeToCursor();
           if (roadNode && !(this.adjustment.isRoadNodeDeleted(roadNode))) {
             this.highlightFeature({
                 tag: "roadNode",
@@ -640,7 +641,7 @@ Controller.prototype = {
           this.renderModeLines();
           break;
         default:
-          this.highlightFeature(this.findClosestFeature());
+          this.highlightFeature(this.findClosestFeatureToCursor());
       }
     }
   },
@@ -696,14 +697,72 @@ Controller.prototype = {
     }
   },
 
-  onRouteReceived: function (toid, response) {
+  findCloseRoadNodesToSegment: function (distance, s) {
+    const r = segment.bounds(distance, s);
+    const results = [];
+    const roadNodes = this.roadNodeTree.select(r);
+    for (let i = 0; i < roadNodes.length; i++) {
+      const d = segment.distance(roadNodes[i].point, s);
+      if (d <= distance && results.indexOf(roadNodes[i]) === -1) { // TODO
+        results.push(roadNodes[i]);
+      }
+    }
+    return results;
+  },
+
+  findCloseRoadNodesToPolyline: function (distance, ps) {
+    const results = [];
+    for (let i = 0; i < ps.length - 1; i++) {
+      const s = [ps[i], ps[i + 1]];
+      const roadNodes = this.findCloseRoadNodesToSegment(distance, s);
+      for (let j = 0; j < roadNodes.length; j++) {
+        if (results.indexOf(roadNodes[j]) === -1) { // TODO
+          results.push(roadNodes[j]);
+        }
+      }
+    }
+    return results;
+  },
+
+  onRouteReceived: function (toid, response) { // TODO: Refactor
     if (toid in this.routingFeatures) {
       if (response.status === "OK" && response.routes && response.routes.length) {
-        const route = response.routes[0];
-        const points = googlePolyline.decode(route.overview_polyline.points).map(function (latLon) {
-          return nnng.to(latLon[0], latLon[1]);
-        });
-        this.routingFeatures[toid].route.importedPoints = points;
+        const googleRoute = response.routes[0];
+        const googlePs = googlePolyline.decode(googleRoute.overview_polyline.points);
+        const ps = [];
+        for (let i = 0; i < googlePs.length; i++) {
+          const latLon = googlePs[i];
+          ps.push(nnng.to(latLon[0], latLon[1]));
+        }
+        const route = this.routingFeatures[toid].route;
+        route.importedPoints = ps;
+        const whiteList = this.findCloseRoadNodesToPolyline(10, ps);
+        let firstNode, lastNode;
+        let firstDistance = Infinity;
+        let lastDistance = Infinity;
+        for (let i = 0; i < whiteList.length; i++) {
+          const current = whiteList[i];
+          const startDistance = this.geometry.getDistanceBetweenRoadNodes(route.startNode, current);
+          const endDistance = this.geometry.getDistanceBetweenRoadNodes(current, route.endNode);
+          if (startDistance < firstDistance) {
+            firstDistance = startDistance;
+            firstNode = current;
+          }
+          if (endDistance < lastDistance) {
+            lastDistance = endDistance;
+            lastNode = current;
+          }
+        }
+        if (firstNode && lastNode) {
+          const importedRoute = this.geometry.findShortestRouteBetweenRoadNodes(firstNode, lastNode, null, whiteList);
+          if (importedRoute && importedRoute.roadLinks.length) {
+            route.roadLinks = importedRoute.roadLinks;
+          } else {
+            console.log("Could not determine importedRoute", firstNode, lastNode, importedRoute); // TODO
+          }
+        } else {
+          console.log("Could not determine firstNode or lastNode", firstNode, lastNode, whiteList); // TODO
+        }
         this.renderRoutingFeatures();
         this.sendRoutes();
       } else {
