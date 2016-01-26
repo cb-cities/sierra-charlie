@@ -59,7 +59,13 @@ To build the project, give the following command:
 npm run build
 ```
 
-If the build is successful, the project is ready to run.  Start a local HTTP server:
+If the build is successful, the project is ready to run.  In one session, start a local CORS proxy:
+
+```
+npm run start-proxy
+```
+
+In another session, start a local HTTP server:
 
 ```
 npm start
