@@ -298,11 +298,11 @@ Controller.prototype = {
             pointIndices.insert([this.geometry.getPointIndexForRoadNode(route.startNode), this.geometry.getPointIndexForRoadNode(route.endNode)]);
             if (!route.roadLinks.length) { // TODO
               if (!route.importedPoints || !route.importedPoints.length) { // TODO
-                lines.insertLine(route.startNode.point[0], route.startNode.point[1], route.endNode.point[0], route.endNode.point[1]);
+                lines.insertLine(route.startNode.point, route.endNode.point);
               } else {
                 const ps = route.importedPoints;
                 for (let i = 0; i < ps.length - 1; i++) {
-                  lines.insertLine(ps[i][0], ps[i][1], ps[i + 1][0], ps[i + 1][1]);
+                  lines.insertLine(ps[i], ps[i + 1]);
                 }
               }
               lines.render(gl, gl.DYNAMIC_DRAW);
@@ -368,7 +368,7 @@ Controller.prototype = {
     const gl = App.drawingContext.gl; // TODO
     const cursorP = this.fromClientPoint(this.prevCursor);
     this.modeLines.clear();
-    this.modeLines.insertLine(this.selectedFeature.roadNode.point[0], this.selectedFeature.roadNode.point[1], cursorP[0], cursorP[1]);
+    this.modeLines.insertLine(this.selectedFeature.roadNode.point, cursorP);
     this.modeLines.render(gl, gl.DYNAMIC_DRAW);
     App.isDrawingNeeded = true; // TODO;
   },
