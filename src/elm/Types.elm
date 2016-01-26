@@ -50,6 +50,7 @@ type SpecialOutgoingMessage =
 type alias RoadNode =
   { toid : String
   , address : Maybe String
+  , point : (Float, Float)
   , roadLinkTOIDs : List String
   , isDeleted : Bool
   , isUndeletable : Bool
