@@ -13,11 +13,11 @@ function Grid() {
   this.gridLines = new Lineset();
   for (let i = 0; i <= defs.tileCountX; i++) {
     const x = defs.firstTileX + i * defs.tileSize;
-    this.gridLines.insertLine(x, top, x, bottom);
+    this.gridLines.insertLine([x, top], [x, bottom]);
   }
   for (let j = 0; j <= defs.tileCountY; j++) {
     const y = defs.firstTileY + j * defs.tileSize;
-    this.gridLines.insertLine(left, y, right, y);
+    this.gridLines.insertLine([left, y], [right, y]);
   }
 }
 

@@ -14,18 +14,10 @@ Lineset.prototype = {
     this.indexArr = [];
   },
 
-  insertLine: function (x1, y1, x2, y2) {
+  insertLine: function (pointA, pointB) {
     const index = this.vertexArr.length / 2;
-    this.vertexArr.push(x1, y1, x2, y2);
+    this.vertexArr.push(pointA[0], pointA[1], pointB[0], pointB[1]);
     this.indexArr.push(index, index + 1);
-  },
-
-  extend: function (vertices, indices) {
-    const baseIndex = this.vertexArr.length / 2;
-    this.vertexArr.push.apply(this.vertexArr, vertices);
-    for (let i = 0; i < indices.length; i++) {
-      this.indexArr.push(baseIndex + indices[i]);
-    }
   },
 
   render: function (gl, usage) {
