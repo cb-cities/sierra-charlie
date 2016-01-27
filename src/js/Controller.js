@@ -390,9 +390,9 @@ Controller.prototype = {
   renderDeletedFeatures: function () {
     this.deletedPointIndices.clear();
     this.deletedLineIndices.clear();
-    const deletedTOIDs = Object.keys(this.adjustment.deletedFeatures);
+    const deletedTOIDs = this.adjustment.getDeletedTOIDs();
     for (let i = 0; i < deletedTOIDs.length; i++) {
-      const feature = this.adjustment.deletedFeatures[deletedTOIDs[i]];
+      const feature = this.adjustment.getDeletedFeature(deletedTOIDs[i]);
       this.renderFeature(
         feature,
         this.deletedPointIndices,

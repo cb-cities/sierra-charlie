@@ -1,114 +1,82 @@
 "use strict";
 
+const FeatureSet = require("./FeatureSet");
+
 
 function Adjustment() {
-  this.deletedFeatures = {};
+  this.deletedFeatures = new FeatureSet();
 }
 
 Adjustment.prototype = {
   isEmpty: function () {
-    return !Object.keys(this.deletedFeatures).length;
+    return this.deletedFeatures.isEmpty();
+  },
+
+  clear: function () {
+    this.deletedFeatures.clear();
   },
 
   isRoadNodeDeleted: function (roadNode) {
     return (
-      roadNode.toid in this.deletedFeatures ||
+      this.deletedFeatures.contains(roadNode.toid) ||
       roadNode.roadLinks.some(this.isRoadLinkDeleted.bind(this)));
   },
 
   isRoadLinkDeleted: function (roadLink) {
     return (
-      roadLink.toid in this.deletedFeatures ||
+      this.deletedFeatures.contains(roadLink.toid) ||
       roadLink.roads.some(this.isRoadDeleted.bind(this)));
   },
 
   isRoadDeleted: function (road) {
-    return road.toid in this.deletedFeatures;
+    return this.deletedFeatures.contains(road.toid);
   },
 
   isRoadNodeUndeletable: function (roadNode) {
-    return roadNode.toid in this.deletedFeatures;
+    return this.deletedFeatures.contains(roadNode.toid);
   },
 
   isRoadLinkUndeletable: function (roadLink) {
-    return roadLink.toid in this.deletedFeatures;
+    return this.deletedFeatures.contains(roadLink.toid);
+  },
+
+  isRoadUndeletable: function (road) {
+    return this.deletedFeatures.contains(road.toid);
   },
 
   isFeatureUndeletable: function (feature) {
-    let result = false;
     switch (feature.tag) {
       case "roadNode":
-        result = this.isRoadNodeUndeletable(feature.roadNode);
-        break;
+        return this.isRoadNodeUndeletable(feature.roadNode);
       case "roadLink":
-        result = this.isRoadLinkUndeletable(feature.roadLink);
-        break;
+        return this.isRoadLinkUndeletable(feature.roadLink);
       case "road":
-        result = this.isRoadDeleted(feature.road);
-        break;
+        return this.isRoadUndeletable(feature.road);
     }
-    return result;
-  },
-
-  clear: function () {
-    this.deletedFeatures = {};
+    return false;
   },
 
   deleteFeature: function (feature) {
-    switch (feature.tag) {
-      case "roadNode":
-        this.deletedFeatures[feature.roadNode.toid] = feature;
-        break;
-      case "roadLink":
-        this.deletedFeatures[feature.roadLink.toid] = feature;
-        break;
-      case "road":
-        this.deletedFeatures[feature.road.toid] = feature;
-        break;
-    }
+    this.deletedFeatures.insert(feature);
   },
 
   undeleteFeature: function (feature) {
-    switch (feature.tag) {
-      case "roadNode":
-        delete this.deletedFeatures[feature.roadNode.toid];
-        break;
-      case "roadLink":
-        delete this.deletedFeatures[feature.roadLink.toid];
-        break;
-      case "road":
-        delete this.deletedFeatures[feature.road.toid];
-        break;
-    }
+    this.deletedFeatures.delete(feature);
+  },
+
+  getDeletedTOIDs: function () {
+    return this.deletedFeatures.getTOIDs();
+  },
+
+  getDeletedFeature: function (toid) {
+    return this.deletedFeatures.getFeature(toid);
   },
 
   dump: function () {
-    const deletedTOIDs = Object.keys(this.deletedFeatures);
-    let deletedRoadNodeTOIDs = [];
-    let deletedRoadLinkTOIDs = [];
-    let deletedRoadTOIDs = [];
-    for (let i = 0; i < deletedTOIDs.length; i++) {
-      const feature = this.deletedFeatures[deletedTOIDs[i]];
-      switch (feature.tag) {
-        case "roadNode":
-          deletedRoadNodeTOIDs.push(feature.roadNode.toid);
-          break;
-        case "roadLink":
-          deletedRoadLinkTOIDs.push(feature.roadLink.toid);
-          break;
-        case "road":
-          deletedRoadTOIDs.push(feature.road.toid);
-          break;
-      }
-    }
-    deletedRoadNodeTOIDs.sort();
-    deletedRoadLinkTOIDs.sort();
-    deletedRoadTOIDs.sort();
+    const deletedFeatures = this.deletedFeatures.dump();
     return {
-      deletedItemCount: deletedRoadNodeTOIDs.length + deletedRoadLinkTOIDs.length + deletedRoadTOIDs.length,
-      deletedRoadNodeTOIDs: deletedRoadNodeTOIDs,
-      deletedRoadLinkTOIDs: deletedRoadLinkTOIDs,
-      deletedRoadTOIDs: deletedRoadTOIDs
+      deletedFeatures: deletedFeatures,
+      itemCount: deletedFeatures.itemCount
     };
   }
 };
