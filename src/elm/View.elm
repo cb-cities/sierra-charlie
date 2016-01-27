@@ -296,7 +296,7 @@ viewAdjustmentWindow trigger maybeAdjustment =
           Nothing ->
             True
           Just adjustment ->
-            if adjustment.deletedItemCount == 0
+            if adjustment.itemCount == 0
               then True
               else False
       display =
@@ -314,9 +314,9 @@ viewAdjustmentWindow trigger maybeAdjustment =
               , viewButton (SendSpecial SaveAdjustmentAsJSON) "Save As JSON"
               ] ++
             [ div []
-                ( viewLabeledList "Deleted Nodes" (viewTOIDItem trigger) adjustment.deletedRoadNodeTOIDs ++
-                  viewLabeledList "Deleted Links" (viewTOIDItem trigger) adjustment.deletedRoadLinkTOIDs ++
-                  viewLabeledList "Deleted Roads" (viewTOIDItem trigger) adjustment.deletedRoadTOIDs
+                ( viewLabeledList "Deleted Nodes" (viewTOIDItem trigger) adjustment.deletedFeatures.roadNodeTOIDs ++
+                  viewLabeledList "Deleted Links" (viewTOIDItem trigger) adjustment.deletedFeatures.roadLinkTOIDs ++
+                  viewLabeledList "Deleted Roads" (viewTOIDItem trigger) adjustment.deletedFeatures.roadTOIDs
                 )
             ]
     in

@@ -98,9 +98,15 @@ type alias Feature =
   }
 
 
+type alias FeatureSet =
+  { roadNodeTOIDs : List String
+  , roadLinkTOIDs : List String
+  , roadTOIDs : List String
+  , itemCount : Int
+  }
+
+
 type alias Adjustment =
-  { deletedItemCount : Int
-  , deletedRoadNodeTOIDs : List String
-  , deletedRoadLinkTOIDs : List String
-  , deletedRoadTOIDs : List String
+  { deletedFeatures : FeatureSet
+  , itemCount : Int
   }
