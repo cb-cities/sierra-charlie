@@ -350,11 +350,18 @@ viewItem item =
 
 viewLabeledList : String -> (a -> Html) -> List a -> List Html
 viewLabeledList label view items =
-    case items of
-      [] ->
-        []
-      _ ->
-        viewLabeled label (List.map view items)
+    let
+      itemCount = List.length items
+      fullLabel =
+        if itemCount > 2
+          then label ++ " (" ++ toString (itemCount) ++ ")"
+          else label
+    in
+      case items of
+        [] ->
+          []
+        _ ->
+          viewLabeled fullLabel (List.map view items)
 
 
 viewLabeled : String -> List Html -> List Html
