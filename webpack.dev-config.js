@@ -52,7 +52,7 @@ module.exports = {
         exclude: [/elm-stuff/, /node_modules/]
       },
       {
-        test: /\.glsl$/,
+        test: /\.(glsl|vert|frag)$/,
         loader: "raw",
         exclude: [/elm-stuff/, /node_modules/]
       },
