@@ -5,16 +5,16 @@ const rect = require("./lib/rect");
 
 
 const _ = module.exports = {
+  clamp: function (v, minV, maxV) {
+    return Math.max(minV, Math.min(v, maxV));
+  },
+
   clampX: function (x) {
-    return (
-      Math.max(defs.firstTileX,
-        Math.min(x, defs.lastTileX + defs.tileSize)));
+    return _.clamp(x, defs.firstTileX, defs.lastTileX + defs.tileSize);
   },
 
   clampY: function (y) {
-    return (
-      Math.max(defs.firstTileY,
-        Math.min(y, defs.lastTileY + defs.tileSize)));
+    return _.clamp(y, defs.firstTileY, defs.lastTileY + defs.tileSize);
   },
 
   clampPoint: function (p) {
@@ -25,9 +25,7 @@ const _ = module.exports = {
   },
 
   clampZoom: function (zoom) {
-    return (
-      Math.max(defs.minZoom,
-        Math.min(zoom, defs.maxZoom)));
+    return _.clamp(zoom, defs.minZoom, defs.maxZoom);
   },
 
   totalClientWidth: function (zoom) {
