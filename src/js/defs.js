@@ -44,7 +44,6 @@ module.exports = {
   maxGeometryItemCount: maxRoadNodeCount + maxRoadLinkCount + maxRoadCount + maxAddressCount,
   maxVertexCount: maxRoadNodeCount + maxRoadLinkPointCount,
   maxRoadNodeCount: maxRoadNodeCount,
-  maxRoadNodeIndexCount: maxRoadNodeCount,
   maxRoadLinkCount: maxRoadLinkCount,
   maxRoadLinkPointCount: maxRoadLinkPointCount,
   maxRoadLinkIndexCount: maxRoadLinkIndexCount,

@@ -25,8 +25,8 @@ function Geometry(props) {
   this.vertexArr = new Float32Array(defs.maxVertexCount * 2);
   this.vertexCount = 0;
   this.roadNodes = {};
-  this.roadNodeIndexArr = new Uint32Array(defs.maxRoadNodeIndexCount);
-  this.roadNodeIndexCount = 0;
+  this.roadNodeIndexArr = new Uint32Array(defs.maxRoadNodeCount);
+  this.roadNodeCount = 0;
   this.roadLinks = {};
   this.roadLinkIndexArr = new Uint32Array(defs.maxRoadLinkIndexCount);
   this.roadLinkIndexCount = 0;
@@ -326,8 +326,8 @@ Geometry.prototype = {
     this.itemCount += data.roadNodes.length;
     this.vertexArr.set(data.vertexArr, this.vertexCount * 2);
     this.vertexCount += data.vertexArr.length / 2;
-    this.roadNodeIndexArr.set(data.roadNodeIndexArr, this.roadNodeIndexCount);
-    this.roadNodeIndexCount += data.roadNodeIndexArr.length;
+    this.roadNodeIndexArr.set(data.roadNodeIndexArr, this.roadNodeCount);
+    this.roadNodeCount += data.roadNodeIndexArr.length;
     for (let i = 0; i < data.roadNodes.length; i++) {
       this.insertRoadNode(data.roadNodes[i]);
     }
@@ -475,7 +475,7 @@ Geometry.prototype = {
 
   drawAllRoadNodes: function (gl) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexBuf);
-    gl.drawElements(gl.POINTS, this.roadNodeIndexCount, gl.UNSIGNED_INT, 0);
+    gl.drawElements(gl.POINTS, this.roadNodeCount, gl.UNSIGNED_INT, 0);
   },
 
   drawAllRoadLinks: function (gl) {
