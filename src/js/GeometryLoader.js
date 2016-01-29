@@ -54,9 +54,9 @@ function GeometryLoader() {
   this.vertexArr = new Float32Array(defs.maxVertexCount * 2);
   this.vertexCount = 0;
   this.vertexOffset = 0;
-  this.roadNodeIndexArr = new Uint32Array(defs.maxRoadNodeIndexCount);
-  this.roadNodeIndexCount = 0;
-  this.roadNodeIndexOffset = 0;
+  this.roadNodeIndexArr = new Uint32Array(defs.maxRoadNodeCount);
+  this.roadNodeCount = 0;
+  this.roadNodeOffset = 0;
   this.roadNodes = [];
   this.roadLinkIndexArr = new Uint32Array(defs.maxRoadLinkIndexCount);
   this.roadLinkIndexCount = 0;
@@ -87,13 +87,13 @@ GeometryLoader.prototype = {
     const data = {
       message: "roadNodesLoaded",
       vertexArr: array.sliceFloat32(this.vertexArr, this.vertexOffset * 2, this.vertexCount * 2),
-      roadNodeIndexArr: array.sliceUint32(this.roadNodeIndexArr, this.roadNodeIndexOffset, this.roadNodeIndexCount),
+      roadNodeIndexArr: array.sliceUint32(this.roadNodeIndexArr, this.roadNodeOffset, this.roadNodeCount),
       roadNodes: this.roadNodes
     };
     if (this.post(data, isForced)) {
       this.postedItemCount += this.roadNodes.length;
       this.vertexOffset = this.vertexCount;
-      this.roadNodeIndexOffset = this.roadNodeIndexCount;
+      this.roadNodeOffset = this.roadNodeCount;
       this.roadNodes = [];
     }
   },
@@ -146,9 +146,10 @@ GeometryLoader.prototype = {
               address: null,
               roadLinks: [],
               vertexOffset: this.vertexCount,
-              indexOffset: this.roadNodeIndexCount
+              indexOffset: this.roadNodeCount
             });
-          this.roadNodeIndexArr[this.roadNodeIndexCount++] = this.vertexCount;
+          this.roadNodeIndexArr[this.roadNodeCount] = this.vertexCount;
+          this.roadNodeCount++;
           this.vertexArr.set(obj.point, this.vertexCount * 2);
           this.vertexCount++;
           this.postRoadNodes();
