@@ -7,8 +7,8 @@ const compute = require("./compute");
 const defs = require("./defs");
 
 const webgl = require("./lib/webgl");
-const fragmentShader = require("../glsl/fragment-shader.glsl");
-const vertexShader = require("../glsl/vertex-shader.glsl");
+const basicFrag = require("../glsl/basic.frag");
+const basicVert = require("../glsl/basic.vert");
 
 
 module.exports = {
@@ -222,22 +222,11 @@ module.exports = {
       gl = canvas.getContext("webgl", {
           alpha: false
         });
-      const program = webgl.createProgram(gl, vertexShader, fragmentShader);
-      gl.useProgram(program);
-      const vertexLoc = gl.getAttribLocation(program, "vertex");
-      const scaleRatioLoc = gl.getUniformLocation(program, "scaleRatio");
-      const centerLoc = gl.getUniformLocation(program, "center");
-      const pointSizeLoc = gl.getUniformLocation(program, "pointSize");
-      const colorLoc = gl.getUniformLocation(program, "color");
+      const basicProg = webgl.linkProgram(gl, basicVert, basicFrag);
       cx = this.drawingContext = {
         gl: gl,
-        program: program,
-        pixelRatio: window.devicePixelRatio,
-        vertexLoc: vertexLoc,
-        scaleRatioLoc: scaleRatioLoc,
-        centerLoc: centerLoc,
-        pointSizeLoc: pointSizeLoc,
-        colorLoc: colorLoc
+        basicProg: basicProg,
+        pixelRatio: window.devicePixelRatio
       };
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.enable(gl.BLEND);
@@ -264,7 +253,7 @@ module.exports = {
     }
   },
 
-  onAnimationFrameReceived: function () {
+  onAnimationFrameReceived: function (now) {
     if (!this.drawingContext) {
       return;
     }
@@ -296,87 +285,94 @@ module.exports = {
       const roadNodeSize = baseRoadNodeSize * Math.cbrt(zoomLevel) / zoomLevel;
       const roadNodeAlpha = Math.min(roadNodeSize, 1);
 
-      gl.uniform2f(cx.scaleRatioLoc,
+      gl.useProgram(cx.basicProg);
+      const positionLoc = gl.getAttribLocation(cx.basicProg, "a_position");
+      const scaleRatioLoc = gl.getUniformLocation(cx.basicProg, "u_scaleRatio");
+      const centerLoc = gl.getUniformLocation(cx.basicProg, "u_center");
+      const pointSizeLoc = gl.getUniformLocation(cx.basicProg, "u_pointSize");
+      const colorLoc = gl.getUniformLocation(cx.basicProg, "u_color");
+
+      gl.uniform2f(scaleRatioLoc,
         defs.baseClientTileSize / (zoomLevel * defs.tileSize) / (clientWidth / 2),
         defs.baseClientTileSize / (zoomLevel * defs.tileSize) / (clientHeight / 2));
-      gl.uniform2f(cx.centerLoc, centerX, centerY);
+      gl.uniform2f(centerLoc, centerX, centerY);
 
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       // Draw grid
       gl.lineWidth(1);
-      gl.uniform4f(cx.colorLoc, 0.2, 0.2, 0.2, 1);
-      Controller.grid.draw(gl, cx.vertexLoc);
+      gl.uniform4f(colorLoc, 0.2, 0.2, 0.2, 1);
+      Controller.grid.draw(gl, cx.basicProg);
 
       if (Geometry.bindVertexBuffer(gl)) {
-        gl.enableVertexAttribArray(cx.vertexLoc); // TODO
-        gl.vertexAttribPointer(cx.vertexLoc, 2, gl.FLOAT, false, 0, 0); // TODO
+        gl.enableVertexAttribArray(positionLoc); // TODO
+        gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0); // TODO
 
         // Draw road links
         gl.lineWidth(roadLinkSize);
-        gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
+        gl.uniform4f(colorLoc, 0.6, 0.6, 0.6, roadLinkAlpha);
         Geometry.drawAllRoadLinks(gl);
 
         // Draw road nodes
-        gl.uniform1f(cx.pointSizeLoc, roadNodeSize);
-        gl.uniform4f(cx.colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
+        gl.uniform1f(pointSizeLoc, roadNodeSize);
+        gl.uniform4f(colorLoc, 0.6, 0.6, 0.6, roadNodeAlpha);
         Geometry.drawAllRoadNodes(gl);
 
         // Draw special lines
         gl.lineWidth(Math.max(roadLinkSize, cx.pixelRatio));
-        gl.uniform4f(cx.colorLoc, 0, 0, 1, 1);
-        Controller.routingLines.draw(gl, cx.vertexLoc);
-        // gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-        // Controller.selectedLines.draw(gl, cx.vertexLoc);
-        // gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
-        // Controller.highlightedLines.draw(gl, cx.vertexLoc);
+        gl.uniform4f(colorLoc, 0, 0, 1, 1);
+        Controller.routingLines.draw(gl, cx.basicProg);
+        // gl.uniform4f(colorLoc, 1, 0.4, 0, 1);
+        // Controller.selectedLines.draw(gl, cx.basicProg);
+        // gl.uniform4f(colorLoc, 1, 1, 1, 1);
+        // Controller.highlightedLines.draw(gl, cx.basicProg);
 
         // Draw special points
-        gl.uniform1f(cx.pointSizeLoc, Math.max(roadNodeSize, cx.pixelRatio * 2));
-        gl.uniform4f(cx.colorLoc, 0, 0, 1, 1);
-        Controller.routingPoints.draw(gl, cx.vertexLoc);
-        // gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
-        // Controller.selectedPoints.draw(gl, cx.vertexLoc);
-        // gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
-        // Controller.highlightedPoints.draw(gl, cx.vertexLoc);
+        gl.uniform1f(pointSizeLoc, Math.max(roadNodeSize, cx.pixelRatio * 2));
+        gl.uniform4f(colorLoc, 0, 0, 1, 1);
+        Controller.routingPoints.draw(gl, cx.basicProg);
+        // gl.uniform4f(colorLoc, 1, 0.4, 0, 1);
+        // Controller.selectedPoints.draw(gl, cx.basicProg);
+        // gl.uniform4f(colorLoc, 1, 1, 1, 1);
+        // Controller.highlightedPoints.draw(gl, cx.basicProg);
 
-        Geometry.bindVertexBuffer(gl, cx.vertexLoc);
-        gl.enableVertexAttribArray(cx.vertexLoc); // TODO
-        gl.vertexAttribPointer(cx.vertexLoc, 2, gl.FLOAT, false, 0, 0); // TODO
+        Geometry.bindVertexBuffer(gl);
+        gl.enableVertexAttribArray(positionLoc); // TODO
+        gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0); // TODO
 
         // Draw special road links
-        gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
+        gl.uniform4f(colorLoc, 0, 0.6, 1, 1);
         Controller.routingLineIndices.draw(gl, gl.LINES);
-        gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
+        gl.uniform4f(colorLoc, 1, 0, 0, 1);
         Controller.deletedLineIndices.draw(gl, gl.LINES);
-        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
+        gl.uniform4f(colorLoc, 1, 0.4, 0, 1);
         Controller.selectedLineIndices.draw(gl, gl.LINES);
-        gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
+        gl.uniform4f(colorLoc, 1, 1, 1, 1);
         Controller.highlightedLineIndices.draw(gl, gl.LINES);
 
         // Draw special road nodes
-        gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
+        gl.uniform4f(colorLoc, 0, 0.6, 1, 1);
         Controller.routingPointIndices.draw(gl, gl.POINTS);
-        gl.uniform4f(cx.colorLoc, 1, 0, 0, 1);
+        gl.uniform4f(colorLoc, 1, 0, 0, 1);
         Controller.deletedPointIndices.draw(gl, gl.POINTS);
-        gl.uniform4f(cx.colorLoc, 1, 0.4, 0, 1);
+        gl.uniform4f(colorLoc, 1, 0.4, 0, 1);
         Controller.selectedPointIndices.draw(gl, gl.POINTS);
-        gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
+        gl.uniform4f(colorLoc, 1, 1, 1, 1);
         Controller.highlightedPointIndices.draw(gl, gl.POINTS);
 
         // Draw mode lines
         if (Controller.prevCursor) {
           switch (Controller.mode) {
             case "GetRoute":
-              gl.uniform4f(cx.colorLoc, 0, 0.6, 1, 1);
+              gl.uniform4f(colorLoc, 0, 0.6, 1, 1);
               break;
             case "AskGoogleForRoute":
-              gl.uniform4f(cx.colorLoc, 0, 0, 1, 1);
+              gl.uniform4f(colorLoc, 0, 0, 1, 1);
               break;
             default:
-              gl.uniform4f(cx.colorLoc, 1, 1, 1, 1);
+              gl.uniform4f(colorLoc, 1, 1, 1, 1);
           }
-          Controller.modeLines.draw(gl, cx.vertexLoc);
+          Controller.modeLines.draw(gl, cx.basicProg);
         }
       }
     }
