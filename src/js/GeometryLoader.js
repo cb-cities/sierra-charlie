@@ -140,6 +140,7 @@ GeometryLoader.prototype = {
       .node("!.*", function (obj) {
           this.itemCount++;
           this.roadNodes.push({
+              index: obj.index,
               toid: obj.toid,
               point: obj.point,
               address: null,
@@ -177,6 +178,7 @@ GeometryLoader.prototype = {
             vertices.push(ps[j].x, ps[j].y);
           }
           this.roadLinks.push({
+              index: obj.index,
               toid: obj.toid,
               bounds: polyline.bounds(0, vertices),
               length: polyline.length(vertices),
@@ -214,6 +216,7 @@ GeometryLoader.prototype = {
       .node("!.*", function (obj) {
           this.itemCount++;
           this.roads.push({
+              index: obj.index,
               toid: obj.toid,
               group: obj.group,
               term: obj.term || null,
@@ -230,7 +233,7 @@ GeometryLoader.prototype = {
   },
 
   loadAddresses: function (origin) {
-    oboe(origin + "/json/addresses1.json.gz")
+    oboe(origin + "/json/addresses.json.gz")
       .node("!.*", function (obj) {
           this.itemCount++;
           this.addresses.push({
