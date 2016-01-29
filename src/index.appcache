@@ -2,12 +2,12 @@ CACHE MANIFEST
 # v24
 
 CACHE:
-json/addresses1.json.gz
+json/roadnodes1.json.gz
+json/addresses.json.gz
 json/roadlinks1.json.gz
 json/roadlinks2.json.gz
 json/roadlinks3.json.gz
 json/roadlinks4.json.gz
-json/roadnodes1.json.gz
 json/roads1.json.gz
 
 NETWORK:
