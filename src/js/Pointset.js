@@ -33,11 +33,12 @@ Pointset.prototype = {
     }
   },
 
-  draw: function (gl, vertexLoc) {
+  draw: function (gl, basicProg) {
     if (this.indexBuf && this.indexArr.length) {
+      const positionLoc = gl.getAttribLocation(basicProg, "a_position");
       gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
-      gl.enableVertexAttribArray(vertexLoc);
-      gl.vertexAttribPointer(vertexLoc, 2, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(positionLoc);
+      gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuf);
       gl.drawElements(gl.POINTS, this.indexArr.length, gl.UNSIGNED_INT, 0);
     }
