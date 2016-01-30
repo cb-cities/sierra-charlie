@@ -48,10 +48,18 @@ function makePenalty(nature, term) {
   return penalty;
 }
 
+function fromIndex(index) {
+  return [
+    (index & ((1 << 10) - 1)) / 1024,
+    (index >>> 10) / 1024
+  ];
+}
+
 
 function GeometryLoader() {
   this.itemCount = 0;
   this.vertexArr = new Float32Array(defs.maxVertexCount * 2);
+  this.texcoordArr = new Float32Array(defs.maxVertexCount * 2);
   this.vertexCount = 0;
   this.vertexOffset = 0;
   this.roadNodeIndexArr = new Uint32Array(defs.maxRoadNodeCount);
@@ -87,6 +95,7 @@ GeometryLoader.prototype = {
     const data = {
       message: "roadNodesLoaded",
       vertexArr: array.sliceFloat32(this.vertexArr, this.vertexOffset * 2, this.vertexCount * 2),
+      texcoordArr: array.sliceFloat32(this.texcoordArr, this.vertexOffset * 2, this.vertexCount * 2),
       roadNodeIndexArr: array.sliceUint32(this.roadNodeIndexArr, this.roadNodeOffset, this.roadNodeCount),
       roadNodes: this.roadNodes
     };
@@ -102,6 +111,7 @@ GeometryLoader.prototype = {
     const data = {
       message: "roadLinksLoaded",
       vertexArr: array.sliceFloat32(this.vertexArr, this.vertexOffset * 2, this.vertexCount * 2),
+      texcoordArr: array.sliceFloat32(this.texcoordArr, this.vertexOffset * 2, this.vertexCount * 2),
       roadLinkIndexArr: array.sliceUint32(this.roadLinkIndexArr, this.roadLinkIndexOffset, this.roadLinkIndexCount),
       roadLinks: this.roadLinks
     };
@@ -150,6 +160,8 @@ GeometryLoader.prototype = {
             });
           this.roadNodeIndexArr[this.roadNodeCount] = this.vertexCount;
           this.roadNodeCount++;
+          const texcoord = fromIndex(obj.index);
+          this.texcoordArr.set(texcoord, this.vertexCount * 2);
           this.vertexArr.set(obj.point, this.vertexCount * 2);
           this.vertexCount++;
           this.postRoadNodes();
@@ -174,8 +186,11 @@ GeometryLoader.prototype = {
           if (obj.polyline.length > 4) {
             ps = simplify(ps);
           }
+          const texcoord = fromIndex(obj.index);
+          const texcoords = [];
           const vertices = [];
           for (let j = 0; j < ps.length; j++) {
+            texcoords.push.apply(texcoords, texcoord);
             vertices.push(ps[j].x, ps[j].y);
           }
           this.roadLinks.push({
@@ -201,6 +216,7 @@ GeometryLoader.prototype = {
               this.roadLinkIndexArr[this.roadLinkIndexCount++] = this.vertexCount + k;
             }
           }
+          this.texcoordArr.set(texcoords, this.vertexCount * 2);
           this.vertexArr.set(vertices, this.vertexCount * 2);
           this.vertexCount += ps.length;
           this.roadLinkPointCount += ps.length;
