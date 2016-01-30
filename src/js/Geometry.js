@@ -23,6 +23,7 @@ function Geometry(props) {
   this.isRenderingNeeded = false;
   this.itemCount = 0;
   this.vertexArr = new Float32Array(defs.maxVertexCount * 2);
+  this.texcoordArr = new Float32Array(defs.maxVertexCount * 2);
   this.vertexCount = 0;
   this.roadNodes = {};
   this.roadNodeIndexArr = new Uint32Array(defs.maxRoadNodeCount);
@@ -325,6 +326,7 @@ Geometry.prototype = {
     this.isRenderingNeeded = true;
     this.itemCount += data.roadNodes.length;
     this.vertexArr.set(data.vertexArr, this.vertexCount * 2);
+    this.texcoordArr.set(data.texcoordArr, this.vertexCount * 2);
     this.vertexCount += data.vertexArr.length / 2;
     this.roadNodeIndexArr.set(data.roadNodeIndexArr, this.roadNodeCount);
     this.roadNodeCount += data.roadNodeIndexArr.length;
@@ -356,6 +358,7 @@ Geometry.prototype = {
     this.isRenderingNeeded = true;
     this.itemCount += data.roadLinks.length;
     this.vertexArr.set(data.vertexArr, this.vertexCount * 2);
+    this.texcoordArr.set(data.texcoordArr, this.vertexCount * 2);
     this.vertexCount += data.vertexArr.length / 2;
     this.roadLinkIndexArr.set(data.roadLinkIndexArr, this.roadLinkIndexCount);
     this.roadLinkIndexCount += data.roadLinkIndexArr.length;
@@ -449,11 +452,14 @@ Geometry.prototype = {
       this.isRenderingNeeded = false;
       if (!this.vertexBuf) { // TODO
         this.vertexBuf = gl.createBuffer();
+        this.texcoordBuf = gl.createBuffer();
         this.roadNodeIndexBuf = gl.createBuffer();
         this.roadLinkIndexBuf = gl.createBuffer();
       }
       gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuf);
       gl.bufferData(gl.ARRAY_BUFFER, this.vertexArr, usage);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.texcoordBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, this.texcoordArr, usage);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexBuf);
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.roadNodeIndexArr, usage);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.roadLinkIndexBuf);
