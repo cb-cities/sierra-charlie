@@ -13,6 +13,15 @@ const texturedFrag = require("../glsl/textured.frag");
 const texturedVert = require("../glsl/textured.vert");
 
 
+function fromRGBA(r, g, b, a) {
+  return r | (g << 8) | (b << 16) | (a << 24);
+}
+
+function fromRGB(r, g, b) {
+  return fromRGBA(r, g, b, 255);
+}
+
+
 module.exports = {
   mixins: [EasedStateMixin],
 
@@ -226,12 +235,24 @@ module.exports = {
         });
       const basicProg = webgl.linkProgram(gl, basicVert, basicFrag);
       const texturedProg = webgl.linkProgram(gl, texturedVert, texturedFrag);
+
+      const basicNodeInts = new Uint32Array(1024 * 1024); // TODO
+      const basicLinkInts = new Uint32Array(1024 * 1024); // TODO
+      basicNodeInts.fill(fromRGB(153, 153, 153));
+      basicLinkInts.fill(fromRGB(153, 153, 153));
+      const basicNodeBytes = new Uint8Array(basicNodeInts.buffer);
+      const basicLinkBytes = new Uint8Array(basicLinkInts.buffer);
+      const basicNodeTexture = webgl.createTexture(gl, 1024, basicNodeBytes);
+      const basicLinkTexture = webgl.createTexture(gl, 1024, basicLinkBytes);
       cx = this.drawingContext = {
         gl: gl,
         basicProg: basicProg,
         texturedProg: texturedProg,
+        basicNodeTexture: basicNodeTexture,
+        basicLinkTexture: basicLinkTexture,
         pixelRatio: window.devicePixelRatio
       };
+
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.enable(gl.BLEND);
       gl.clearColor(0, 0, 0, 0);
@@ -307,6 +328,7 @@ module.exports = {
 
       // Draw grid
       gl.useProgram(cx.basicProg);
+      gl.enableVertexAttribArray(basicPositionLoc);
       gl.uniform2f(basicScaleRatioLoc, scaleRatioX, scaleRatioY);
       gl.uniform2f(basicCenterLoc, centerX, centerY);
       gl.uniform1f(basicPointSizeLoc, Math.max(roadNodeSize, cx.pixelRatio * 2));
@@ -323,19 +345,23 @@ module.exports = {
         gl.lineWidth(roadLinkSize);
         gl.enableVertexAttribArray(texturedPositionLoc);
         gl.vertexAttribPointer(texturedPositionLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, Geometry.texcoordBuf); // TODO
         gl.enableVertexAttribArray(texturedTexcoordLoc);
         gl.vertexAttribPointer(texturedTexcoordLoc, 2, gl.FLOAT, false, 0, 0);
 
         // Draw road links
+        gl.bindTexture(gl.TEXTURE_2D, cx.basicLinkTexture);
         gl.uniform1f(texturedAlphaLoc, roadLinkAlpha);
         Geometry.drawAllRoadLinks(gl);
 
         // Draw road nodes
+        gl.bindTexture(gl.TEXTURE_2D, cx.basicNodeTexture);
         gl.uniform1f(texturedAlphaLoc, roadNodeAlpha);
         Geometry.drawAllRoadNodes(gl);
 
         // Draw special lines
         gl.useProgram(cx.basicProg);
+        gl.enableVertexAttribArray(basicPositionLoc);
         gl.lineWidth(Math.max(roadLinkSize, cx.pixelRatio));
         gl.uniform4f(basicColorLoc, 0, 0, 1, 1);
         Controller.routingLines.draw(gl, cx.basicProg);
