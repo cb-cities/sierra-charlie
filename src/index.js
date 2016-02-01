@@ -56,6 +56,10 @@ window.UI = new UI({
     controller.clearAdjustment();
   },
 
+  chooseViews: (views) => {
+    controller.chooseViews(views);
+  },
+
   saveRoutesAsJSON: () => {
     controller.saveRoutesAsJSON();
   },

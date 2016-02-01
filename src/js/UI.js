@@ -14,7 +14,8 @@ function UI(callbacks) {
       loadingProgress: 0,
       feature: null,
       routes: [],
-      adjustment: null
+      adjustment: null,
+      activeViews: []
     }, message));
   }
   this.updateMode = (mode) => {
@@ -53,17 +54,23 @@ function UI(callbacks) {
       adjustment: adjustment
     });
   };
+  this.updateActiveViews = (activeViews) => {
+    send({
+      tag: "UpdateActiveViews",
+      activeViews: activeViews
+    });
+  };
 
   this.receive = (message) => {
     switch (message.tag) {
       case "SetMode":
-        callbacks.setMode(message.mode);
+        callbacks.setMode(message.strings[0]);
         break;
       case "HighlightFeatureByTOID":
-        callbacks.highlightFeatureByTOID(message.toid);
+        callbacks.highlightFeatureByTOID(message.strings[0]);
         break;
       case "SelectFeatureByTOID":
-        callbacks.selectFeatureByTOID(message.toid);
+        callbacks.selectFeatureByTOID(message.strings[0]);
         break;
       case "DeleteSelectedFeature":
         callbacks.deleteSelectedFeature();
@@ -76,6 +83,9 @@ function UI(callbacks) {
         break;
       case "ClearAdjustment":
         callbacks.clearAdjustment();
+        break;
+      case "ChooseViews":
+        callbacks.chooseViews(message.strings);
         break;
       default:
         throw new Error("Invalid outgoing message: " + message.tag);
