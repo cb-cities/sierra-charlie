@@ -419,9 +419,13 @@ Controller.prototype = {
 
   selectFeature: function (feature) {
     if (feature !== this.selectedFeature) {
+      this.setMode(null);
       this.selectedFeature = feature;
       this.renderSelectedFeature();
       this.sendSelectedFeature();
+      if (this.selectedFeature) {
+        this.displayFeature(this.selectedFeature, false, false);
+      }
     }
   },
 
@@ -433,14 +437,12 @@ Controller.prototype = {
   selectFeatureByTOID: function (toid) {
     const feature = this.geometry.getFeatureByTOID(toid) || this.routingFeatures[toid];
     this.selectFeature(feature);
-    if (this.selectedFeature) {
-      this.displayFeature(this.selectedFeature, false, false);
-    }
   },
 
   deleteSelectedFeature: function () {
     if (this.selectedFeature) {
       const feature = this.selectedFeature;
+      this.selectFeature(null);
       if (feature.tag === "route" && feature.route.toid in this.routingFeatures) {
         delete this.routingFeatures[feature.route.toid];
         this.renderRoutingFeatures();
@@ -455,7 +457,6 @@ Controller.prototype = {
       } else {
         this.sendHighlightedFeature();
       }
-      this.selectFeature(null);
     }
   },
 
@@ -464,7 +465,7 @@ Controller.prototype = {
       this.adjustment.undeleteFeature(this.selectedFeature);
       this.renderDeletedFeatures();
       this.sendHighlightedFeature();
-      this.selectFeature(null);
+      this.sendSelectedFeature();
       this.sendAdjustment();
     }
   },
@@ -692,9 +693,6 @@ Controller.prototype = {
           break;
         default:
           this.selectFeature(this.highlightedFeature);
-          if (this.selectedFeature) {
-            this.displayFeature(this.selectedFeature, false);
-          }
       }
     } else {
       this.prevClickDate = null;
