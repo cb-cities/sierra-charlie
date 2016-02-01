@@ -236,23 +236,19 @@ module.exports = {
       const basicProg = webgl.linkProgram(gl, basicVert, basicFrag);
       const texturedProg = webgl.linkProgram(gl, texturedVert, texturedFrag);
 
-      const basicNodeInts = new Uint32Array(1024 * 1024); // TODO
-      const basicLinkInts = new Uint32Array(1024 * 1024); // TODO
+      const basicInts = new Uint32Array(defs.textureDataSize);
       const basicColor = fromRGB(153, 153, 153);
-      for (let i = 0; i < 1024 * 1024; i++) {
-        basicNodeInts[i] = basicColor;
-        basicLinkInts[i] = basicColor;
+      for (let i = 0; i < defs.textureDataSize; i++) {
+        basicInts[i] = basicColor;
       }
-      const basicNodeBytes = new Uint8Array(basicNodeInts.buffer);
-      const basicLinkBytes = new Uint8Array(basicLinkInts.buffer);
-      const basicNodeTexture = webgl.createTexture(gl, 1024, basicNodeBytes);
-      const basicLinkTexture = webgl.createTexture(gl, 1024, basicLinkBytes);
+      const basicBytes = new Uint8Array(basicInts.buffer);
+      const basicTexture = webgl.createTexture(gl);
+      webgl.updateTexture(gl, basicTexture, gl.RGBA, defs.textureSize, basicBytes);
       cx = this.drawingContext = {
         gl: gl,
         basicProg: basicProg,
         texturedProg: texturedProg,
-        basicNodeTexture: basicNodeTexture,
-        basicLinkTexture: basicLinkTexture,
+        basicTexture: basicTexture,
         pixelRatio: window.devicePixelRatio
       };
 
@@ -272,6 +268,7 @@ module.exports = {
       cx = this.drawingContext;
       gl = cx.gl;
     }
+    cx.viewTexture = window.ViewManager.getTexture(gl, cx); // FIXME
     if (Geometry.render(gl)) {
       this.isDrawingNeeded = true;
     }
@@ -323,6 +320,8 @@ module.exports = {
       const texturedScaleRatioLoc = gl.getUniformLocation(cx.texturedProg, "u_scaleRatio");
       const texturedCenterLoc = gl.getUniformLocation(cx.texturedProg, "u_center");
       const texturedPointSizeLoc = gl.getUniformLocation(cx.texturedProg, "u_pointSize");
+      const texturedViewTextureLoc = gl.getUniformLocation(cx.texturedProg, "u_viewTexture");
+      const texturedOtherTextureLoc = gl.getUniformLocation(cx.texturedProg, "u_otherTexture");
       const texturedAlphaLoc = gl.getUniformLocation(cx.texturedProg, "u_alpha");
       const texturedPositionLoc = gl.getAttribLocation(cx.texturedProg, "a_position");
       const texturedTexcoordLoc = gl.getAttribLocation(cx.texturedProg, "a_texcoord");
@@ -351,14 +350,18 @@ module.exports = {
         gl.bindBuffer(gl.ARRAY_BUFFER, Geometry.texcoordBuf); // TODO
         gl.enableVertexAttribArray(texturedTexcoordLoc);
         gl.vertexAttribPointer(texturedTexcoordLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.uniform1i(texturedViewTextureLoc, 0);
+        gl.uniform1i(texturedOtherTextureLoc, 1);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, cx.viewTexture);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, cx.basicTexture);
 
         // Draw road links
-        gl.bindTexture(gl.TEXTURE_2D, cx.basicLinkTexture);
         gl.uniform1f(texturedAlphaLoc, roadLinkAlpha);
         Geometry.drawAllRoadLinks(gl);
 
         // Draw road nodes
-        gl.bindTexture(gl.TEXTURE_2D, cx.basicNodeTexture);
         gl.uniform1f(texturedAlphaLoc, roadNodeAlpha);
         Geometry.drawAllRoadNodes(gl);
 

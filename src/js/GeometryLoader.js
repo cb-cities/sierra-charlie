@@ -48,11 +48,15 @@ function makePenalty(nature, term) {
   return penalty;
 }
 
-function fromIndex(index) {
+function fromNodeIndex(index) {
   return [
-    (index & ((1 << 10) - 1)) / 1024,
-    (index >>> 10) / 1024
+    (index & ((1 << 10) - 1)) / defs.textureSize,
+    (index >>> 10) / defs.textureSize
   ];
+}
+
+function fromLinkIndex(index) {
+  return fromNodeIndex(defs.textureDataSize - index - 1);
 }
 
 
@@ -160,7 +164,7 @@ GeometryLoader.prototype = {
             });
           this.roadNodeIndexArr[this.roadNodeCount] = this.vertexCount;
           this.roadNodeCount++;
-          const texcoord = fromIndex(obj.index);
+          const texcoord = fromNodeIndex(obj.index);
           this.texcoordArr.set(texcoord, this.vertexCount * 2);
           this.vertexArr.set(obj.point, this.vertexCount * 2);
           this.vertexCount++;
@@ -186,7 +190,7 @@ GeometryLoader.prototype = {
           if (obj.polyline.length > 4) {
             ps = simplify(ps);
           }
-          const texcoord = fromIndex(obj.index);
+          const texcoord = fromLinkIndex(obj.index);
           const texcoords = [];
           const vertices = [];
           for (let j = 0; j < ps.length; j++) {

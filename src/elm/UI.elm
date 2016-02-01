@@ -19,18 +19,8 @@ defaultState =
   , selectedFeature = Nothing
   , routes = []
   , adjustment = Nothing
-  , viewGroups =
-    [ { name = "Basic"
-      , views = ["Road Nodes", "Road Links"]
-      }
-    , { name = "By Link Type"
-      , views = ["Motorways", "A Roads", "B Roads", "Minor Roads", "Local Streets", "Alleys", "Pedestrianised Streets", "Private Roads - Publicly Accessible", "Private Roads - Restricted Access"]
-      }
-    , { name = "By Link Nature"
-      , views = ["Dual Carriageways", "Single Carriageways", "Slip Roads", "Roundabouts", "Traffic Island Links", "Traffic Island Links At Junctions", "Enclosed Traffic Area Links"]
-      }
-    ]
-  , activeViews = ["Road Nodes", "Road Links"]
+  , viewGroups = []
+  , activeViews = []
   }
 
 
@@ -41,8 +31,8 @@ update action state =
       (state, none)
     Receive (UpdateMode mode) ->
       ({state | mode = mode}, none)
-    Receive (UpdateLoadingProgress progress) ->
-      ({state | loadingProgress = progress}, none)
+    Receive (UpdateLoadingProgress loadingProgress) ->
+      ({state | loadingProgress = loadingProgress}, none)
     Receive (UpdateHighlightedFeature feature) ->
       ({state | highlightedFeature = feature}, none)
     Receive (UpdateSelectedFeature feature) ->
@@ -51,8 +41,10 @@ update action state =
       ({state | routes = routes}, none)
     Receive (UpdateAdjustment adjustment) ->
       ({state | adjustment = adjustment}, none)
-    Receive (UpdateActiveViews views) ->
-      ({state | activeViews = views}, none)
+    Receive (UpdateViewGroups viewGroups) ->
+      ({state | viewGroups = viewGroups}, none)
+    Receive (UpdateActiveViews activeViews) ->
+      ({state | activeViews = activeViews}, none)
     Send message ->
       (state, send message)
     SendSpecial tag ->
@@ -66,7 +58,8 @@ type alias EncodedIncomingMessage =
   , feature : Maybe Feature
   , routes : List Route
   , adjustment : Maybe Adjustment
-  , activeViews : List String
+  , viewGroups : List ViewGroup
+  , activeViews : List View
   }
 
 
@@ -104,6 +97,8 @@ decodeIncomingMessage maybeEncoded =
           Receive (UpdateRoutes encoded.routes)
         "UpdateAdjustment" ->
           Receive (UpdateAdjustment encoded.adjustment)
+        "UpdateViewGroups" ->
+          Receive (UpdateViewGroups encoded.viewGroups)
         "UpdateActiveViews" ->
           Receive (UpdateActiveViews encoded.activeViews)
         _ ->
@@ -183,8 +178,8 @@ encodeOutgoingMessage message =
       encodeMessage "ClearRoutes"
     ClearAdjustment ->
       encodeMessage "ClearAdjustment"
-    ChooseViews views ->
-      encodeStringsMessage "ChooseViews" views
+    ChooseViews names ->
+      encodeStringsMessage "ChooseViews" names
 
 
 outgoingMessageMailbox : Mailbox (Maybe EncodedOutgoingMessage)

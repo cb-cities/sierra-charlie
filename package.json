@@ -21,6 +21,7 @@
     "http-request-wrapper": "^1.0.0",
     "jshint": "^2.9.1",
     "jshint-loader": "^0.8.3",
+    "json-loader": "^0.5.4",
     "nnng": "^1.0.0",
     "oboe": "^2.1.2",
     "polyline": "^0.2.0",

@@ -62,6 +62,11 @@ module.exports = {
         exclude: [/elm-stuff/, /node_modules/]
       },
       {
+        test: /\.json$/,
+        loader: "json-loader",
+        exclude: [/elm-stuff/, /node_modules/]
+      },
+      {
         test: /\.purs$/,
         loader:
           "purs-loader?output=purescript_modules&" + [
