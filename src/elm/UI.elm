@@ -8,7 +8,7 @@ import Task exposing (Task, andThen)
 
 import Special
 import Types exposing (..)
-import View exposing (view)
+import Render exposing (renderUI)
 
 
 defaultState : State
@@ -19,6 +19,18 @@ defaultState =
   , selectedFeature = Nothing
   , routes = []
   , adjustment = Nothing
+  , viewGroups =
+    [ { name = "Basic"
+      , views = ["Road Nodes", "Road Links"]
+      }
+    , { name = "By Link Type"
+      , views = ["Motorways", "A Roads", "B Roads", "Minor Roads", "Local Streets", "Alleys", "Pedestrianised Streets", "Private Roads - Publicly Accessible", "Private Roads - Restricted Access"]
+      }
+    , { name = "By Link Nature"
+      , views = ["Dual Carriageways", "Single Carriageways", "Slip Roads", "Roundabouts", "Traffic Island Links", "Traffic Island Links At Junctions", "Enclosed Traffic Area Links"]
+      }
+    ]
+  , activeViews = ["Road Nodes", "Road Links"]
   }
 
 
@@ -39,6 +51,8 @@ update action state =
       ({state | routes = routes}, none)
     Receive (UpdateAdjustment adjustment) ->
       ({state | adjustment = adjustment}, none)
+    Receive (UpdateActiveViews views) ->
+      ({state | activeViews = views}, none)
     Send message ->
       (state, send message)
     SendSpecial tag ->
@@ -52,6 +66,7 @@ type alias EncodedIncomingMessage =
   , feature : Maybe Feature
   , routes : List Route
   , adjustment : Maybe Adjustment
+  , activeViews : List String
   }
 
 
@@ -64,8 +79,8 @@ decodeMode maybeEncoded =
       case encoded of
         "GetRoute" ->
           Just GetRoute
-        "AskGoogleForRoute" ->
-          Just AskGoogleForRoute
+        "GetRouteFromGoogle" ->
+          Just GetRouteFromGoogle
         _ ->
           Debug.crash ("Invalid mode: " ++ toString encoded)
 
@@ -89,6 +104,8 @@ decodeIncomingMessage maybeEncoded =
           Receive (UpdateRoutes encoded.routes)
         "UpdateAdjustment" ->
           Receive (UpdateAdjustment encoded.adjustment)
+        "UpdateActiveViews" ->
+          Receive (UpdateActiveViews encoded.activeViews)
         _ ->
           Debug.crash ("Invalid incoming message: " ++ toString encoded)
 
@@ -103,8 +120,7 @@ incomingAction =
 
 type alias EncodedOutgoingMessage =
   { tag : String
-  , mode : Maybe String
-  , toid : Maybe String
+  , strings : List String
   }
 
 
@@ -117,32 +133,37 @@ encodeMode maybeMode =
       case mode of
         GetRoute ->
           Just "GetRoute"
-        AskGoogleForRoute ->
-          Just "AskGoogleForRoute"
+        GetRouteFromGoogle ->
+          Just "GetRouteFromGoogle"
 
 
 encodeMessage : String -> EncodedOutgoingMessage
 encodeMessage tag =
   { tag = tag
-  , mode = Nothing
-  , toid = Nothing
+  , strings = []
   }
+
+
+encodeStringsMessage : String -> List String -> EncodedOutgoingMessage
+encodeStringsMessage tag strings =
+  let
+    base = encodeMessage tag
+  in
+    {base | strings = strings}
+
+
+encodeStringMessage : String -> Maybe String -> EncodedOutgoingMessage
+encodeStringMessage tag maybeString =
+  case maybeString of
+    Nothing ->
+      encodeStringsMessage tag []
+    Just string ->
+      encodeStringsMessage tag [string]
 
 
 encodeModeMessage : String -> Maybe Mode -> EncodedOutgoingMessage
 encodeModeMessage tag mode =
-  let
-    base = encodeMessage tag
-  in
-    {base | mode = encodeMode mode}
-
-
-encodeTOIDMessage : String -> Maybe String -> EncodedOutgoingMessage
-encodeTOIDMessage tag toid =
-  let
-    base = encodeMessage tag
-  in
-    {base | toid = toid}
+  encodeStringMessage tag (encodeMode mode)
 
 
 encodeOutgoingMessage : OutgoingMessage -> EncodedOutgoingMessage
@@ -151,9 +172,9 @@ encodeOutgoingMessage message =
     SetMode mode ->
       encodeModeMessage "SetMode" mode
     HighlightFeatureByTOID toid ->
-      encodeTOIDMessage "HighlightFeatureByTOID" toid
+      encodeStringMessage "HighlightFeatureByTOID" toid
     SelectFeatureByTOID toid ->
-      encodeTOIDMessage "SelectFeatureByTOID" toid
+      encodeStringMessage "SelectFeatureByTOID" toid
     DeleteSelectedFeature ->
       encodeMessage "DeleteSelectedFeature"
     UndeleteSelectedFeature ->
@@ -162,6 +183,8 @@ encodeOutgoingMessage message =
       encodeMessage "ClearRoutes"
     ClearAdjustment ->
       encodeMessage "ClearAdjustment"
+    ChooseViews views ->
+      encodeStringsMessage "ChooseViews" views
 
 
 outgoingMessageMailbox : Mailbox (Maybe EncodedOutgoingMessage)
@@ -217,7 +240,7 @@ ui =
   StartApp.start
     { init = init
     , update = update
-    , view = view
+    , view = renderUI
     , inputs = [incomingAction]
     }
 

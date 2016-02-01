@@ -238,8 +238,11 @@ module.exports = {
 
       const basicNodeInts = new Uint32Array(1024 * 1024); // TODO
       const basicLinkInts = new Uint32Array(1024 * 1024); // TODO
-      basicNodeInts.fill(fromRGB(153, 153, 153));
-      basicLinkInts.fill(fromRGB(153, 153, 153));
+      const basicColor = fromRGB(153, 153, 153);
+      for (let i = 0; i < 1024 * 1024; i++) {
+        basicNodeInts[i] = basicColor;
+        basicLinkInts[i] = basicColor;
+      }
       const basicNodeBytes = new Uint8Array(basicNodeInts.buffer);
       const basicLinkBytes = new Uint8Array(basicLinkInts.buffer);
       const basicNodeTexture = webgl.createTexture(gl, 1024, basicNodeBytes);
@@ -406,10 +409,8 @@ module.exports = {
         if (Controller.prevCursor) {
           switch (Controller.mode) {
             case "GetRoute":
+            case "GetRouteFromGoogle":
               gl.uniform4f(basicColorLoc, 0, 0.6, 1, 1);
-              break;
-            case "AskGoogleForRoute":
-              gl.uniform4f(basicColorLoc, 0, 0, 1, 1);
               break;
             default:
               gl.uniform4f(basicColorLoc, 1, 1, 1, 1);

@@ -489,6 +489,10 @@ Controller.prototype = {
     this.sendAdjustment();
   },
 
+  chooseViews: function (views) { // FIXME
+    UI.updateActiveViews(views);
+  },
+
   onRoadNodesLoaded: function (roadNodes) {
     for (let i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
@@ -628,7 +632,7 @@ Controller.prototype = {
     if (this.prevCursor) {
       switch (this.mode) {
         case "GetRoute": // TODO
-        case "AskGoogleForRoute":
+        case "GetRouteFromGoogle":
           const roadNode = this.findClosestRoadNodeToCursor();
           if (roadNode && !(this.adjustment.isRoadNodeDeleted(roadNode))) {
             this.highlightFeature({
@@ -668,7 +672,7 @@ Controller.prototype = {
             this.sendRoutes();
           }
           break;
-        case "AskGoogleForRoute": // TODO
+        case "GetRouteFromGoogle": // TODO
           this.setMode(null);
           if (this.highlightedFeature) {
             const route = {
