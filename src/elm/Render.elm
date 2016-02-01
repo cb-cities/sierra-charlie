@@ -119,7 +119,7 @@ renderRoadNode trigger maybeMode titlePrefix roadNode =
       location =
         case roadNode.point of
           (x, y) ->
-            renderLabeled "Location" [text (toString (round x) ++ " " ++ toString (round y))]
+            renderLabeled "Location" [div [] [text (toString (round x) ++ " " ++ toString (round y))]]
       toid =
         renderLabeled "TOID" [renderTOID trigger roadNode.toid]
       roadLinks =
@@ -148,7 +148,7 @@ renderRoadLink trigger titlePrefix roadLink =
           _ ->
             []
       cost =
-        renderLabeled "Cost" [text (toString (round roadLink.length) ++ " × " ++ toString roadLink.penalty)]
+        renderLabeled "Cost" [div [] [text (toString (round roadLink.length) ++ " × " ++ toString roadLink.penalty)]]
       toid =
         renderLabeled "TOID" [renderTOID trigger roadLink.toid]
       roadNodes =
@@ -246,55 +246,57 @@ renderRoadDescription road =
         text (road.name ++ ", " ++ road.group ++ ", " ++ term)
 
 
-renderViewsWindow : Trigger -> List ViewGroup -> List String -> Html
+renderViewsWindow : Trigger -> List ViewGroup -> List View -> Html
 renderViewsWindow trigger viewGroups activeViews =
     let
-      contents =
-        [renderWindowTitle "Views"] ++
-        (List.concatMap (renderViewGroup trigger activeViews) viewGroups)
-    in
-      div ([class "ui-window"]) contents
-
-
-renderViewGroup : Trigger -> List String -> ViewGroup -> List Html
-renderViewGroup trigger activeViews viewGroup =
-    let
-      activeGroupViews = List.filter (\view -> List.member view viewGroup.views) activeViews
+      allViews = List.concatMap .views viewGroups
       findActiveIndex = List.findIndex (\view -> List.member view activeViews)
-      maybeStart = findActiveIndex viewGroup.views
-      maybeEnd = findActiveIndex (List.reverse viewGroup.views)
-      extendGroupChoice index view =
+      maybeStart = findActiveIndex allViews
+      maybeEnd = findActiveIndex (List.reverse allViews)
+      extendChoice index view =
           case (maybeStart, maybeEnd) of
-            (Just rawStart, Just reverseRawEnd) ->
+            (Just start, Just end) ->
               let
-                start = min index rawStart
-                rawEnd = List.length viewGroup.views - reverseRawEnd - 1
-                end = max index rawEnd
-                count = end - start + 1
+                targetStart = min index start
+                reverseEnd = List.length allViews - end - 1
+                targetEnd = max index reverseEnd
+                targetCount = targetEnd - targetStart + 1
               in
-                List.take count (List.drop start viewGroup.views)
+                List.map .name (List.take targetCount (List.drop targetStart allViews))
             _ ->
-              [view]
-      renderViewGroupItem index view trigger =
+              [view.name]
+      renderViewGroupItem groupIndex index view trigger =
           let
             isActive = List.member view activeViews
-            choose views = Send (ChooseViews views)
-            alone = choose [view]
-            extended = choose (extendGroupChoice index view)
+            choose names = Send (ChooseViews names)
+            alone = choose [view.name]
+            extended = choose (extendChoice (groupIndex + index) view)
             toggled =
-                if isActive
-                  then choose (List.filter ((/=) view) activeGroupViews)
-                  else choose (view :: activeGroupViews)
+              if isActive
+                then choose (List.filter ((/=) view.name) (List.map .name activeViews))
+                else choose (view.name :: (List.map .name activeViews))
             handler = onClickWithModifiers trigger alone extended toggled alone toggled
             active =
               if isActive
                 then [class "ui-active"]
                 else []
           in
-            a ([handler] ++ active) [text view]
+            a ([handler] ++ active) [text view.name]
+      renderViewGroup viewGroup =
+          case viewGroup.views of
+            (view0 :: _) ->
+              case List.findIndex ((==) view0) allViews of
+                Just groupIndex ->
+                  renderLabeledChoices trigger viewGroup.name
+                    (List.indexedMap (renderViewGroupItem groupIndex) viewGroup.views)
+                _ ->
+                  []
+            _ ->
+              []
+      contents =
+        [renderWindowTitle "Views"] ++ (List.concatMap renderViewGroup viewGroups)
     in
-      renderLabeledChoices trigger viewGroup.name
-        (List.indexedMap renderViewGroupItem viewGroup.views)
+      div ([class "ui-window"]) contents
 
 
 renderRoutesWindow : Trigger -> List Route -> Html
@@ -406,12 +408,12 @@ renderLabeledList label render items =
         [] ->
           []
         _ ->
-          renderLabeled fullLabel (List.map render items)
+          renderLabeled fullLabel [div [] (List.map render items)]
 
 
 renderLabeled : String -> List Html -> List Html
 renderLabeled label contents =
-    [div [] ([renderLabel label] ++ contents)]
+    [renderLabel label] ++ contents
 
 
 renderLabel : String -> Html

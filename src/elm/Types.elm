@@ -9,13 +9,19 @@ type alias State =
   , routes : List Route
   , adjustment : Maybe Adjustment
   , viewGroups : List ViewGroup
-  , activeViews : List String
+  , activeViews : List View
   }
 
 
 type alias ViewGroup =
   { name : String
-  , views : List String
+  , views : List View
+  }
+
+
+type alias View =
+  { name : String
+  , lambda : String
   }
 
 
@@ -38,7 +44,8 @@ type IncomingMessage =
   | UpdateSelectedFeature (Maybe Feature)
   | UpdateRoutes (List Route)
   | UpdateAdjustment (Maybe Adjustment)
-  | UpdateActiveViews (List String)
+  | UpdateViewGroups (List ViewGroup)
+  | UpdateActiveViews (List View)
 
 
 type OutgoingMessage =

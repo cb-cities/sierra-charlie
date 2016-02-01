@@ -8,6 +8,7 @@ window.React = require("react/addons");
 const r = require("react-wrapper");
 
 const Controller = require("./js/Controller");
+const ViewManager = require("./js/ViewManager");
 const app = r.wrap(require("./js/App"));
 
 window.makeNative = (Elm, moduleName, makeValues) => {
@@ -21,6 +22,18 @@ window.makeNative = (Elm, moduleName, makeValues) => {
     }
   };
 };
+
+window.ViewManager = new ViewManager({
+  onActiveViewsUpdated: (activeViews) => {
+    if (window.UI) { // TODO
+      window.UI.updateActiveViews(activeViews);
+    }
+    if (window.App) { // TODO
+      window.App.isDrawingNeeded = true;
+      window.App.renderContents();
+    }
+  }
+});
 
 const UI = require("./js/UI");
 const controller = window.Controller = new Controller();
@@ -56,8 +69,8 @@ window.UI = new UI({
     controller.clearAdjustment();
   },
 
-  chooseViews: (views) => {
-    controller.chooseViews(views);
+  chooseViews: (names) => {
+    window.ViewManager.setActiveViews(names);
   },
 
   saveRoutesAsJSON: () => {
@@ -68,3 +81,6 @@ window.UI = new UI({
     controller.saveAdjustmentAsJSON();
   }
 });
+
+window.UI.updateViewGroups(window.ViewManager.quoteViewGroups());
+window.UI.updateActiveViews(window.ViewManager.quoteActiveViews()); // TODO

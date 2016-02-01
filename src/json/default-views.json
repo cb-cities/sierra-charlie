@@ -1,0 +1,89 @@
+[
+  {
+    "name": "Basic",
+    "views": [
+      {
+        "name": "Road Nodes",
+        "lambda": "function (type, feature) { return type === 'Road Node'; }"
+      },
+      {
+        "name": "Road Links",
+        "lambda": "function (type, feature) { return type === 'Road Link'; }"
+      }
+    ]
+  },
+  {
+    "name": "By Link Type",
+    "views": [
+      {
+        "name": "Motorways",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.term === 'Motorway'; }"
+      },
+      {
+        "name": "A Roads",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.term === 'A Road'; }"
+      },
+      {
+        "name": "B Roads",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.term === 'B Road'; }"
+      },
+      {
+        "name": "Minor Roads",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.term === 'Minor Road'; }"
+      },
+      {
+        "name": "Local Streets",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.term === 'Local Street'; }"
+      },
+      {
+        "name": "Alleys",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.term === 'Alley'; }"
+      },
+      {
+        "name": "Pedestrianised Streets",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.term === 'Pedestrianised Street'; }"
+      },
+      {
+        "name": "Private Roads - Publicly Accessible",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.term === 'Private Road - Publicly Accessible'; }"
+      },
+      {
+        "name": "Private Roads - Restricted Access",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.term === 'Private Road - Restricted Access'; }"
+      }
+    ]
+  },
+  {
+    "name": "By Link Nature",
+    "views": [
+      {
+        "name": "Dual Carriageways",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.nature === 'Dual Carriageway'; }"
+      },
+      {
+        "name": "Single Carriageways",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.nature === 'Single Carriageway'; }"
+      },
+      {
+        "name": "Slip Roads",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.nature === 'Slip Road'; }"
+      },
+      {
+        "name": "Roundabouts",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.nature === 'Roundabout'; }"
+      },
+      {
+        "name": "Traffic Island Links",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.nature === 'Traffic Island Link'; }"
+      },
+      {
+        "name": "Traffic Island Links At Junctions",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.nature === 'Traffic Island Link At Junction'; }"
+      },
+      {
+        "name": "Enclosed Traffic Area Links",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.nature === 'Enclosed Traffic Area Link'; }"
+      }
+    ]
+  }
+]
