@@ -11,21 +11,6 @@ const polyline = require("./lib/polyline");
 
 function makePenalty(nature, term) {
   let penalty = 1;
-  switch (nature) {
-    case "Dual Carriageway":
-      break;
-    case "Single Carriageway":
-    case "Slip Road":
-      penalty += 0.25;
-      break;
-    case "Roundabout":
-    case "Traffic Island Link":
-    case "Traffic Island Link At Junction":
-    case "Enclosed Traffic Area Link":
-    /* falls through */
-    default:
-      penalty += 0.5;
-  }
   switch (term) {
     case "Motorway":
     case "A Road":
@@ -37,10 +22,25 @@ function makePenalty(nature, term) {
     case "Local Street":
       penalty += 0.25;
       break;
-    case "Private Road - Publicly Accessible":
-    case "Private Road - Restricted Access":
     case "Alley":
     case "Pedestrianised Street":
+    case "Private Road - Publicly Accessible":
+    case "Private Road - Restricted Access":
+    /* falls through */
+    default:
+      penalty += 0.5;
+  }
+  switch (nature) {
+    case "Dual Carriageway":
+      break;
+    case "Single Carriageway":
+    case "Slip Road":
+      penalty += 0.25;
+      break;
+    case "Roundabout":
+    case "Traffic Island Link":
+    case "Traffic Island Link At Junction":
+    case "Enclosed Traffic Area Link":
     /* falls through */
     default:
       penalty += 0.5;

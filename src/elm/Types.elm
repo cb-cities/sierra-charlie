@@ -8,12 +8,20 @@ type alias State =
   , selectedFeature : Maybe Feature
   , routes : List Route
   , adjustment : Maybe Adjustment
+  , viewGroups : List ViewGroup
+  , activeViews : List String
+  }
+
+
+type alias ViewGroup =
+  { name : String
+  , views : List String
   }
 
 
 type Mode =
     GetRoute
-  | AskGoogleForRoute
+  | GetRouteFromGoogle
 
 
 type Action =
@@ -30,6 +38,7 @@ type IncomingMessage =
   | UpdateSelectedFeature (Maybe Feature)
   | UpdateRoutes (List Route)
   | UpdateAdjustment (Maybe Adjustment)
+  | UpdateActiveViews (List String)
 
 
 type OutgoingMessage =
@@ -40,6 +49,7 @@ type OutgoingMessage =
   | UndeleteSelectedFeature
   | ClearRoutes
   | ClearAdjustment
+  | ChooseViews (List String)
 
 
 type SpecialOutgoingMessage =
