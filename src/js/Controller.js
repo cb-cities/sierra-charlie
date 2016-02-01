@@ -174,7 +174,7 @@ Controller.prototype = {
   },
 
   sendMode: function () {
-    UI.updateMode(this.mode);
+    UI.updateMode(this.mode || null);
   },
 
   sendLoadingProgress: function () {
@@ -232,10 +232,13 @@ Controller.prototype = {
     let closestRoadNode = null;
     const roadNodes = this.roadNodeTree.select(r);
     for (let i = 0; i < roadNodes.length; i++) {
-      const d1 = vector.distance(p, roadNodes[i].point);
-      if (d1 < closestRoadNodeDistance) {
-        closestRoadNodeDistance = d1;
-        closestRoadNode = roadNodes[i];
+      const node = roadNodes[i];
+      if (window.ViewManager.isNodeVisible(node)) {
+        const d1 = vector.distance(p, node.point);
+        if (d1 < closestRoadNodeDistance) {
+          closestRoadNodeDistance = d1;
+          closestRoadNode = node;
+        }
       }
     }
     return closestRoadNode;
@@ -246,21 +249,27 @@ Controller.prototype = {
     let closestRoadNode = null;
     const roadNodes = this.roadNodeTree.select(r);
     for (let i = 0; i < roadNodes.length; i++) {
-      const d1 = vector.distance(p, roadNodes[i].point);
-      if (d1 < closestRoadNodeDistance) {
-        closestRoadNodeDistance = d1;
-        closestRoadNode = roadNodes[i];
+      const node = roadNodes[i];
+      if (window.ViewManager.isNodeVisible(node)) {
+        const d1 = vector.distance(p, node.point);
+        if (d1 < closestRoadNodeDistance) {
+          closestRoadNodeDistance = d1;
+          closestRoadNode = node;
+        }
       }
     }
     let closestRoadLinkDistance = Infinity;
     let closestRoadLink = null;
     const roadLinks = this.roadLinkTree.select(r);
     for (let j = 0; j < roadLinks.length; j++) {
-      const ps = this.geometry.getPointsForRoadLink(roadLinks[j]);
-      const d2 = polyline.distance(p, ps);
-      if (d2 < closestRoadLinkDistance) {
-        closestRoadLinkDistance = d2;
-        closestRoadLink = roadLinks[j];
+      const link = roadLinks[j];
+      if (window.ViewManager.isLinkVisible(link)) {
+        const ps = this.geometry.getPointsForRoadLink(link);
+        const d2 = polyline.distance(p, ps);
+        if (d2 < closestRoadLinkDistance) {
+          closestRoadLinkDistance = d2;
+          closestRoadLink = link;
+        }
       }
     }
     if (closestRoadNode && closestRoadNodeDistance <= closestRoadLinkDistance + 4) {
@@ -490,14 +499,11 @@ Controller.prototype = {
     this.sendAdjustment();
   },
 
-  chooseViews: function (views) { // FIXME
-    UI.updateActiveViews(views);
-  },
-
   onRoadNodesLoaded: function (roadNodes) {
     for (let i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
     }
+    window.ViewManager.includeNodes(roadNodes);
     App.renderContents(); // TODO
     this.sendLoadingProgress();
     this.renderHighlightedFeature();
@@ -511,6 +517,7 @@ Controller.prototype = {
     for (let i = 0; i < roadLinks.length; i++) {
       this.roadLinkTree.insert(roadLinks[i]);
     }
+    window.ViewManager.includeLinks(roadLinks);
     App.renderContents(); // TODO
     this.sendLoadingProgress();
     this.renderHighlightedFeature();

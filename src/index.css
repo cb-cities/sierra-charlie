@@ -12,8 +12,18 @@ body {
   background-color: #000;
 }
 
+*::selection {
+  background-color: #09f;
+  color: #fff;
+}
+
+*::-moz-selection {
+  background-color: #09f;
+  color: #fff;
+}
+
 a {
-  transition: background-color 0.25s;
+/*  transition: background-color 0.2s, border-color 0.2s, color 0.2s;*/
   text-decoration: underline;
   cursor: pointer;
   color: #ccc;
@@ -25,18 +35,6 @@ a:hover {
 
 a:active {
   color: #fff;
-}
-
-a.ui-active {
-  color: rgba(0, 144, 255, 0.8);
-}
-
-a.ui-active:hover {
-  color: #09f;
-}
-
-a.ui-active:active {
-  color: #09f;
 }
 
 
@@ -99,7 +97,7 @@ a.ui-active:active {
   left: 0;
   top: 0;
   background-color: #09f;
-  transition: width 0.25s;
+  transition: width 0.2s;
 }
 
 
@@ -118,7 +116,7 @@ a.ui-active:active {
 .ui-window {
   width: 160px;
   height: 256px;
-  border: 1px rgba(255, 255, 255, 0.2) solid;
+  border: 1px #333 solid;
   background-color: rgba(0, 0, 0, 0.8);
   overflow-x: hidden;
   overflow-y: auto;
@@ -185,7 +183,7 @@ a.ui-active:active {
   text-decoration: none;
   line-height: 20px;
   padding: 2px 4px;
-  border: 1px rgba(255, 255, 255, 0.8) solid;
+  border: 1px #999 solid;
   border-radius: 2px;
   font-weight: bold;
   -moz-user-select: none;
@@ -195,76 +193,72 @@ a.ui-active:active {
 }
 
 .ui-buttons a:hover {
-  border-color: #fff;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #ccc;
+  color: #fff;
 }
 
 .ui-buttons a:active {
   background-color: rgba(255, 255, 255, 0.4);
-  border-color: #fff;
+  border-color: #ccc;
+  color: #fff;
 }
 
 .ui-buttons a.ui-active {
-  background-color: rgba(0, 144, 255, 0.2);
-  border-color: rgba(0, 144, 255, 0.8);
+  background-color: rgba(0, 144, 255, 0.6);
+  border-color: #99d6ff;
+  color: #ccebff;
 }
 
 .ui-buttons a.ui-active:hover {
-  background-color: rgba(0, 144, 255, 0.2);
-  border-color: #09f;
+  background-color: rgba(0, 144, 255, 0.8);
+  border-color: #ccebff;
+  color: #fff;
 }
 
 .ui-buttons a.ui-active:active {
-  background-color: rgba(0, 144, 255, 0.4);
-  border-color: #09f;
+  background-color: #09f;
+  border-color: #ccebff;
+  color: #fff;
 }
 
 .ui-choices {
-  margin-top: 2px;
-  margin-bottom: 4px;
+  margin: 0;
 }
 
 .ui-choices a {
   display: block;
   text-decoration: none;
   padding: 2px 4px;
-  border: 1px rgba(255, 255, 255, 0.2) solid;
-/*  font-weight: bold;*/
   -moz-user-select: none;
   -ms-user-select: none;
   -webkit-user-select: none;
   user-select: none;
 }
 
-.ui-choices a:active {
-  background-color: rgba(255, 255, 255, 0.4);
-}
-
-.ui-choices a.ui-active {
-  background-color: rgba(255, 255, 255, 0.2);
+.ui-choices a:hover {
+  background-color: rgba(0, 144, 255, 0.2);
   color: #fff;
 }
 
+.ui-choices a:active {
+  background-color: #09f;
+  color: #fff;
+}
+
+.ui-choices a.ui-active {
+  background-color: rgba(0, 144, 255, 0.4);
+  color: #ccd8e0;
+}
+
 .ui-choices a.ui-active:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(0, 144, 255, 0.6);
   color: #fff;
 }
 
 .ui-choices a.ui-active:active {
-  background-color: rgba(255, 255, 255, 0.4);
+  background-color: #09f;
   color: #fff;
-}
-
-.ui-choices a:first-of-type {
-  border-bottom: none;
-}
-
-.ui-choices a:last-of-type {
-  border-top: none;
-}
-
-.ui-choices a:not(:first-of-type):not(:last-of-type) {
-  border-top: none;
-  border-bottom: none;
 }
 
 #ui-highlighted-feature {

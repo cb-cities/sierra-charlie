@@ -3,7 +3,7 @@
 const Elm = require("../elm/UI.elm");
 
 
-function UI(callbacks) {
+function UI(props) {
   const localRuntime = Elm.embed(Elm.UI, document.getElementById("ui"), {
     incomingMessage: null
   });
@@ -15,6 +15,7 @@ function UI(callbacks) {
       feature: null,
       routes: [],
       adjustment: null,
+      viewGroups: [],
       activeViews: []
     }, message));
   }
@@ -54,6 +55,12 @@ function UI(callbacks) {
       adjustment: adjustment
     });
   };
+  this.updateViewGroups = (viewGroups) => {
+    send({
+      tag: "UpdateViewGroups",
+      viewGroups: viewGroups
+    });
+  };
   this.updateActiveViews = (activeViews) => {
     send({
       tag: "UpdateActiveViews",
@@ -64,28 +71,28 @@ function UI(callbacks) {
   this.receive = (message) => {
     switch (message.tag) {
       case "SetMode":
-        callbacks.setMode(message.strings[0]);
+        props.setMode(message.strings[0]);
         break;
       case "HighlightFeatureByTOID":
-        callbacks.highlightFeatureByTOID(message.strings[0]);
+        props.highlightFeatureByTOID(message.strings[0]);
         break;
       case "SelectFeatureByTOID":
-        callbacks.selectFeatureByTOID(message.strings[0]);
+        props.selectFeatureByTOID(message.strings[0]);
         break;
       case "DeleteSelectedFeature":
-        callbacks.deleteSelectedFeature();
+        props.deleteSelectedFeature();
         break;
       case "UndeleteSelectedFeature":
-        callbacks.undeleteSelectedFeature();
+        props.undeleteSelectedFeature();
         break;
       case "ClearRoutes":
-        callbacks.clearRoutes();
+        props.clearRoutes();
         break;
       case "ClearAdjustment":
-        callbacks.clearAdjustment();
+        props.clearAdjustment();
         break;
       case "ChooseViews":
-        callbacks.chooseViews(message.strings);
+        props.chooseViews(message.strings);
         break;
       default:
         throw new Error("Invalid outgoing message: " + message.tag);
@@ -96,10 +103,10 @@ function UI(callbacks) {
   this.receiveSpecial = (message) => {
     switch (message) {
       case "SaveRoutesAsJSON":
-        callbacks.saveRoutesAsJSON();
+        props.saveRoutesAsJSON();
         break;
       case "SaveAdjustmentAsJSON":
-        callbacks.saveAdjustmentAsJSON();
+        props.saveAdjustmentAsJSON();
         break;
       default:
         throw new Error("Invalid special outgoing message: " + message);

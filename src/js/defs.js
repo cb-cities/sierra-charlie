@@ -64,5 +64,8 @@ module.exports = {
 
   minLoaderPostingCount: 256,
   maxLoaderPostingCount: 1024,
-  maxLoaderPostingDelay: 1000
+  maxLoaderPostingDelay: 1000,
+
+  textureSize: 1024,
+  textureDataSize: 1024 * 1024
 };
