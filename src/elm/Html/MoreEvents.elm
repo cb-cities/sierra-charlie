@@ -22,17 +22,17 @@ modifierKeys =
     ("metaKey" := Json.bool)
 
 
-onShiftMetaClick : Signal.Address a -> a -> a -> a -> Attribute
-onShiftMetaClick addr withNone withShift withMeta =
+onClickWithModifiers : Signal.Address a -> a -> a -> a -> a -> a -> Attribute
+onClickWithModifiers addr action shiftAction ctrlAction altAction metaAction =
   on "click" modifierKeys
     ( \mods ->
         let
           msg =
-            if mods.metaKey
-              then withMeta
-              else if mods.shiftKey
-                then withShift
-                else withNone
+            if mods.metaKey then metaAction
+            else if mods.altKey then altAction
+            else if mods.ctrlKey then ctrlAction
+            else if mods.shiftKey then shiftAction
+            else action
         in
           Signal.message addr msg
     )

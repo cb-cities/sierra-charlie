@@ -258,42 +258,43 @@ renderViewsWindow trigger viewGroups activeViews =
 
 renderViewGroup : Trigger -> List String -> ViewGroup -> List Html
 renderViewGroup trigger activeViews viewGroup =
-    renderLabeledChoices trigger viewGroup.name
-      (List.indexedMap (renderViewGroupItem activeViews viewGroup) viewGroup.views)
-
-
-renderViewGroupItem : List String -> ViewGroup -> Int -> String -> Trigger -> Html
-renderViewGroupItem activeViews viewGroup index view trigger =
     let
-      label = view
-      isActive = List.member view activeViews
-      action = Send (ChooseViews [view])
-      shiftAction =
-        let
-          maybeFirstIndex = List.findIndex (\view -> List.member view activeViews) viewGroup.views
-          maybeReverseLastIndex = (List.findIndex (\view -> List.member view activeViews) (List.reverse viewGroup.views))
-        in
-          case (maybeFirstIndex, maybeReverseLastIndex) of
-            (Just firstIndex, Just reverseLastIndex) ->
+      activeGroupViews = List.filter (\view -> List.member view viewGroup.views) activeViews
+      findActiveIndex = List.findIndex (\view -> List.member view activeViews)
+      maybeStart = findActiveIndex viewGroup.views
+      maybeEnd = findActiveIndex (List.reverse viewGroup.views)
+      extendGroupChoice index view =
+          case (maybeStart, maybeEnd) of
+            (Just rawStart, Just reverseRawEnd) ->
               let
-                targetFirstIndex = min index firstIndex
-                lastIndex = List.length viewGroup.views - (reverseLastIndex + 1)
-                targetLastIndex = max index lastIndex
-                targetCount = targetLastIndex - targetFirstIndex + 1
+                start = min index rawStart
+                rawEnd = List.length viewGroup.views - reverseRawEnd - 1
+                end = max index rawEnd
+                count = end - start + 1
               in
-                Send (ChooseViews (List.take targetCount (List.drop targetFirstIndex viewGroup.views)))
+                List.take count (List.drop start viewGroup.views)
             _ ->
-              Send (ChooseViews [view])
-      metaAction =
-        if isActive
-          then Send (ChooseViews (List.filter ((/=) view) activeViews))
-          else Send (ChooseViews (view :: activeViews))
-      active =
-        if isActive
-          then [class "ui-active"]
-          else []
+              [view]
+      renderViewGroupItem index view trigger =
+          let
+            isActive = List.member view activeViews
+            choose views = Send (ChooseViews views)
+            alone = choose [view]
+            extended = choose (extendGroupChoice index view)
+            toggled =
+                if isActive
+                  then choose (List.filter ((/=) view) activeGroupViews)
+                  else choose (view :: activeGroupViews)
+            handler = onClickWithModifiers trigger alone extended toggled alone toggled
+            active =
+              if isActive
+                then [class "ui-active"]
+                else []
+          in
+            a ([handler] ++ active) [text view]
     in
-      a ([onShiftMetaClick trigger action shiftAction metaAction] ++ active) [text label]
+      renderLabeledChoices trigger viewGroup.name
+        (List.indexedMap renderViewGroupItem viewGroup.views)
 
 
 renderRoutesWindow : Trigger -> List Route -> Html
