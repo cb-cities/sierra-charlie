@@ -1,24 +1,15 @@
 "use strict";
 
+const Labeling = require("./Labeling");
 const defs = require("./defs");
 const webgl = require("./lib/webgl");
 
 const defaultViewGroups = require("../json/default-views.json");
 const defaultActiveViews = ["Road Nodes", "Road Links"];
 
-// NOTE: We assume maxNodeIndex + maxLinkIndex <= defs.textureDataSize
-
 
 function fromBool(value) {
   return value ? 0xFF : 0x00;
-}
-
-function fromNodeIndex(index) {
-  return index;
-}
-
-function fromLinkIndex(index) {
-  return defs.textureDataSize - index - 1;
 }
 
 function quoteLambda(lambda) {
@@ -28,78 +19,6 @@ function quoteLambda(lambda) {
 function unquoteLambda(quoted) {
   return eval("(" + quoted + ")");
 }
-
-
-function Uint8Labeling() {
-  this._data = new Uint8Array(defs.textureDataSize);
-}
-
-Uint8Labeling.prototype = {
-  setNodeLabel: function (node, label) {
-    this._data[fromNodeIndex(node.index)] = label;
-  },
-
-  setLinkLabel: function (link, label) {
-    this._data[fromLinkIndex(link.index)] = label;
-  },
-
-  getNodeLabel: function (node) {
-    return this._data[fromNodeIndex(node.index)];
-  },
-
-  getLinkLabel: function (link) {
-    return this._data[fromLinkIndex(link.index)];
-  },
-
-  clear: function () {
-    for (let index = 0; index < defs.maxRoadNodeCount; index++) {
-      this._data[fromNodeIndex(index)] = 0;
-    }
-    for (let index = 0; index < defs.maxRoadLinkCount; index++) {
-      this._data[fromLinkIndex(index)] = 0;
-    }
-  },
-
-  copy: function (other) {
-    for (let index = 0; index < defs.maxRoadNodeCount; index++) {
-      const k = fromNodeIndex(index);
-      this._data[k] = other._data[k];
-    }
-    for (let index = 0; index < defs.maxRoadLinkCount; index++) {
-      const k = fromLinkIndex(index);
-      this._data[k] = other._data[k];
-    }
-  },
-
-  includeLabeling: function (other) {
-    for (let index = 0; index < defs.maxRoadNodeCount; index++) {
-      const k = fromNodeIndex(index);
-      this._data[k] |= other._data[k];
-    }
-    for (let index = 0; index < defs.maxRoadLinkCount; index++) {
-      const k = fromLinkIndex(index);
-      this._data[k] |= other._data[k];
-    }
-  },
-
-  includeNodes: function (other, nodes) {
-    nodes.forEach((node) => {
-      const k = fromNodeIndex(node.index);
-      this._data[k] |= other._data[k];
-    });
-  },
-
-  includeLinks: function (other, links) {
-    links.forEach((link) => {
-      const k = fromLinkIndex(link.index);
-      this._data[k] |= other._data[k];
-    });
-  },
-
-  updateTexture: function (gl, texture) {
-    webgl.updateTexture(gl, texture, gl.ALPHA, defs.textureSize, this._data);
-  }
-};
 
 
 function View(name, lambda) {
@@ -123,7 +42,7 @@ View.prototype = {
   },
 
   includeNodes: function (nodes) {
-    this._labeling = this._labeling || new Uint8Labeling();
+    this._labeling = this._labeling || new Labeling(Uint8Array);
     for (let i = this._includedNodeCount; i < nodes.length; i++) {
       const node = nodes[i];
       this._labeling.setNodeLabel(node, fromBool(this._lambda("Road Node", node)));
@@ -133,7 +52,7 @@ View.prototype = {
   },
 
   includeLinks: function (links) {
-    this._labeling = this._labeling || new Uint8Labeling();
+    this._labeling = this._labeling || new Labeling(Uint8Array);
     for (let i = this._includedLinkCount; i < links.length; i++) {
       const link = links[i];
       this._labeling.setLinkLabel(link, fromBool(this._lambda("Road Link", link)));
@@ -147,7 +66,7 @@ View.prototype = {
   },
 
   getLabeling: function () {
-    this._labeling = this._labeling || new Uint8Labeling();
+    this._labeling = this._labeling || new Labeling(Uint8Array);
     return this._labeling;
   }
 };
@@ -188,10 +107,10 @@ ViewGroup.prototype = {
 
 
 function ViewManager(props) {
-  this._props = props;
+  this._props = props || {};
   this._viewGroups = defaultViewGroups.map(unquoteViewGroup);
   this._activeViews = [];
-  this._activeLabeling = new Uint8Labeling();
+  this._activeLabeling = new Labeling(Uint8Array);
   this._includedNodes = [];
   this._includedLinks = [];
   this._dirty = false;
@@ -230,13 +149,11 @@ ViewManager.prototype = {
     if (!this._activeViews.length) {
       this._activeLabeling.clear();
     } else {
-      const names = [this._activeViews[0].getName()];
       this._activeViews[0].includeNodes(this._includedNodes);
       this._activeViews[0].includeLinks(this._includedLinks);
       this._activeLabeling.copy(this._activeViews[0].getLabeling());
       for (let i = 1; i < this._activeViews.length; i++) {
         const view = this._activeViews[i];
-        names.push(view.getName());
         view.includeNodes(this._includedNodes);
         view.includeLinks(this._includedLinks);
         this._activeLabeling.includeLabeling(view.getLabeling());
@@ -269,13 +186,14 @@ ViewManager.prototype = {
   getTexture: function (gl, token) {
     if (!this._texture || this._token !== token) {
       gl.deleteTexture(this._texture);
-      this._dirty = true;
       this._texture = webgl.createTexture(gl);
       this._token = token;
+      this._dirty = true;
     }
     if (this._dirty) {
+      const data = this._activeLabeling.getData();
+      webgl.updateTexture(gl, this._texture, gl.ALPHA, defs.textureSize, data);
       this._dirty = false;
-      this._activeLabeling.updateTexture(gl, this._texture);
     }
     return this._texture;
   },
