@@ -345,7 +345,7 @@ renderViewInfoWindow : Trigger -> List View -> Bool -> Html
 renderViewInfoWindow trigger activeViews visible =
     let
       renderViewInfo view =
-        [div [] [text view.name]] ++
+        [div [class "ui-window-subtitle"] [text view.name]] ++
         renderDefinition view.lambda
       display =
         if activeViews == [] || not visible
@@ -353,7 +353,7 @@ renderViewInfoWindow trigger activeViews visible =
           else []
       contents =
         [renderWindowTitle "View Info"] ++
-        (List.concat (List.intersperse [hr [] []] (List.map renderViewInfo activeViews)))
+        (List.concatMap renderViewInfo activeViews)
     in
       div ([class "ui-window wide"] ++ display) contents
 
