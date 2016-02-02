@@ -131,7 +131,7 @@ a:active {
 .ui-window {
   width: 160px;
   height: 256px;
-  border: 1px #333 solid;
+  border: 1px rgba(255, 255, 255, 0.2) solid;
   background-color: rgba(0, 0, 0, 0.8);
   overflow-x: hidden;
   overflow-y: auto;
@@ -200,8 +200,25 @@ a:active {
   user-select: none;
 }
 
+.ui-window-subtitle {
+  margin: 8px 0 4px 0;
+  padding: 4px 4px 0 4px;
+  border-top: 1px rgba(255, 255, 255, 0.2) solid;
+  font-weight: bold;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .ui-window-title + * {
   margin-top: 4px;
+}
+
+.ui-window-title + .ui-window-subtitle {
+  margin-top: 4px;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .ui-label {
@@ -323,10 +340,4 @@ a:active {
 #ui-highlighted-feature a {
   text-decoration: none;
   color: #999;
-}
-
-.ui-window hr {
-  margin: 8px 0 4px 0;
-  border: 0;
-  border-top: 1px #333 solid;
 }
