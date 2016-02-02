@@ -69,3 +69,5 @@ module.exports = {
   textureSize: 1024,
   textureDataSize: 1024 * 1024
 };
+
+// NOTE: We assume textureDataSize >= maxRoadNodeCount + maxRoadLinkCount
