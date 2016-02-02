@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Basic",
+    "models": [
+      {
+        "name": "Empty",
+        "lambda": "function (type, feature, time) { return 0; }",
+        "colors": [
+          [153, 153, 153, 255]
+        ]
+      }
+    ]
+  }
+]

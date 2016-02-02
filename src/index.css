@@ -23,7 +23,6 @@ body {
 }
 
 a {
-/*  transition: background-color 0.2s, border-color 0.2s, color 0.2s;*/
   text-decoration: underline;
   cursor: pointer;
   color: #ccc;
@@ -101,16 +100,28 @@ a:active {
 }
 
 
-#ui-windows-top-left {
+#ui-top-left {
   position: absolute;
-  left: 0;
   top: 0;
+  left: 0;
 }
 
-#ui-windows-top-right {
+#ui-top-right {
   position: absolute;
-  right: 0;
   top: 0;
+  right: 0;
+}
+
+#ui-bottom-left {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+#ui-bottom-right {
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }
 
 .ui-window {
@@ -123,15 +134,29 @@ a:active {
   cursor: default;
 }
 
-#ui-windows-top-left .ui-window {
+#ui-top-left .ui-window {
   border-top: 0;
   border-left: 0;
   float: left;
   left: 0;
 }
 
-#ui-windows-top-right .ui-window {
+#ui-top-right .ui-window {
   border-top: 0;
+  border-right: 0;
+  float: right;
+  right: 0;
+}
+
+#ui-bottom-left .ui-window {
+  border-bottom: 0;
+  border-left: 0;
+  float: left;
+  left: 0;
+}
+
+#ui-bottom-right .ui-window {
+  border-bottom: 0;
   border-right: 0;
   float: right;
   right: 0;
@@ -262,11 +287,6 @@ a:active {
 }
 
 #ui-highlighted-feature {
-  border-left: 0;
-  border-bottom: 0;
-  position: absolute;
-  left: 0;
-  bottom: 0;
   pointer-events: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -281,12 +301,4 @@ a:active {
 #ui-highlighted-feature a {
   text-decoration: none;
   color: #999;
-}
-
-#ui-selected-feature {
-  border-right: 0;
-  border-bottom: 0;
-  position: absolute;
-  right: 0;
-  bottom: 0;
 }

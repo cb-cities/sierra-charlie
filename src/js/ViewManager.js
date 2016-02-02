@@ -45,7 +45,8 @@ View.prototype = {
     this._labeling = this._labeling || new Labeling(Uint8Array);
     for (let i = this._includedNodeCount; i < nodes.length; i++) {
       const node = nodes[i];
-      this._labeling.setNodeLabel(node, fromBool(this._lambda("Road Node", node)));
+      const label = fromBool(this._lambda("Road Node", node));
+      this._labeling.setNodeLabel(node, label);
     }
     this._includedNodeCount = nodes.length;
     return this._labeling;
@@ -55,7 +56,8 @@ View.prototype = {
     this._labeling = this._labeling || new Labeling(Uint8Array);
     for (let i = this._includedLinkCount; i < links.length; i++) {
       const link = links[i];
-      this._labeling.setLinkLabel(link, fromBool(this._lambda("Road Link", link)));
+      const label = fromBool(this._lambda("Road Link", link));
+      this._labeling.setLinkLabel(link, label);
     }
     this._includedLinkCount = links.length;
     return this._labeling;

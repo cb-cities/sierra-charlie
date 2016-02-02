@@ -32,7 +32,7 @@ Labeling.prototype = {
   getLinkLabel: function (link) {
     return this._data[fromLinkIndex(link.index)];
   },
-  
+
   getData: function () {
     return this._data;
   },
