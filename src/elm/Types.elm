@@ -10,8 +10,10 @@ type alias State =
   , adjustment : Maybe Adjustment
   , viewGroups : List ViewGroup
   , activeViews : List View
+  , viewInfoVisible : Bool
   , modelGroups : List ModelGroup
   , activeModel : Maybe Model
+  , modelInfoVisible : Bool
   }
 
 
@@ -50,6 +52,8 @@ type Action =
   | Receive IncomingMessage
   | Send OutgoingMessage
   | SendSpecial SpecialOutgoingMessage
+  | ToggleViewInfo
+  | ToggleModelInfo
 
 
 type IncomingMessage =

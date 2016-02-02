@@ -1,9 +1,9 @@
 module Render where
 
-import Html exposing (Html, a, div, text)
+import Html exposing (Html, a, code, div, hr, pre, text)
 import Html.Attributes exposing (class, id, style)
 import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
-import Html.Lazy exposing (lazy, lazy2)
+import Html.Lazy exposing (lazy, lazy2, lazy3)
 import List.Extra as List
 
 import Html.MoreEvents exposing (..)
@@ -21,10 +21,12 @@ renderUI trigger state =
           [ lazy renderLoadingProgress state.loadingProgress
           ]
       , div [id "ui-top-left"]
-          [ lazy2 (renderViewsWindow trigger) state.viewGroups state.activeViews
+          [ lazy3 (renderViewsWindow trigger) state.viewGroups state.activeViews state.viewInfoVisible
+          , lazy2 (renderViewInfoWindow trigger) state.activeViews state.viewInfoVisible
           ]
       , div [id "ui-top-right"]
-          [ lazy2 (renderModelsWindow trigger) state.modelGroups state.activeModel
+          [ lazy3 (renderModelsWindow trigger) state.modelGroups state.activeModel state.modelInfoVisible
+          , lazy2 (renderModelInfoWindow trigger) state.activeModel state.modelInfoVisible
           , lazy (renderAdjustmentWindow trigger) state.adjustment
           ]
       , div [id "ui-bottom-left"]
@@ -251,8 +253,8 @@ renderRoadDescription road =
         text (road.name ++ ", " ++ road.group ++ ", " ++ term)
 
 
-renderViewsWindow : Trigger -> List ViewGroup -> List View -> Html
-renderViewsWindow trigger viewGroups activeViews =
+renderViewsWindow : Trigger -> List ViewGroup -> List View -> Bool -> Html
+renderViewsWindow trigger viewGroups activeViews viewInfoVisible =
     let
       allViews = List.concatMap .views viewGroups
       findActiveIndex = List.findIndex (\view -> List.member view activeViews)
@@ -298,13 +300,18 @@ renderViewsWindow trigger viewGroups activeViews =
                   []
             _ ->
               []
-      contents = [renderWindowTitle "Views"] ++ (List.concatMap renderViewGroup viewGroups)
+      contents =
+        [renderWindowTitle "Views"] ++
+        renderButtons trigger
+          [ renderToggle "Show Info" viewInfoVisible ToggleViewInfo
+          ] ++
+        (List.concatMap renderViewGroup viewGroups)
     in
       div [class "ui-window"] contents
 
 
-renderModelsWindow : Trigger -> List ModelGroup -> Maybe Model -> Html
-renderModelsWindow trigger modelGroups activeModel =
+renderModelsWindow : Trigger -> List ModelGroup -> Maybe Model -> Bool -> Html
+renderModelsWindow trigger modelGroups activeModel modelInfoVisible =
     let
       renderModelGroupItem model trigger =
           let
@@ -318,9 +325,58 @@ renderModelsWindow trigger modelGroups activeModel =
       renderModelGroup modelGroup =
           renderLabeledChoices trigger modelGroup.name
             (List.map renderModelGroupItem modelGroup.models)
-      contents = [renderWindowTitle "Models"] ++ (List.concatMap renderModelGroup modelGroups)
+      contents =
+        [renderWindowTitle "Models"] ++
+        renderButtons trigger
+          [ renderToggle "Show Info" modelInfoVisible ToggleModelInfo
+          ] ++
+        (List.concatMap renderModelGroup modelGroups)
     in
       div [class "ui-window"] contents
+
+
+renderDefinition : String -> List Html
+renderDefinition lambda =
+    renderLabeled "Definition"
+      [pre [] [code [] [text lambda]]]
+
+
+renderViewInfoWindow : Trigger -> List View -> Bool -> Html
+renderViewInfoWindow trigger activeViews visible =
+    let
+      renderViewInfo view =
+        [div [] [text view.name]] ++
+        renderDefinition view.lambda
+      display =
+        if activeViews == [] || not visible
+          then [style [("display", "none")]]
+          else []
+      contents =
+        [renderWindowTitle "View Info"] ++
+        (List.concat (List.intersperse [hr [] []] (List.map renderViewInfo activeViews)))
+    in
+      div ([class "ui-window wide"] ++ display) contents
+
+
+renderModelInfoWindow : Trigger -> Maybe Model -> Bool -> Html
+renderModelInfoWindow trigger activeModel visible =
+    let
+      renderModelInfo =
+        case activeModel of
+          Just model ->
+            [div [] [text model.name]] ++
+            renderDefinition model.lambda
+          _ ->
+            []
+      display =
+        if activeModel == Nothing || not visible
+          then [style [("display", "none")]]
+          else []
+      contents =
+        [renderWindowTitle "Model Info"] ++
+        renderModelInfo
+    in
+      div ([class "ui-window wide"] ++ display) contents
 
 
 renderRoutesWindow : Trigger -> List Route -> Html
