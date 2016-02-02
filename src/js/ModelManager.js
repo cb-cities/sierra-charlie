@@ -1,6 +1,7 @@
 "use strict";
 
 const Labeling = require("./Labeling");
+const code = require("./lib/code");
 const compute = require("./compute");
 const defs = require("./defs");
 const webgl = require("./lib/webgl");
@@ -8,17 +9,6 @@ const webgl = require("./lib/webgl");
 const defaultModelGroups = require("../json/default-models.json");
 const defaultActiveModel = "Empty";
 const transparent = compute.fromRGBA([0, 0, 0, 0]);
-
-// NOTE: We assume defs.textureDataSize >= defs.maxRoadNodeCount + defs.maxRoadLinkCount
-
-
-function quoteLambda(lambda) {
-  return lambda.toString();
-}
-
-function unquoteLambda(quoted) {
-  return eval("(" + quoted + ")");
-}
 
 
 function Model(name, lambda, colors) {
@@ -31,14 +21,14 @@ function Model(name, lambda, colors) {
 }
 
 function unquoteModel(quoted) {
-  return new Model(quoted.name, unquoteLambda(quoted.lambda), quoted.colors);
+  return new Model(quoted.name, code.unquote(quoted.lambda), quoted.colors);
 }
 
 Model.prototype = {
   quote: function () {
     return {
       name: this._name,
-      lambda: quoteLambda(this._lambda),
+      lambda: code.quote(this._lambda),
       colors: this._colors
     };
   },

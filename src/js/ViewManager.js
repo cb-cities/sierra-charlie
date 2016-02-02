@@ -1,6 +1,7 @@
 "use strict";
 
 const Labeling = require("./Labeling");
+const code = require("./lib/code");
 const defs = require("./defs");
 const webgl = require("./lib/webgl");
 
@@ -10,14 +11,6 @@ const defaultActiveViews = ["Road Nodes", "Road Links"];
 
 function fromBool(value) {
   return value ? 0xFF : 0x00;
-}
-
-function quoteLambda(lambda) {
-  return lambda.toString();
-}
-
-function unquoteLambda(quoted) {
-  return eval("(" + quoted + ")");
 }
 
 
@@ -30,14 +23,14 @@ function View(name, lambda) {
 }
 
 function unquoteView(quoted) {
-  return new View(quoted.name, unquoteLambda(quoted.lambda));
+  return new View(quoted.name, code.unquote(quoted.lambda));
 }
 
 View.prototype = {
   quote: function () {
     return {
       name: this._name,
-      lambda: quoteLambda(this._lambda)
+      lambda: code.quote(this._lambda)
     };
   },
 

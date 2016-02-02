@@ -12,6 +12,10 @@ body {
   background-color: #000;
 }
 
+code {
+  font: 10px "Menlo", monospace;
+}
+
 *::selection {
   background-color: #09f;
   color: #fff;
@@ -134,6 +138,10 @@ a:active {
   cursor: default;
 }
 
+.ui-window.wide {
+  width: 320px;
+}
+
 #ui-top-left .ui-window {
   border-top: 0;
   border-left: 0;
@@ -142,6 +150,20 @@ a:active {
 }
 
 #ui-top-right .ui-window {
+  border-top: 0;
+  border-right: 0;
+  float: right;
+  right: 0;
+}
+
+#ui-below-top-left .ui-window {
+  border-top: 0;
+  border-left: 0;
+  float: left;
+  left: 0;
+}
+
+#ui-below-top-right .ui-window {
   border-top: 0;
   border-right: 0;
   float: right;
@@ -301,4 +323,10 @@ a:active {
 #ui-highlighted-feature a {
   text-decoration: none;
   color: #999;
+}
+
+.ui-window hr {
+  margin: 8px 0 4px 0;
+  border: 0;
+  border-top: 1px #333 solid;
 }

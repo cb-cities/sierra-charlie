@@ -21,8 +21,10 @@ defaultState =
   , adjustment = Nothing
   , viewGroups = []
   , activeViews = []
+  , viewInfoVisible = False
   , modelGroups = []
   , activeModel = Nothing
+  , modelInfoVisible = False
   }
 
 
@@ -55,6 +57,10 @@ update action state =
       (state, send message)
     SendSpecial tag ->
       (state, sendSpecial tag)
+    ToggleViewInfo ->
+      ({state | viewInfoVisible = not state.viewInfoVisible}, none)
+    ToggleModelInfo ->
+      ({state | modelInfoVisible = not state.modelInfoVisible}, none)
 
 
 type alias EncodedIncomingMessage =
