@@ -10,6 +10,8 @@ type alias State =
   , adjustment : Maybe Adjustment
   , viewGroups : List ViewGroup
   , activeViews : List View
+  , modelGroups : List ModelGroup
+  , activeModel : Maybe Model
   }
 
 
@@ -22,6 +24,19 @@ type alias ViewGroup =
 type alias View =
   { name : String
   , lambda : String
+  }
+
+
+type alias ModelGroup =
+  { name : String
+  , models : List Model
+  }
+
+
+type alias Model =
+  { name : String
+  , lambda : String
+  , colors : List (Int, Int, Int)
   }
 
 
@@ -46,6 +61,8 @@ type IncomingMessage =
   | UpdateAdjustment (Maybe Adjustment)
   | UpdateViewGroups (List ViewGroup)
   | UpdateActiveViews (List View)
+  | UpdateModelGroups (List ModelGroup)
+  | UpdateActiveModel (Maybe Model)
 
 
 type OutgoingMessage =
@@ -57,6 +74,7 @@ type OutgoingMessage =
   | ClearRoutes
   | ClearAdjustment
   | ChooseViews (List String)
+  | ChooseModel (Maybe String)
 
 
 type SpecialOutgoingMessage =

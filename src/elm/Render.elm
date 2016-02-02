@@ -19,14 +19,19 @@ renderUI trigger state =
     div []
       [ div []
           [ lazy renderLoadingProgress state.loadingProgress
-          , lazy2 (renderFeature trigger "highlighted") state.mode state.highlightedFeature
-          , lazy2 (renderFeature trigger "selected") state.mode state.selectedFeature
           ]
-      , div [id "ui-windows-top-left"]
+      , div [id "ui-top-left"]
           [ lazy2 (renderViewsWindow trigger) state.viewGroups state.activeViews
           ]
-      , div [id "ui-windows-top-right"]
-          [ lazy (renderAdjustmentWindow trigger) state.adjustment
+      , div [id "ui-top-right"]
+          [ lazy2 (renderModelsWindow trigger) state.modelGroups state.activeModel
+          , lazy (renderAdjustmentWindow trigger) state.adjustment
+          ]
+      , div [id "ui-bottom-left"]
+          [ lazy2 (renderFeature trigger "highlighted") state.mode state.highlightedFeature
+          ]
+      , div [id "ui-bottom-right"]
+          [ lazy2 (renderFeature trigger "selected") state.mode state.selectedFeature
           , lazy (renderRoutesWindow trigger) state.routes
           ]
       ]
@@ -293,10 +298,29 @@ renderViewsWindow trigger viewGroups activeViews =
                   []
             _ ->
               []
-      contents =
-        [renderWindowTitle "Views"] ++ (List.concatMap renderViewGroup viewGroups)
+      contents = [renderWindowTitle "Views"] ++ (List.concatMap renderViewGroup viewGroups)
     in
-      div ([class "ui-window"]) contents
+      div [class "ui-window"] contents
+
+
+renderModelsWindow : Trigger -> List ModelGroup -> Maybe Model -> Html
+renderModelsWindow trigger modelGroups activeModel =
+    let
+      renderModelGroupItem model trigger =
+          let
+            isActive = activeModel == Just model
+            active =
+              if isActive
+                then [class "ui-active"]
+                else []
+          in
+            a ([] ++ active) [text model.name]
+      renderModelGroup modelGroup =
+          renderLabeledChoices trigger modelGroup.name
+            (List.map renderModelGroupItem modelGroup.models)
+      contents = [renderWindowTitle "Models"] ++ (List.concatMap renderModelGroup modelGroups)
+    in
+      div [class "ui-window"] contents
 
 
 renderRoutesWindow : Trigger -> List Route -> Html

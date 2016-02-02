@@ -21,6 +21,8 @@ defaultState =
   , adjustment = Nothing
   , viewGroups = []
   , activeViews = []
+  , modelGroups = []
+  , activeModel = Nothing
   }
 
 
@@ -45,6 +47,10 @@ update action state =
       ({state | viewGroups = viewGroups}, none)
     Receive (UpdateActiveViews activeViews) ->
       ({state | activeViews = activeViews}, none)
+    Receive (UpdateModelGroups modelGroups) ->
+      ({state | modelGroups = modelGroups}, none)
+    Receive (UpdateActiveModel activeModel) ->
+      ({state | activeModel = activeModel}, none)
     Send message ->
       (state, send message)
     SendSpecial tag ->
@@ -60,6 +66,8 @@ type alias EncodedIncomingMessage =
   , adjustment : Maybe Adjustment
   , viewGroups : List ViewGroup
   , activeViews : List View
+  , modelGroups : List ModelGroup
+  , activeModel : Maybe Model
   }
 
 
@@ -101,6 +109,10 @@ decodeIncomingMessage maybeEncoded =
           Receive (UpdateViewGroups encoded.viewGroups)
         "UpdateActiveViews" ->
           Receive (UpdateActiveViews encoded.activeViews)
+        "UpdateModelGroups" ->
+          Receive (UpdateModelGroups encoded.modelGroups)
+        "UpdateActiveModel" ->
+          Receive (UpdateActiveModel encoded.activeModel)
         _ ->
           Debug.crash ("Invalid incoming message: " ++ toString encoded)
 
@@ -180,6 +192,8 @@ encodeOutgoingMessage message =
       encodeMessage "ClearAdjustment"
     ChooseViews names ->
       encodeStringsMessage "ChooseViews" names
+    ChooseModel name ->
+      encodeStringMessage "ChooseModel" name
 
 
 outgoingMessageMailbox : Mailbox (Maybe EncodedOutgoingMessage)

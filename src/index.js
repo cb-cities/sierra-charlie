@@ -8,6 +8,7 @@ window.React = require("react/addons");
 const r = require("react-wrapper");
 
 const Controller = require("./js/Controller");
+const ModelManager = require("./js/ModelManager");
 const ViewManager = require("./js/ViewManager");
 const app = r.wrap(require("./js/App"));
 
@@ -27,6 +28,18 @@ window.ViewManager = new ViewManager({
   onActiveViewsUpdated: (activeViews) => {
     if (window.UI) { // TODO
       window.UI.updateActiveViews(activeViews);
+    }
+    if (window.App) { // TODO
+      window.App.isDrawingNeeded = true;
+      window.App.renderContents();
+    }
+  }
+});
+
+window.ModelManager = new ModelManager({
+  onActiveModelUpdated: (activeModel) => {
+    if (window.UI) { // TODO
+      window.UI.updateActiveModel(activeModel);
     }
     if (window.App) { // TODO
       window.App.isDrawingNeeded = true;
@@ -73,6 +86,10 @@ window.UI = new UI({
     window.ViewManager.setActiveViews(names);
   },
 
+  chooseModel: (name) => {
+    window.ModelManager.setActiveModel(name);
+  },
+
   saveRoutesAsJSON: () => {
     controller.saveRoutesAsJSON();
   },
@@ -84,3 +101,6 @@ window.UI = new UI({
 
 window.UI.updateViewGroups(window.ViewManager.quoteViewGroups());
 window.UI.updateActiveViews(window.ViewManager.quoteActiveViews()); // TODO
+
+window.UI.updateModelGroups(window.ModelManager.quoteModelGroups());
+window.UI.updateActiveModel(window.ModelManager.quoteActiveModel()); // TODO

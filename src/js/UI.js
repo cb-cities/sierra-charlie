@@ -16,7 +16,9 @@ function UI(props) {
       routes: [],
       adjustment: null,
       viewGroups: [],
-      activeViews: []
+      activeViews: [],
+      modelGroups: [],
+      activeModel: null
     }, message));
   }
   this.updateMode = (mode) => {
@@ -67,6 +69,18 @@ function UI(props) {
       activeViews: activeViews
     });
   };
+  this.updateModelGroups = (modelGroups) => {
+    send({
+      tag: "UpdateModelGroups",
+      modelGroups: modelGroups
+    });
+  };
+  this.updateActiveModel = (activeModel) => {
+    send({
+      tag: "UpdateActiveModel",
+      activeModel: activeModel
+    });
+  };
 
   this.receive = (message) => {
     switch (message.tag) {
@@ -93,6 +107,9 @@ function UI(props) {
         break;
       case "ChooseViews":
         props.chooseViews(message.strings);
+        break;
+      case "ChooseModel":
+        props.chooseModel(message.strings[0]);
         break;
       default:
         throw new Error("Invalid outgoing message: " + message.tag);
