@@ -503,7 +503,8 @@ Controller.prototype = {
     for (let i = 0; i < roadNodes.length; i++) {
       this.roadNodeTree.insert(roadNodes[i]);
     }
-    window.ViewManager.includeNodes(roadNodes);
+    window.ViewManager.includeNodes(roadNodes); // FIXME
+    window.ModelManager.includeNodes(roadNodes); // FIXME
     App.renderContents(); // TODO
     this.sendLoadingProgress();
     this.renderHighlightedFeature();
@@ -517,7 +518,8 @@ Controller.prototype = {
     for (let i = 0; i < roadLinks.length; i++) {
       this.roadLinkTree.insert(roadLinks[i]);
     }
-    window.ViewManager.includeLinks(roadLinks);
+    window.ViewManager.includeLinks(roadLinks); // FIXME
+    window.ModelManager.includeLinks(roadLinks); // FIXME
     App.renderContents(); // TODO
     this.sendLoadingProgress();
     this.renderHighlightedFeature();
