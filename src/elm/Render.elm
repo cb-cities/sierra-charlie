@@ -101,7 +101,7 @@ renderRoadNode trigger maybeMode titlePrefix roadNode =
           Nothing ->
             []
           Just address ->
-            [div [] [text address]]
+            [renderWindowSubtitle address]
       buttons =
         case (roadNode.isDeleted, roadNode.isUndeletable) of
           (False, _) ->
@@ -141,7 +141,7 @@ renderRoadLink trigger titlePrefix roadLink =
       title =
         [renderWindowTitle (titlePrefix ++ " Road Link")]
       description =
-        [div [] [renderRoadLinkDescription roadLink]]
+        [renderWindowSubtitle (renderRoadLinkDescription roadLink)]
       buttons =
         case (roadLink.isDeleted, roadLink.isUndeletable) of
           (False, _) ->
@@ -181,9 +181,9 @@ renderRoadLink trigger titlePrefix roadLink =
       title ++ description ++ buttons ++ cost ++ toid ++ roadNodes ++ roads
 
 
-renderRoadLinkDescription : RoadLink -> Html
+renderRoadLinkDescription : RoadLink -> String
 renderRoadLinkDescription roadLink =
-    text (roadLink.term ++ ", " ++ roadLink.nature)
+    roadLink.term ++ ", " ++ roadLink.nature
 
 
 renderRoadItem : Trigger -> Road -> Html
@@ -192,7 +192,7 @@ renderRoadItem trigger road =
       toid =
         [renderTOIDItem trigger road.toid]
       description =
-        [div [] [renderRoadDescription road]]
+        [div [] [text (renderRoadDescription road)]]
     in
       div [] (toid ++ description)
 
@@ -203,7 +203,7 @@ renderRoad trigger titlePrefix road =
       title =
         [renderWindowTitle (titlePrefix ++ " Road")]
       description =
-        [div [] [renderRoadDescription road]]
+        [renderWindowSubtitle (renderRoadDescription road)]
       buttons =
         case road.isDeleted of
           False ->
@@ -244,13 +244,13 @@ renderRoute trigger titlePrefix route =
       title ++ buttons ++ toid ++ roadNodes ++ roadLinks
 
 
-renderRoadDescription : Road -> Html
+renderRoadDescription : Road -> String
 renderRoadDescription road =
     case road.term of
       Nothing ->
-        text (road.name ++ ", " ++ road.group)
+        road.name ++ ", " ++ road.group
       Just term ->
-        text (road.name ++ ", " ++ road.group ++ ", " ++ term)
+        road.name ++ ", " ++ road.group ++ ", " ++ term
 
 
 renderViewsWindow : Trigger -> List ViewGroup -> List View -> Bool -> Html
@@ -345,7 +345,7 @@ renderViewInfoWindow : Trigger -> List View -> Bool -> Html
 renderViewInfoWindow trigger activeViews visible =
     let
       renderViewInfo view =
-        [div [class "ui-window-subtitle"] [text view.name]] ++
+        [renderWindowSubtitle view.name] ++
         renderDefinition view.lambda
       display =
         if activeViews == [] || not visible
@@ -364,7 +364,7 @@ renderModelInfoWindow trigger activeModel visible =
       renderModelInfo =
         case activeModel of
           Just model ->
-            [div [] [text model.name]] ++
+            [renderWindowSubtitle model.name] ++
             renderDefinition model.lambda
           _ ->
             []
@@ -458,6 +458,11 @@ renderAdjustmentWindow trigger maybeAdjustment =
 renderWindowTitle : String -> Html
 renderWindowTitle title =
     div [class "ui-window-title"] [text title]
+
+
+renderWindowSubtitle : String -> Html
+renderWindowSubtitle subtitle =
+    div [class "ui-window-subtitle"] [text subtitle]
 
 
 renderTOIDItem : Trigger -> String -> Html
