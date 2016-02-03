@@ -20,7 +20,7 @@
         "lambda": "function (type, feature) { var LondonEye = [530629.9181099398, 179433.27356557376]; var maxDistance = 52711.86727286523; return type === 'Road Node' && { value: vector.distance(feature.point, LondonEye) / maxDistance }; }",
         "range": {
           "min": 0,
-          "max": 52458.01684912481
+          "max": 52711.86727286523
         },
         "colors": {
           "min": [255, 0, 112, 255],

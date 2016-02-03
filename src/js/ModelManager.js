@@ -23,7 +23,7 @@ function Model(name, lambda, range, colors) {
   this._includedNodeCount = 0;
   this._includedLinkCount = 0;
   this._labeling = undefined;
-  
+
   this._maxValue = 0;
   this._meanValue = 0;
   this._valueCount = 0;
@@ -64,7 +64,7 @@ Model.prototype = {
       }
     };
   },
-  
+
   computeResult: function (type, feature) {
     const result = this._lambda(type, feature);
     if (result) {
@@ -73,7 +73,7 @@ Model.prototype = {
       }
       this._meanValue = (result.value + this._valueCount * this._meanValue) / (this._valueCount + 1);
       this._valueCount++;
-      
+
       if (this._range) {
         return {
           value: result.value,
