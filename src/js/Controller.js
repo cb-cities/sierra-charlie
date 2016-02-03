@@ -507,10 +507,14 @@ Controller.prototype = {
     window.ModelManager.includeNodes(roadNodes); // FIXME
     App.renderContents(); // TODO
     this.sendLoadingProgress();
-    this.renderHighlightedFeature();
-    this.renderSelectedFeature();
-    this.sendHighlightedFeature();
-    this.sendSelectedFeature();
+    if (this.highlightedFeature) {
+      this.renderHighlightedFeature();
+      this.sendHighlightedFeature();
+    }
+    if (this.selectedFeature) {
+      this.renderSelectedFeature();
+      this.sendSelectedFeature();
+    }
     this.highlightFeatureAtCursor();
   },
 
@@ -522,10 +526,14 @@ Controller.prototype = {
     window.ModelManager.includeLinks(roadLinks); // FIXME
     App.renderContents(); // TODO
     this.sendLoadingProgress();
-    this.renderHighlightedFeature();
-    this.renderSelectedFeature();
-    this.sendHighlightedFeature();
-    this.sendSelectedFeature();
+    if (this.highlightedFeature) {
+      this.renderHighlightedFeature();
+      this.sendHighlightedFeature();
+    }
+    if (this.selectedFeature) {
+      this.renderSelectedFeature();
+      this.sendSelectedFeature();
+    }
     this.highlightFeatureAtCursor();
   },
 
