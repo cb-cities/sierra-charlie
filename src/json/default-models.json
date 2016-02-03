@@ -16,11 +16,11 @@
     "name": "Experimental",
     "models": [
       {
-        "name": "Node Distance",
-        "lambda": "function (type, feature) { var LondonEye = [530629.9181099398, 179433.27356557376]; var maxDistance = 52711.86727286523; return type === 'Road Node' && { value: vector.distance(feature.point, LondonEye) / maxDistance }; }",
+        "name": "Distance from London Eye",
+        "lambda": "function (type, feature) { var LondonEye = [530629.9181099398, 179433.27356557376]; var maxDistance = 52753.331350433284; return { value: vector.distance(feature.point || rect.midpoint(feature.bounds), LondonEye) / maxDistance }; }",
         "range": {
           "min": 0,
-          "max": 52711.86727286523
+          "max": 52753.331350433284
         },
         "colors": {
           "min": [255, 0, 112, 255],
