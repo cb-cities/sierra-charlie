@@ -42,5 +42,166 @@
         }
       }
     ]
+  },
+  {
+    "name": "Travel Time",
+    "models": [
+      {
+        "name": "00:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 0); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "02:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 2); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "04:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 4); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "06:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 6); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "08:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 8); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "10:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 10); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "12:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 12); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "14:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 14); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "16:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 16); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "18:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 18); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "20:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 20); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "22:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 22); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      }
+    ]
   }
 ]

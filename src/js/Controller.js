@@ -884,6 +884,40 @@ Controller.prototype = {
       //   const newRawTime = Math.round((rawTime * 3600) + timeDelta) / 3600;
       //   App.setRawTime(newRawTime, duration);
       //   break;
+      case 219: {
+        const name = window.ModelManager._activeModel._name; // FIXME
+        if (name.indexOf(":") === -1) {
+          window.ModelManager.setActiveModel("00:00");
+        } else {
+          const tokens = name.split(":");
+          let hour = parseInt(tokens[0]);
+          if (hour === 0) {
+            hour = 22;
+          } else {
+            hour = hour - 2;
+          }
+          const hours = hour < 10 ? ("0" + hour) : hour;
+          window.ModelManager.setActiveModel(hours + ":00");
+        }
+        break;
+      }
+      case 221: {
+        const name = window.ModelManager._activeModel._name; // FIXME
+        if (name.indexOf(":") === -1) {
+          window.ModelManager.setActiveModel("00:00");
+        } else {
+          const tokens = name.split(":");
+          let hour = parseInt(tokens[0]);
+          if (hour === 22) {
+            hour = 0;
+          } else {
+            hour = hour + 2;
+          }
+          const hours = hour < 10 ? ("0" + hour) : hour;
+          window.ModelManager.setActiveModel(hours + ":00");
+        }
+        break;
+      }
       case 187: { // plus
         if (event.ctrlKey || event.metaKey) {
           event.preventDefault();
