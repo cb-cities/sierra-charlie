@@ -12,6 +12,8 @@ const ModelManager = require("./js/ModelManager");
 const ViewManager = require("./js/ViewManager");
 const app = r.wrap(require("./js/App"));
 
+window.vector = require("./js/lib/vector"); // TODO
+
 window.makeNative = (Elm, moduleName, makeValues) => {
   Elm.Native = Elm.Native || {};
   Elm.Native[moduleName] = {
