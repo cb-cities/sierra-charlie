@@ -124,7 +124,7 @@ function lerpQuad(v1, v2, ratio) {
 function fromRGBAtoLEUint32(rgba) {
   return rgba[0] | (rgba[1] << 8) | (rgba[2] << 16) | (rgba[3] << 24);
 }
-  
+
 function fromLEUint32toRGBA(int) {
   return [int & 0xFF, (int >> 8) & 0xFF, (int >> 16) & 0xFF, (int >> 24) & 0xFF];
 }
@@ -133,15 +133,15 @@ function fromLEUint32toRGBA(int) {
 module.exports = {
   fromLUVAtoRGBA: fromLUVAtoRGBA,
   fromLUVAtoXYZA: fromLUVAtoXYZA,
-  
+
   fromRGBAtoLUVA: fromRGBAtoLUVA,
   fromRGBAtoXYZA: fromRGBAtoXYZA,
-  
+
   fromXYZAtoLUVA: fromXYZAtoLUVA,
   fromXYZAtoRGBA: fromXYZAtoRGBA,
 
   lerpRGBA: lerpQuad,
-  
+
   lerpRGBAasXYZA: function (rgba1, rgba2, ratio) {
     return (
       fromXYZAtoRGBA(
@@ -150,7 +150,7 @@ module.exports = {
           fromRGBAtoXYZA(rgba2),
           ratio)));
   },
-  
+
   lerpRGBAasLUVA: function (rgba1, rgba2, ratio) {
     return (
       fromLUVAtoRGBA(
@@ -159,7 +159,7 @@ module.exports = {
           fromRGBAtoLUVA(rgba2),
           ratio)));
   },
-  
+
   fromRGBAtoLEUint32: fromRGBAtoLEUint32,
   fromLEUint32toRGBA: fromLEUint32toRGBA
 };
