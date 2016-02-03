@@ -38,8 +38,25 @@ type alias ModelGroup =
 type alias Model =
   { name : String
   , lambda : String
-  , colors : List (Int, Int, Int)
+  , range : Maybe ModelRange
+  , colors : Maybe ModelColors
   }
+
+
+type alias ModelRange =
+  { min : Float
+  , max : Float
+  }
+
+
+type alias ModelColors =
+  { min : Maybe RGBA
+  , max : Maybe RGBA
+  , out : Maybe RGBA
+  }
+
+
+type alias RGBA = (Int, Int, Int, Int)
 
 
 type Mode =
@@ -78,7 +95,7 @@ type OutgoingMessage =
   | ClearRoutes
   | ClearAdjustment
   | ChooseViews (List String)
-  | ChooseModel (Maybe String)
+  | ChooseModel String
 
 
 type SpecialOutgoingMessage =

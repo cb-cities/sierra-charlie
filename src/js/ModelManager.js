@@ -2,26 +2,53 @@
 
 const Labeling = require("./Labeling");
 const code = require("./lib/code");
-const compute = require("./compute");
+const color = require("./lib/color");
 const defs = require("./defs");
 const webgl = require("./lib/webgl");
 
 const defaultModelGroups = require("../json/default-models.json");
 const defaultActiveModel = "Empty";
-const transparent = compute.fromRGBA([0, 0, 0, 0]);
 
 
-function Model(name, lambda, colors) {
+function isVisible(int) {
+  return color.fromLEUint32toRGBA(int)[3] !== 0;
+}
+
+
+function Model(name, lambda, range, colors) {
   this._name = name;
   this._lambda = lambda;
+  this._range = range;
   this._colors = colors;
   this._includedNodeCount = 0;
   this._includedLinkCount = 0;
   this._labeling = undefined;
+  
+  this._maxValue = 0;
+  this._meanValue = 0;
+  this._valueCount = 0;
 }
 
 function unquoteModel(quoted) {
-  return new Model(quoted.name, code.unquote(quoted.lambda), quoted.colors);
+  const lambda = code.unquote(quoted.lambda);
+  let range = null;
+  if (quoted.range) {
+    range = {
+      min: quoted.range.min,
+      max: quoted.range.max
+    };
+  }
+  let colors = {
+    min: null,
+    max: null,
+    out: null
+  };
+  if (quoted.colors) {
+    colors.min = quoted.colors.min || null;
+    colors.max = quoted.colors.max || null;
+    colors.out = quoted.colors.out || null;
+  }
+  return new Model(quoted.name, lambda, range, colors);
 }
 
 Model.prototype = {
@@ -29,17 +56,48 @@ Model.prototype = {
     return {
       name: this._name,
       lambda: code.quote(this._lambda),
-      colors: this._colors
+      range: this._range,
+      colors: {
+        min: this._colors.min,
+        max: this._colors.max,
+        out: this._colors.out
+      }
     };
+  },
+  
+  computeResult: function (type, feature) {
+    const result = this._lambda(type, feature);
+    if (result) {
+      if (result.value > this._maxValue) { // TODO: Remove
+        this._maxValue = result.value;
+      }
+      this._meanValue = (result.value + this._valueCount * this._meanValue) / (this._valueCount + 1);
+      this._valueCount++;
+      
+      if (this._range) {
+        return {
+          value: result.value,
+          color: color.lerpRGBA(this._colors.min, this._colors.max, result.value)
+        };
+      } else {
+        return {
+          value: result.value,
+          color: this._colors.out
+        };
+      }
+    } else {
+      return {
+        color: this._colors.out
+      };
+    }
   },
 
   includeNodes: function (nodes) {
     this._labeling = this._labeling || new Labeling(Uint32Array);
     for (let i = this._includedNodeCount; i < nodes.length; i++) {
       const node = nodes[i];
-      const color = this._colors[this._lambda("Road Node", node)];
-      const label = color ? compute.fromRGBA(color) : transparent;
-      this._labeling.setNodeLabel(node, label);
+      const result = this.computeResult("Road Node", node);
+      this._labeling.setNodeLabel(node, color.fromRGBAtoLEUint32(result.color));
     }
     this._includedNodeCount = nodes.length;
     return this._labeling;
@@ -49,9 +107,8 @@ Model.prototype = {
     this._labeling = this._labeling || new Labeling(Uint32Array);
     for (let i = this._includedLinkCount; i < links.length; i++) {
       const link = links[i];
-      const color = this._colors[this._lambda("Road Link", link)];
-      const label = color ? compute.fromRGBA(color) : transparent;
-      this._labeling.setLinkLabel(link, label);
+      const result = this.computeResult("Road Link", link);
+      this._labeling.setLinkLabel(link, color.fromRGBAtoLEUint32(result.color));
     }
     this._includedLinkCount = links.length;
     return this._labeling;
@@ -106,6 +163,7 @@ function ModelManager(props) {
   this._props = props || {};
   this._modelGroups = defaultModelGroups.map(unquoteModelGroup);
   this._activeModel = undefined;
+  this._activeLabeling = undefined;
   this._includedNodes = [];
   this._includedLinks = [];
   this._dirty = false;
@@ -138,8 +196,15 @@ ModelManager.prototype = {
   setActiveModel: function (name) {
     this._activeModel = this.lookupModel(name);
     if (this._activeModel) {
+      this._activeLabeling = this._activeModel.getLabeling();
       this._activeModel.includeNodes(this._includedNodes);
       this._activeModel.includeLinks(this._includedLinks);
+      console.log({
+        name: this._activeModel._name,
+        max: this._activeModel._maxValue,
+        mean: this._activeModel._meanValue,
+        count: this._activeModel._valueCount
+      });
     }
     this._dirty = true;
     if (this._props.onActiveModelUpdated) {
@@ -167,12 +232,22 @@ ModelManager.prototype = {
       this._dirty = true;
     }
     if (this._dirty) {
-      const data = this._activeModel.getLabeling().getData();
-      const newData = new Uint8Array(data.buffer); // FIXME
-      webgl.updateTexture(gl, this._texture, gl.RGBA, defs.textureSize, newData);
+      const data = ( // FIXME
+        this._activeLabeling ?
+          new Uint8Array(this._activeLabeling.getData().buffer) :
+          new Uint8Array(defs.textureDataSize * 4));
+      webgl.updateTexture(gl, this._texture, gl.RGBA, defs.textureSize, data);
       this._dirty = false;
     }
     return this._texture;
+  },
+
+  isNodeVisible: function (node) {
+    return this._activeLabeling && isVisible(this._activeLabeling.getNodeLabel(node));
+  },
+
+  isLinkVisible: function (link) {
+    return this._activeLabeling && isVisible(this._activeLabeling.getLinkLabel(link));
   }
 };
 

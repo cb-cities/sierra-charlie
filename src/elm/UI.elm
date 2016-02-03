@@ -199,7 +199,7 @@ encodeOutgoingMessage message =
     ChooseViews names ->
       encodeStringsMessage "ChooseViews" names
     ChooseModel name ->
-      encodeStringMessage "ChooseModel" name
+      encodeStringMessage "ChooseModel" (Just name)
 
 
 outgoingMessageMailbox : Mailbox (Maybe EncodedOutgoingMessage)
