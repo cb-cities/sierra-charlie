@@ -115,3 +115,28 @@ window.circularEaseIn = (x) => {
 window.circularEaseOut = (x) => {
   return Math.sqrt(1 - Math.pow(1 - x, 2));
 };
+
+
+const MullickRay = require("./js/MullickRay"); // FIXME
+
+window.travelTime = function (type, feature, hour) {
+  if (type === "Road Link") {
+    const LondonEye = [530629.9181099398, 179433.27356557376];
+    const maxDistance = 52753.331350433284;
+    const meanTrafficSpeed = 28.6463;
+    const meanLength = 86.27147681632832;
+    const point = window.rect.midpoint(feature.bounds);
+    const distance = window.vector.distance(point, LondonEye) / maxDistance;
+    const revDistance = 1 - distance;
+    const freeTravelTime = feature.length / meanTrafficSpeed;
+    const capacity = 0.5 + (feature.length / meanLength) / 2;
+    const volume = 20 * (1 + 5 * MullickRay.figure1(hour)) * revDistance;
+    const travelTime = freeTravelTime * (1 + volume / capacity) / feature.length;
+    const maxTravelTime = 7.386860121944193;
+    return {
+      value: window.circularEaseOut(travelTime / maxTravelTime)
+    };
+  } else {
+    return null;
+  }
+};
