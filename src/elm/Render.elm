@@ -321,7 +321,7 @@ renderModelsWindow trigger modelGroups activeModel modelInfoVisible =
                 then [class "ui-active"]
                 else []
           in
-            a ([] ++ active) [text model.name]
+            a ([onClick trigger (Send (ChooseModel model.name))] ++ active) [text model.name]
       renderModelGroup modelGroup =
           renderLabeledChoices trigger modelGroup.name
             (List.map renderModelGroupItem modelGroup.models)
@@ -358,6 +358,50 @@ renderViewInfoWindow trigger activeViews visible =
       div ([class "ui-window wide"] ++ display) contents
 
 
+renderColor : Maybe RGBA -> String -> List Html
+renderColor maybeRGBA name =
+    case maybeRGBA of
+      Just (r, g, b, a) ->
+        let
+          rgba =
+            "rgba(" ++
+            toString r ++ "," ++
+            toString g ++ "," ++
+            toString b ++ "," ++
+            toString a ++ ")"
+        in
+          [ div []
+              [ div [class ("ui-color " ++ rgba), style [("background-color", rgba)]] []
+              , text name
+              ]
+          ]
+      _ ->
+        []
+
+
+renderModelColors : Maybe ModelColors -> List Html
+renderModelColors maybeColors =
+    case maybeColors of
+      Just colors ->
+        renderLabeled "Legend"
+          ( renderColor colors.min "min" ++
+            renderColor colors.max "max" ++
+            renderColor colors.out "out"
+          )
+      _ ->
+        []
+
+
+renderModelRange : Maybe ModelRange -> List Html
+renderModelRange maybeRange =
+    case maybeRange of
+      Just range ->
+        renderLabeled "Range"
+          [div [] [text (toString range.min ++ " " ++ toString range.max)]]
+      _ ->
+        []
+
+
 renderModelInfoWindow : Trigger -> Maybe Model -> Bool -> Html
 renderModelInfoWindow trigger activeModel visible =
     let
@@ -365,7 +409,9 @@ renderModelInfoWindow trigger activeModel visible =
         case activeModel of
           Just model ->
             [renderWindowSubtitle model.name] ++
-            renderDefinition model.lambda
+            renderDefinition model.lambda ++
+            renderModelRange model.range ++
+            renderModelColors model.colors
           _ ->
             []
       display =

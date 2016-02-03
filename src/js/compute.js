@@ -124,9 +124,5 @@ const _ = module.exports = {
       Math.max(
         Math.ceil(Math.log2(Math.ceil(rect.width(r) / _.zoomLevel(defs.minZoom) / clientWidth))),
         Math.ceil(Math.log2(Math.ceil(rect.height(r) / _.zoomLevel(defs.minZoom) / clientHeight)))));
-  },
-
-  fromRGBA: function (color) {
-    return color[0] | (color[1] << 8) | (color[2] << 16) | (color[3] << 24); // NOTE: Little-endian byte order
   }
 };

@@ -54,8 +54,13 @@ module.exports = {
   quadtreeTop: quadtreeTop,
   quadtreeSize: quadtreeSize,
 
-  defaultCenterX: 528180.744,
-  defaultCenterY: 182584.548,
+  // Inner Circle
+  // defaultCenterX: 528180.744,
+  // defaultCenterY: 182584.548,
+  
+  // London Eye
+  defaultCenterX: 530629.9181099398,
+  defaultCenterY: 179433.27356557376,
 
   minZoom: 0,
   actualZoom: 2,

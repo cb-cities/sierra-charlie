@@ -233,7 +233,7 @@ Controller.prototype = {
     const roadNodes = this.roadNodeTree.select(r);
     for (let i = 0; i < roadNodes.length; i++) {
       const node = roadNodes[i];
-      if (window.ViewManager.isNodeVisible(node)) {
+      if (window.ViewManager.isNodeVisible(node) && window.ModelManager.isNodeVisible(node)) {
         const d1 = vector.distance(p, node.point);
         if (d1 < closestRoadNodeDistance) {
           closestRoadNodeDistance = d1;
@@ -250,7 +250,7 @@ Controller.prototype = {
     const roadNodes = this.roadNodeTree.select(r);
     for (let i = 0; i < roadNodes.length; i++) {
       const node = roadNodes[i];
-      if (window.ViewManager.isNodeVisible(node)) {
+      if (window.ViewManager.isNodeVisible(node) && window.ModelManager.isNodeVisible(node)) {
         const d1 = vector.distance(p, node.point);
         if (d1 < closestRoadNodeDistance) {
           closestRoadNodeDistance = d1;
@@ -263,7 +263,7 @@ Controller.prototype = {
     const roadLinks = this.roadLinkTree.select(r);
     for (let j = 0; j < roadLinks.length; j++) {
       const link = roadLinks[j];
-      if (window.ViewManager.isLinkVisible(link)) {
+      if (window.ViewManager.isLinkVisible(link) && window.ModelManager.isLinkVisible(link)) {
         const ps = this.geometry.getPointsForRoadLink(link);
         const d2 = polyline.distance(p, ps);
         if (d2 < closestRoadLinkDistance) {

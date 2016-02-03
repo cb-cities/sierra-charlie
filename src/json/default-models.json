@@ -4,10 +4,42 @@
     "models": [
       {
         "name": "Empty",
-        "lambda": "function (type, feature, time) { return 0; }",
-        "colors": [
-          [153, 153, 153, 255]
-        ]
+        "lambda": "function (type, feature) { return null; }",
+        "range": null,
+        "colors": {
+          "out": [153, 153, 153, 255]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Experimental",
+    "models": [
+      {
+        "name": "Node Distance",
+        "lambda": "function (type, feature) { var LondonEye = [530629.9181099398, 179433.27356557376]; var maxDistance = 52711.86727286523; return type === 'Road Node' && { value: vector.distance(feature.point, LondonEye) / maxDistance }; }",
+        "range": {
+          "min": 0,
+          "max": 52458.01684912481
+        },
+        "colors": {
+          "min": [255, 0, 112, 255],
+          "max": [0, 144, 255, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "Link Length",
+        "lambda": "function (type, feature) { var logMaxLength = Math.log(3772.593941606797); return type === 'Road Link' && { value: Math.log(feature.length) / logMaxLength }; }",
+        "range": {
+          "min": 0,
+          "max": 3772.593941606797
+        },
+        "colors": {
+          "min": [0, 144, 255, 255],
+          "max": [255, 0, 112, 255],
+          "out": [0, 0, 0, 0]
+        }
       }
     ]
   }
