@@ -233,12 +233,10 @@ Controller.prototype = {
     const roadNodes = this.roadNodeTree.select(r);
     for (let i = 0; i < roadNodes.length; i++) {
       const node = roadNodes[i];
-      if (window.ViewManager.isNodeVisible(node) && window.ModelManager.isNodeVisible(node)) {
-        const d1 = vector.distance(p, node.point);
-        if (d1 < closestRoadNodeDistance) {
-          closestRoadNodeDistance = d1;
-          closestRoadNode = node;
-        }
+      const d1 = vector.distance(p, node.point);
+      if (d1 < closestRoadNodeDistance) {
+        closestRoadNodeDistance = d1;
+        closestRoadNode = node;
       }
     }
     return closestRoadNode;
