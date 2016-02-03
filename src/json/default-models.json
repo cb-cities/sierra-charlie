@@ -30,7 +30,7 @@
       },
       {
         "name": "Link Length",
-        "lambda": "function (type, feature) { var logMaxLength = Math.log(3772.593941606797); return type === 'Road Link' && { value: Math.log(feature.length) / logMaxLength }; }",
+        "lambda": "function (type, feature) { var maxLength = 3772.593941606797; return type === 'Road Link' && { value: circularEaseOut(feature.length / maxLength) }; }",
         "range": {
           "min": 0,
           "max": 3772.593941606797

@@ -106,3 +106,11 @@ window.UI.updateActiveViews(window.ViewManager.quoteActiveViews()); // TODO
 
 window.UI.updateModelGroups(window.ModelManager.quoteModelGroups());
 window.UI.updateActiveModel(window.ModelManager.quoteActiveModel()); // TODO
+
+window.circularEaseIn = (x) => {
+  return 1 - Math.sqrt(1 - Math.pow(x, 2));
+};
+
+window.circularEaseOut = (x) => {
+  return Math.sqrt(1 - Math.pow(1 - x, 2));
+};
