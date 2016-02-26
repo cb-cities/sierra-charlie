@@ -130,7 +130,7 @@ window.travelTime = function (type, feature, hour) {
     const revDistance = 1 - distance;
     const freeTravelTime = feature.length / meanTrafficSpeed;
     const capacity = 0.5 + (feature.length / meanLength) / 2;
-    const volume = 20 * (1 + 5 * MullickRay.figure1(hour)) * revDistance;
+    const volume = 20 * (Math.random() + 5 * MullickRay.figure1(hour)) * revDistance;
     const travelTime = freeTravelTime * (1 + volume / capacity) / feature.length;
     const maxTravelTime = 7.386860121944193;
     return {
