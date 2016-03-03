@@ -34,7 +34,7 @@ cd sierra-charlie
 
 Portions of the code are written in [PureScript](http://www.purescript.org/) and [Elm](http://elm-lang.org/).  Compilers for both languages and the [Node.js](https://nodejs.org/) runtime must be installed on the local machine.
 
-The project is developed on OS X, but may support other UNIX platforms.  On OS X, system-level dependencies should be installed with the [`brew`](http://brew.sh/) tool.
+The project is developed on OS X, but may support other UNIX platforms.  On OS X, system-level dependencies should be installed with the [`brew`](http://brew.sh/) tool. 
 
 ```
 brew install node purescript elm
@@ -47,7 +47,13 @@ Use the [`npm`](https://www.npmjs.com/) tool, included with Node.js, to install 
 ```
 npm install
 ```
+You will also need to increase the kernel limits on OS X. 
 
+```
+sudo bash -c 'echo "kern.maxfiles=65536" >>/etc/sysctl.conf'
+sudo bash -c 'echo "kern.maxfilesperproc=65536" >>/etc/sysctl.conf'
+echo "ulimit -n 65536" >>~/.bash_profile
+```
 
 ### Building the project
 
