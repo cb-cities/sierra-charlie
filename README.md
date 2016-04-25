@@ -55,6 +55,9 @@ sudo bash -c 'echo "kern.maxfilesperproc=65536" >>/etc/sysctl.conf'
 echo "ulimit -n 65536" >>~/.bash_profile
 ```
 
+This may require you to restart your computer.
+
+
 ### Building the project
 
 The same `npm` tool is also used to build the project, and to simplify other project-related tasks.
