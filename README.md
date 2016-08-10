@@ -1,3 +1,12 @@
+_Docker File_
+================
+
+`cd ..`
+`docker build -t "gac55/dockervisualiser:latest" ./docker-visualiser`
+
+## Using the image
+`docker run -ti -p 3000:3000 gac55/dockerVisualiserLondon:latest`
+
 _sierra-charlie_
 ================
 
