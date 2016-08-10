@@ -3,7 +3,6 @@ _sierra-charlie_
 
 To do
 
-
 Online use
 ----------
 
