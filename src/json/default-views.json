@@ -9,6 +9,10 @@
       {
         "name": "Road Links",
         "lambda": "function (type, feature) { return type === 'Road Link'; }"
+      },
+      {
+        "name": "Directionality",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.Directed === 'True'; }"
       }
     ]
   },

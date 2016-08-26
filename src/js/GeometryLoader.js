@@ -205,6 +205,7 @@ GeometryLoader.prototype = {
               penalty: makePenalty(obj.nature, obj.term),
               term: obj.term,
               nature: obj.nature,
+              directed: obj.directed,
               negativeNodeTOID: obj.negativeNode,
               positiveNodeTOID: obj.positiveNode,
               negativeNode: null,
