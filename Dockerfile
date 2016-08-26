@@ -5,7 +5,7 @@ MAINTAINER Gerry Casey <gac55@cam.ac.uk>
 # Dependencies
 RUN dnf update -y
 
-RUN dnf install -y bzip2 gcc git gmp-devel make perl tar which zlib zlib-devel findutils
+RUN dnf install -y bzip2 gcc git gmp-devel make perl tar which zlib zlib-devel findutils libxml2
 
 # Create a softlink for libgmp.so.3
 RUN ln -s /usr/lib64/libgmp.so  /usr/lib64/libgmp.so.3 
