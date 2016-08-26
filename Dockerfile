@@ -3,8 +3,7 @@ FROM fedora:23
 MAINTAINER Gerry Casey <gac55@cam.ac.uk>
 
 # Dependencies
-RUN dnf update \
-  && y
+RUN dnf update -y
 
 RUN dnf install -y bzip2 gcc git gmp-devel make perl tar which zlib zlib-devel findutils
 
