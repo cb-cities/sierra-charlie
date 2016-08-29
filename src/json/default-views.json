@@ -12,7 +12,7 @@
       },
       {
         "name": "Directionality",
-        "lambda": "function (type, feature) { return type === 'Road Link' && feature.Directed === 'True'; }"
+        "lambda": "function (type, feature) { return type === 'Road Link'; }"
       }
     ]
   },
