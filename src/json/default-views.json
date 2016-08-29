@@ -13,6 +13,19 @@
     ]
   },
   {
+    "name": "Directionality",
+    "views": [
+      {
+        "name": "One Way",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.restriction === 'One Way'; }"
+      },
+      {
+        "name": "No restriction",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.restriction === 'No Restriction'; }"
+      }
+    ]
+  },
+  {
     "name": "By Link Type",
     "views": [
       {
