@@ -9,10 +9,19 @@
       {
         "name": "Road Links",
         "lambda": "function (type, feature) { return type === 'Road Link'; }"
+      }
+    ]
+  },
+  {
+    "name": "Directionality",
+    "views": [
+      {
+        "name": "One Way",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.restriction === 'One Way'; }"
       },
       {
-        "name": "Directionality",
-        "lambda": "function (type, feature) { return type === 'Road Link'; }"
+        "name": "No restriction",
+        "lambda": "function (type, feature) { return type === 'Road Link' && feature.restriction === 'No Restriction'; }"
       }
     ]
   },
