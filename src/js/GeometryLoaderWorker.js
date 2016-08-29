@@ -1,7 +1,7 @@
 "use strict";
 
 const GeometryLoader = require("./GeometryLoader");
-const json_count = 8;
+const json_count = 5;
 
 const loader = new GeometryLoader();
 
