@@ -128,7 +128,7 @@ Controller.prototype = {
     return !roadLink ? null : {
       toid: roadLink.toid,
       term: roadLink.term,
-      directed: roadLink.directed,
+      restriction: roadLink.restriction,
       nature: roadLink.nature,
       length: roadLink.length,
       penalty: roadLink.penalty,
