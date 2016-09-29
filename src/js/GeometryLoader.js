@@ -150,7 +150,7 @@ GeometryLoader.prototype = {
   },
 
   loadRoadNodes: function (origin) {
-    oboe(origin + "/json/roadnodes1.json.gz")
+    oboe(origin + "/json/nodes1.json.gz")
       .node("!.*", function (obj) {
           this.itemCount++;
           this.roadNodes.push({
@@ -177,7 +177,7 @@ GeometryLoader.prototype = {
   },
 
   loadRoadLinks: function (origin, partIndex) {
-    oboe(origin + "/json/roadlinks" + partIndex + ".json.gz")
+    oboe(origin + "/json/links" + partIndex + ".json.gz")
       .node("!.*", function (obj) {
           this.itemCount++;
           let ps = [];
