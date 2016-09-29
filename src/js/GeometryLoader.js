@@ -234,7 +234,7 @@ GeometryLoader.prototype = {
   },
 
   loadRoads: function (origin) {
-    oboe(origin + "/json/roads1.json.gz")
+    oboe(origin + "/json/linkgroups.json.gz")
       .node("!.*", function (obj) {
           this.itemCount++;
           this.roads.push({
