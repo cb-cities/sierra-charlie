@@ -156,6 +156,7 @@ GeometryLoader.prototype = {
           this.roadNodes.push({
               index: obj.index,
               toid: obj.toid,
+              graph: obj.graph,
               point: obj.point,
               address: null,
               roadLinks: [],
@@ -200,6 +201,7 @@ GeometryLoader.prototype = {
           this.roadLinks.push({
               index: obj.index,
               toid: obj.toid,
+              graph: obj.graph,
               bounds: polyline.bounds(0, vertices),
               length: polyline.length(vertices),
               penalty: makePenalty(obj.nature, obj.term),
