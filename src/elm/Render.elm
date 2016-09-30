@@ -95,7 +95,7 @@ renderRoadNode : Trigger -> Maybe Mode -> String -> RoadNode -> List Html
 renderRoadNode trigger maybeMode titlePrefix roadNode =
     let
       title =
-        [renderWindowTitle (titlePrefix ++ " Road Node")]
+        [renderWindowTitle (titlePrefix ++ " Node")]
       description =
         case roadNode.address of
           Nothing ->
@@ -128,9 +128,9 @@ renderRoadNode trigger maybeMode titlePrefix roadNode =
           (x, y) ->
             renderLabeled "Location" [div [] [text (toString (round x) ++ " " ++ toString (round y))]]
       toid =
-        renderLabeled "TOID" [renderTOID trigger roadNode.toid]
+        renderLabeled "Unique ID" [renderTOID trigger roadNode.toid]
       roadLinks =
-        renderLabeledList "Road Links" (renderTOIDItem trigger) roadNode.roadLinkTOIDs
+        renderLabeledList "Links" (renderTOIDItem trigger) roadNode.roadLinkTOIDs
     in
       title ++ description ++ buttons ++ location ++ toid ++ roadLinks
 
@@ -139,7 +139,7 @@ renderRoadLink : Trigger -> String -> RoadLink -> List Html
 renderRoadLink trigger titlePrefix roadLink =
     let
       title =
-        [renderWindowTitle (titlePrefix ++ " Road Link")]
+        [renderWindowTitle (titlePrefix ++ " Link")]
       description =
         [renderWindowSubtitle (renderRoadLinkDescription roadLink)]
       buttons =
@@ -157,26 +157,26 @@ renderRoadLink trigger titlePrefix roadLink =
       cost =
         renderLabeled "Cost" [div [] [text (toString (round roadLink.length) ++ " × " ++ toString roadLink.penalty)]]
       toid =
-        renderLabeled "TOID" [renderTOID trigger roadLink.toid]
+        renderLabeled "Unique ID" [renderTOID trigger roadLink.toid]
       roadNodes =
         case (roadLink.negativeNodeTOID, roadLink.positiveNodeTOID) of
           (Nothing, Nothing) ->
             []
           (Just negativeNodeTOID, Nothing) ->
-            renderLabeled "Road Nodes"
+            renderLabeled "Nodes"
               [ div [] [text "− ", renderTOID trigger negativeNodeTOID]
               ]
           (Nothing, Just positiveNodeTOID) ->
-            renderLabeled "Road Nodes"
+            renderLabeled "Nodes"
               [ div [] [text "+ ", renderTOID trigger positiveNodeTOID]
               ]
           (Just negativeNodeTOID, Just positiveNodeTOID) ->
-            renderLabeled "Road Nodes"
+            renderLabeled "Nodes"
               [ div [] [text "− ", renderTOID trigger negativeNodeTOID]
               , div [] [text "+ ", renderTOID trigger positiveNodeTOID]
               ]
       roads =
-        renderLabeledList "Roads" (renderRoadItem trigger) roadLink.roads
+        renderLabeledList "Link Grouping" (renderRoadItem trigger) roadLink.roads
     in
       title ++ description ++ buttons ++ cost ++ toid ++ roadNodes ++ roads
 
@@ -215,7 +215,7 @@ renderRoad trigger titlePrefix road =
               [ renderAction "Undelete" (Send UndeleteSelectedFeature)
               ]
       toid =
-        renderLabeled "TOID" [renderTOID trigger road.toid]
+        renderLabeled "Unique ID" [renderTOID trigger road.toid]
       roadLinks =
         renderLabeledList "Road Links" (renderTOIDItem trigger) road.roadLinkTOIDs
     in
@@ -232,14 +232,14 @@ renderRoute trigger titlePrefix route =
           [ renderAction "Delete" (Send DeleteSelectedFeature)
           ]
       toid =
-        renderLabeled "TOID" [renderTOID trigger route.toid]
+        renderLabeled "Unique ID" [renderTOID trigger route.toid]
       roadNodes =
-        renderLabeled "Road Nodes"
+        renderLabeled "Nodes"
           [ div [] [text "< ", renderTOID trigger route.startNodeTOID]
           , div [] [text "> ", renderTOID trigger route.endNodeTOID]
           ]
       roadLinks =
-        renderLabeledList "Road Links" (renderTOIDItem trigger) route.roadLinkTOIDs
+        renderLabeledList "Links" (renderTOIDItem trigger) route.roadLinkTOIDs
     in
       title ++ buttons ++ toid ++ roadNodes ++ roadLinks
 
