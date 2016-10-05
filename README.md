@@ -1,6 +1,7 @@
 _Docker File_
 ================
 
+
 ## Build Docker image
 `cd ..`
 `docker build -t "gac55/dockerVisualiserLondon:latest" ./sierra-charlie`
