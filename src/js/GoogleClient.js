@@ -4,7 +4,7 @@ const nnng = require("nnng");
 const oboe = require("oboe");
 
 
-const routeKey = "AIzaSyCCyg4GqKnZ5X9BCafg83BVx2uWTWc2nMc"; // TODO
+const routeKey = "AIzaSyBq5xFPM_xVIBdl0Rm6yYiZfiW3qOVzZDM"; // G Casey
 const routeOrigin = "http://localhost:4000/https://maps.googleapis.com/maps/api/directions/json";
 
 function GoogleClient() {
