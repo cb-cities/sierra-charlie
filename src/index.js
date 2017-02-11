@@ -15,6 +15,8 @@ const app = r.wrap(require("./js/App"));
 window.rect = require("./js/lib/rect"); // TODO
 window.vector = require("./js/lib/vector"); // TODO
 
+window.alert("Are you using Internet Explorer? Please use Google Chrome if yes!");
+
 window.makeNative = (Elm, moduleName, makeValues) => {
   Elm.Native = Elm.Native || {};
   Elm.Native[moduleName] = {
