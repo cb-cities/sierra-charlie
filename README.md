@@ -48,12 +48,18 @@ Portions of the code are written in [PureScript](http://www.purescript.org/) and
 The project is developed on OS X, but may support other UNIX platforms.  On OS X, system-level dependencies should be installed with the [`brew`](http://brew.sh/) tool. 
 
 ```
-brew install node purescript elm
+brew install node purescript
 ```
 
 [Webpack](https://webpack.github.io/) is used to structure the project, supporting development and production mode builds.  ES2015 syntax is translated to JavaScript using [Babel](http://babeljs.io/).  Code quality is monitored using [JSHint](http://jshint.com/).
 
 Use the [`npm`](https://www.npmjs.com/) tool, included with Node.js, to install project-level dependencies.
+
+This project was built for elm version `0.16`. `npm` may be used to install this
+
+```
+npm install elm@0.16.0
+```
 
 ```
 npm install
