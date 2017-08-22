@@ -210,7 +210,6 @@ module.exports = {
   },
 
 
-
   startDrawing: function () {
     this.isAnimationFrameRequested = requestAnimationFrame(this.onAnimationFrameReceived);
     this.renderContents();
@@ -244,6 +243,8 @@ module.exports = {
       Controller.selectedLines.render(gl, gl.DYNAMIC_DRAW);
       Controller.routingPoints.render(gl, gl.DYNAMIC_DRAW);
       Controller.routingLines.render(gl, gl.DYNAMIC_DRAW);
+      // TEST FTN for isochrones
+      Controller.iscochrones.render(gl, gl.DYNAMIC_DRAW);
     } else {
       cx = this.drawingContext;
       gl = cx.gl;
