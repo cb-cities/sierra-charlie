@@ -244,7 +244,7 @@ module.exports = {
       Controller.routingPoints.render(gl, gl.DYNAMIC_DRAW);
       Controller.routingLines.render(gl, gl.DYNAMIC_DRAW);
       // TEST FTN for isochrones
-      Controller.iscochrones.render(gl, gl.DYNAMIC_DRAW);
+      // Controller.iscochrones.render(gl, gl.DYNAMIC_DRAW);
     } else {
       cx = this.drawingContext;
       gl = cx.gl;
