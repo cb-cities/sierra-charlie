@@ -17,7 +17,7 @@ module.exports = {
   resolve: {
     modulesDirectories: [
       "node_modules",
-      "bower_components/purescript-prelude/src"
+      "node_modules/@purescript/prelude/src"
     ],
     extensions: ["", ".js", ".elm", ".purs"]
   },
@@ -70,9 +70,9 @@ module.exports = {
         test: /\.purs$/,
         loader:
           "purs-loader?output=purescript_modules&" + [
-            "src[]=bower_components/purescript-*/src/**/*.purs",
+            "src[]=node_modules/@purescript/prelude*/src/**/*.purs",
             "src[]=src/**/*.purs",
-            "ffi[]=bower_components/purescript-*/src/**/*.js",
+            "ffi[]=node_modules/@purescript/prelude*/src/**/*.js",
             "ffi[]=src/**/*Foreign.js"
           ].join("&")
       }
