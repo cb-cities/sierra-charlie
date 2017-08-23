@@ -33,9 +33,12 @@ This project was built for elm version `0.16`. `npm` may be used to install this
 npm install elm@0.16.0
 ```
 
+Use `yarn` to install packages. If you don't have `yarn`, install it using `npm install -g yarn`.
+
 ```
-npm install
+yarn install
 ```
+
 You will also need to increase the kernel limits on OS X. 
 
 ```
@@ -80,6 +83,6 @@ About
 
 Mietek Bak
 Gerry Casey
-Krishnar Kumar
+Krishna Kumar
 
 Made by [Miëtek Bak](https://mietek.io/).  Published under the [MIT X11 license](LICENSE.md).

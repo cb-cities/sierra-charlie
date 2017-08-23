@@ -40,7 +40,7 @@
     "worker-loader": "^0.7.0"
   },
   "scripts": {
-    "postinstall": "node_modules/.bin/bower install && elm package install --yes",
+    "postinstall": "elm package install --yes",
     "build": "node_modules/.bin/webpack",
     "dev-build": "node_modules/.bin/webpack --config=webpack.dev-config.js",
     "start-proxy": "node bin/proxy.js",
@@ -48,5 +48,8 @@
     "upload": "s3cmd put out/index.appcache out/index.html out/index.js s3://sierracharlie.mietek.io --acl-public",
     "upload-json": "s3cmd sync json s3://sierracharlie.mietek.io --acl-public --delete-removed --exclude='*' --include='*.json.gz' --add-header='Cache-Control:max-age=3600' --add-header='Content-Type:application/json' --add-header='Content-Encoding:gzip'",
     "clean": "rm -rf .psci bower_components elm-stuff node_modules npm-debug.log out purescript_modules"
+  },
+  "dependencies": {
+    "@purescript/prelude": "^3.0.0"
   }
 }
