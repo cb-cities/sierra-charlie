@@ -1,17 +1,13 @@
-FROM fedora
+FROM fedora:latest
 
 MAINTAINER Gerry Casey <gerard.casey@arup.com>
 
 # Libraries
-RUN dnf update -y
-RUN dnf install git curl wget -y 
-RUN dnf install npm nodejs -y
-RUN npm install -g n
-RUN n stable
+RUN dnf update -y && dnf install -y git curl npm nodejs wget
+RUN  npm install -g yarn && yarn global add n && n stable
 
-# NPM stuff
-RUN npm install -g purescript
-RUN npm install -g elm@0.16
+# purescript and elm
+RUN yarn global add purescript elm@0.16
 
 WORKDIR /root
 
@@ -23,7 +19,7 @@ COPY sierra-charlie
 
 WORKDIR sierra-charlie
 
-RUN npm install --no-optional
+RUN yarn install --no-optional
 RUN npm run build
 RUN npm run start-proxy&
 
