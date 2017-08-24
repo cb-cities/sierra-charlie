@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  build:
+    working_directory: /root/sierra-charlie
+    docker:
+      - image: cbcities/sc
+    steps:
+      - checkout
+      # Set TBB and MKL Paths, configure CMake and run
+      - run:
+          name: Build Sierra-Charlie
+          command: pwd && ls && yarn install --no-optional && npm run build
+
