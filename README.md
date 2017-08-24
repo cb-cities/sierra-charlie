@@ -1,17 +1,7 @@
-_Docker File_
-================
-
-
-## Build Docker image
-`cd ..`
-`docker build -t "gac55/vis_london:latest" ./sierra-charlie`
-
-## Using the image
-`docker run -ti -p 3000:3000 gac55/vis_london:latest`
-
-
 _sierra-charlie_
 ================
+
+[![CircleCI](https://circleci.com/gh/cb-cities/sierra-charlie.svg?style=svg&circle-token=11d612a668f402164098ac05ff503a248ed8a59a)](https://circleci.com/gh/cb-cities/sierra-charlie)
 
 ### Installing dependencies
 
@@ -75,7 +65,6 @@ npm start
 Finally, navigate to the following address in a web browser:
 
 [http://localhost:3000](http://localhost:3000)
-
 
 
 About
