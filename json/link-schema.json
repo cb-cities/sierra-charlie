@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#", 
+  "definitions": {}, 
+  "id": "http://example.com/example.json", 
+  "items": {
+    "id": "/items", 
+    "properties": {
+      "index": {
+        "default": 0, 
+        "description": "Link index.", 
+        "id": "/items/properties/index", 
+        "title": "The index schema", 
+        "type": "integer"
+      }, 
+      "nature": {
+        "default": "Single Carriageway", 
+        "description": "Link type: Single Carriageway / Dual Carriageway.", 
+        "id": "/items/properties/nature", 
+        "title": "The nature schema", 
+        "type": "string"
+      }, 
+      "negativeNode": {
+        "default": "osgb0000000000000000", 
+        "description": "Negative node id.", 
+        "id": "/items/properties/negativeNode", 
+        "title": "The negativenode schema", 
+        "type": "string"
+      }, 
+      "orientation": {
+        "default": null, 
+        "description": "Orientation (+ / -).", 
+        "id": "/items/properties/orientation", 
+        "title": "The orientation schema", 
+        "type": "null"
+      }, 
+      "polyline": {
+        "id": "/items/properties/polyline", 
+        "items": {
+          "default": 000000, 
+          "description": "Polyline id.", 
+          "id": "/items/properties/polyline/items", 
+          "title": "The polyline schema", 
+          "type": "number"
+        }, 
+        "type": "array"
+      }, 
+      "positiveNode": {
+        "default": "osgb0000000000000001", 
+        "description": "Positive node id.", 
+        "id": "/items/properties/positiveNode", 
+        "title": "The positivenode schema", 
+        "type": "string"
+      }, 
+      "restriction": {
+        "default": "No Restriction", 
+        "description": "", 
+        "id": "/items/properties/restriction", 
+        "title": "The restriction schema", 
+        "type": "string"
+      }, 
+      "term": {
+        "default": "Alley", 
+        "description": "Alley / Local Street.", 
+        "id": "/items/properties/term", 
+        "title": "The term schema", 
+        "type": "string"
+      }, 
+      "toid": {
+        "default": "osgb0000000000000000", 
+        "description": "An explanation about the purpose of this instance.", 
+        "id": "/items/properties/toid", 
+        "title": "The toid schema", 
+        "type": "string"
+      }
+    }, 
+    "type": "object"
+  }, 
+  "type": "array"
+}
