@@ -15,38 +15,10 @@ const app = r.wrap(require("./js/App"));
 window.rect = require("./js/lib/rect"); // TODO
 window.vector = require("./js/lib/vector"); // TODO
 
+const version = require("./js/DetectIE");
 
-// detect IE and returns version of IE or false, if browser is not IE
-function detectIE() {
-  const ua = window.navigator.userAgent;
-  
-  const msie = ua.indexOf("MSIE ");
-  if (msie > 0) {
-    // IE 10 or older => return version number
-    return parseInt(ua.substring(msie + 5, ua.indexOf(".", msie)), 10);
-  }
-
-  const trident = ua.indexOf("Trident/");
-  if (trident > 0) {
-    // IE 11 => return version number
-    const rv = ua.indexOf("rv:");
-    return parseInt(ua.substring(rv + 3, ua.indexOf(".", rv)), 10);
-  }
-
-  const edge = ua.indexOf("Edge/");
-  if (edge > 0) {
-    // Edge (IE 12+) => return version number
-    return parseInt(ua.substring(edge + 5, ua.indexOf(".", edge)), 10);
-  }
-    
-  // other browser
-  return false;
-}
-
-const version = detectIE();
-
-if (version !== false) {
-  window.alert("Please use Chromium / Firefox / Google Chrome for a better experience!");
+if (version.detectIE() !== false) {
+  window.alert("Please use Firefox / Chromium / Google Chrome for a better experience!");
 }
 
 window.makeNative = (Elm, moduleName, makeValues) => {
