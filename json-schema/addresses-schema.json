@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#", 
+  "definitions": {}, 
+  "id": "addresses.json", 
+  "items": {
+    "id": "/items", 
+    "properties": {
+      "text": {
+        "default": "House #, Street Name, City, County, Post Code, Country", 
+        "description": "Address.", 
+        "id": "/items/properties/text", 
+        "title": "The address text schema", 
+        "type": "string"
+      }, 
+      "toid": {
+        "default": "osgb0000000000000000", 
+        "description": "OSGB unique id.", 
+        "id": "/items/properties/toid", 
+        "title": "The toid schema", 
+        "type": "string"
+      }
+    }, 
+    "type": "object"
+  }, 
+  "type": "array"
+}
