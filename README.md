@@ -15,12 +15,12 @@ brew install node purescript
 
 [Webpack](https://webpack.github.io/) is used to structure the project, supporting development and production mode builds.  ES2015 syntax is translated to JavaScript using [Babel](http://babeljs.io/).  Code quality is monitored using [JSHint](http://jshint.com/).
 
-Use the [`npm`](https://www.npmjs.com/) tool, included with Node.js, to install project-level dependencies.
+Use [`yarn`](https://yarnpkg.com/lang/en/) tool to install project-level dependencies.
 
-This project was built for elm version `0.16`. `npm` may be used to install this
+This project was built for elm version `0.16`. `yarn` may be used to install this
 
 ```
-npm install elm@0.16.0
+yarn add elm@0.16.0
 ```
 
 Use `yarn` to install packages. If you don't have `yarn`, install it using `npm install -g yarn`.
