@@ -7,3 +7,5 @@ npm-debug.log
 out
 purescript_modules
 .DS_Store
+*~*
+*#*
