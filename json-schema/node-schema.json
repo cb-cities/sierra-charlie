@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#", 
+  "definitions": {}, 
+  "id": "node-schema.json", 
+  "items": {
+    "id": "/items", 
+    "properties": {
+      "index": {
+        "default": 1, 
+        "description": "Node index.", 
+        "id": "/items/properties/index", 
+        "title": "The node index schema", 
+        "type": "integer"
+      }, 
+      "point": {
+        "id": "/items/properties/point", 
+        "items": {
+          "default": [0.0, 0.0], 
+          "description": "Nodal coordinates.", 
+          "id": "/items/properties/point/items", 
+          "title": "The nodal coordinates schema", 
+          "type": "number"
+        }, 
+        "type": "array"
+      }, 
+      "toid": {
+        "default": "osgb00000000000000", 
+        "description": "Unique OSGB id of node.", 
+        "id": "/items/properties/toid", 
+        "title": "The toid schema", 
+        "type": "string"
+      }
+    }, 
+    "type": "object"
+  }, 
+  "type": "array"
+}
