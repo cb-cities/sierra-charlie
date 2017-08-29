@@ -1,0 +1,47 @@
+ 1 {
+ 2   "$schema": "http://json-schema.org/draft-04/schema#", 
+ 3   "definitions": {}, 
+ 4   "id": "linkgroups.json", 
+ 5   "properties": {
+ 6     "group": {
+ 7       "default": "Named Road", 
+ 8       "description": "Named road.", 
+ 9       "id": "/properties/group", 
+10       "title": "The group schema", 
+11       "type": "string"
+12     }, 
+13     "index": {
+14       "default": 0, 
+15       "description": "Group index.", 
+16       "id": "/properties/index", 
+17       "title": "The index schema", 
+18       "type": "integer"
+19     }, 
+20     "members": {
+21       "id": "/properties/members", 
+22       "items": {
+23         "default": "osgb0000000000000000", 
+24         "description": "Node ID.", 
+25         "id": "/properties/members/items", 
+26         "title": "The none schema", 
+27         "type": "string"
+28       }, 
+29       "type": "array"
+30     }, 
+31     "name": {
+32       "default": "Road name", 
+33       "description": "Road / street name.", 
+34       "id": "/properties/name", 
+35       "title": "The name schema", 
+36       "type": "string"
+37     }, 
+38     "toid": {
+39       "default": "osgb0000000000000000", 
+40       "description": "Node ID.", 
+41       "id": "/properties/toid", 
+42       "title": "The toid schema", 
+43       "type": "string"
+44     }
+45   }, 
+46   "type": "object"
+47 }
