@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Basic",
+    "models": [
+      {
+        "name": "Empty",
+        "lambda": "function (type, feature) { return null; }",
+        "range": null,
+        "colors": {
+          "out": [153, 153, 153, 255]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Experimental",
+    "models": [
+      {
+        "name": "Distance from London Eye",
+        "lambda": "function (type, feature) { var LondonEye = [530629.9181099398, 179433.27356557376]; var maxDistance = 52753.331350433284; return { value: vector.distance(feature.point || rect.midpoint(feature.bounds), LondonEye) / maxDistance }; }",
+        "range": {
+          "min": 0,
+          "max": 52753.331350433284
+        },
+        "colors": {
+          "min": [255, 0, 112, 255],
+          "max": [0, 144, 255, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "Link Length",
+        "lambda": "function (type, feature) { var maxLength = 3772.593941606797; return type === 'Road Link' && { value: circularEaseOut(feature.length / maxLength) }; }",
+        "range": {
+          "min": 0,
+          "max": 3772.593941606797
+        },
+        "colors": {
+          "min": [0, 144, 255, 255],
+          "max": [255, 0, 112, 255],
+          "out": [0, 0, 0, 0]
+        }
+      }
+    ]
+  }
+]
