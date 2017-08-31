@@ -1,0 +1,207 @@
+[
+  {
+    "name": "Basic",
+    "models": [
+      {
+        "name": "Empty",
+        "lambda": "function (type, feature) { return null; }",
+        "range": null,
+        "colors": {
+          "out": [153, 153, 153, 255]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Experimental",
+    "models": [
+      {
+        "name": "Distance from London Eye",
+        "lambda": "function (type, feature) { var LondonEye = [530629.9181099398, 179433.27356557376]; var maxDistance = 52753.331350433284; return { value: vector.distance(feature.point || rect.midpoint(feature.bounds), LondonEye) / maxDistance }; }",
+        "range": {
+          "min": 0,
+          "max": 52753.331350433284
+        },
+        "colors": {
+          "min": [255, 0, 112, 255],
+          "max": [0, 144, 255, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "Link Length",
+        "lambda": "function (type, feature) { var maxLength = 3772.593941606797; return type === 'Road Link' && { value: circularEaseOut(feature.length / maxLength) }; }",
+        "range": {
+          "min": 0,
+          "max": 3772.593941606797
+        },
+        "colors": {
+          "min": [0, 144, 255, 255],
+          "max": [255, 0, 112, 255],
+          "out": [0, 0, 0, 0]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Travel Time",
+    "models": [
+      {
+        "name": "00:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 0); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "02:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 2); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "04:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 4); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "06:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 6); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "08:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 8); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "10:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 10); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "12:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 12); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "14:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 14); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "16:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 16); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "18:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 18); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "20:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 20); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      },
+      {
+        "name": "22:00",
+        "lambda": "function(type, feature) { return travelTime(type, feature, 22); }",
+        "range": {
+          "min": 0,
+          "max": 7.386860121944193
+        },
+        "colors": {
+          "min": [0, 255, 0, 255],
+          "max": [255, 0, 0, 255],
+          "out": [0, 0, 0, 0]
+        }
+      }
+    ]
+  }
+]
