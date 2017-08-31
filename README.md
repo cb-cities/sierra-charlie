@@ -3,6 +3,11 @@ _sierra-charlie_
 
 [![CircleCI](https://circleci.com/gh/cb-cities/sierra-charlie.svg?style=svg&circle-token=11d612a668f402164098ac05ff503a248ed8a59a)](https://circleci.com/gh/cb-cities/sierra-charlie)
 
+### Usage
+
+This project does not include input files. These input files describe the network you wish to visualise, i.e. the roads and junctions. These are required inside the `json` folder.
+The schema for these files is found in the `json-schema` directory.
+
 ### Installing dependencies
 
 Portions of the code are written in [PureScript](http://www.purescript.org/) and [Elm](http://elm-lang.org/).  Compilers for both languages and the [Node.js](https://nodejs.org/) runtime must be installed on the local machine.
