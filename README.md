@@ -1,12 +1,8 @@
-_sierra-charlie_
-================
+# _sierra-charlie_
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cb-cities/sierra-charlie/blob/master/LICENSE.md)
-
 [![CLA assistant](https://cla-assistant.io/readme/badge/cb-cities/sierra-charlie)](https://cla-assistant.io/cb-cities/sierra-charlie)
-
 [![CircleCI](https://circleci.com/gh/cb-cities/sierra-charlie.svg?style=svg&circle-token=11d612a668f402164098ac05ff503a248ed8a59a)](https://circleci.com/gh/cb-cities/sierra-charlie)
-
 [![Dependencies status](https://david-dm.org/cb-cities/sierra-charlie/status.svg)](https://david-dm.org/cb-cities/sierra-charlie)
 
 ### Usage
@@ -18,7 +14,7 @@ The schema for these files is found in the `json-schema` directory.
 
 Portions of the code are written in [PureScript](http://www.purescript.org/) and [Elm](http://elm-lang.org/).  Compilers for both languages and the [Node.js](https://nodejs.org/) runtime must be installed on the local machine.
 
-The project is developed on OS X, but may support other UNIX platforms.  On OS X, system-level dependencies should be installed with the [`brew`](http://brew.sh/) tool. 
+The project is developed on OS X, but may support other UNIX platforms.  On OS X, system-level dependencies should be installed with the [`brew`](http://brew.sh/) tool.
 
 ```
 brew install node purescript
@@ -40,7 +36,7 @@ Use `yarn` to install packages. If you don't have `yarn`, install it using `npm 
 yarn install
 ```
 
-You will also need to increase the kernel limits on OS X. 
+You will also need to increase the kernel limits on OS X.
 
 ```
 sudo bash -c 'echo "kern.maxfiles=65536" >>/etc/sysctl.conf'
@@ -76,13 +72,3 @@ npm start
 Finally, navigate to the following address in a web browser:
 
 [http://localhost:3000](http://localhost:3000)
-
-
-About
------
-
-Mietek Bak
-Gerry Casey
-Krishna Kumar
-
-Made by [Miëtek Bak](https://mietek.io/).  Published under the [MIT X11 license](LICENSE.md).
