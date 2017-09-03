@@ -1,6 +1,10 @@
 _sierra-charlie_
 ================
 
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cb-cities/sierra-charlie/blob/master/LICENSE.md)
+
+[![CLA assistant](https://cla-assistant.io/readme/badge/cb-cities/sierra-charlie)](https://cla-assistant.io/cb-cities/sierra-charlie)
+
 [![CircleCI](https://circleci.com/gh/cb-cities/sierra-charlie.svg?style=svg&circle-token=11d612a668f402164098ac05ff503a248ed8a59a)](https://circleci.com/gh/cb-cities/sierra-charlie)
 
 [![Dependencies status](https://david-dm.org/cb-cities/sierra-charlie/status.svg)](https://david-dm.org/cb-cities/sierra-charlie)
