@@ -10,7 +10,21 @@
 This project does not include input files. These input files describe the network you wish to visualise, i.e. the roads and junctions. These are required inside the `json` folder.
 The schema for these files is found in the `json-schema` directory.
 
-### Installing dependencies
+### Easy way - build and run with Docker
+
+This projects come with a Dockerfile which enables the automation of image creation. 
+
+`cd sierra-charlie`
+
+`docker build -t "sierra-charlie:latest" .`
+
+`docker run -ti -p 3000:3000 "sierra-charlie:latest" /bin/bash`
+
+`$npm start`
+
+Point your browser to `localhost:3000`
+
+### Hard way - installing dependencies
 
 Portions of the code are written in [PureScript](http://www.purescript.org/) and [Elm](http://elm-lang.org/).  Compilers for both languages and the [Node.js](https://nodejs.org/) runtime must be installed on the local machine.
 
