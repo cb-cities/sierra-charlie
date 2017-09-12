@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "TODO",
   "author": "Miëtek Bak <hello@mietek.io>",
-  "private": true,
+  "private": false,
   "license": "MIT",
   "devDependencies": {
     "babel-core": "^6.4.0",
@@ -42,7 +42,7 @@
   "scripts": {
     "postinstall": "elm package install --yes",
     "build": "node_modules/.bin/webpack",
-    "dev-build": "node_modules/.bin/webpack --config=webpack.dev-config.js",
+    "dev-build": "node_modules/.bin/webpack --config=webpack.dev-config.js --watch",
     "start-proxy": "node bin/proxy.js",
     "start": "node bin/server.js",
     "upload": "s3cmd put out/index.appcache out/index.html out/index.js s3://sierracharlie.mietek.io --acl-public",
@@ -50,6 +50,7 @@
     "clean": "rm -rf .psci bower_components elm-stuff node_modules npm-debug.log out purescript_modules"
   },
   "dependencies": {
-    "@purescript/prelude": "^3.0.0"
+     "@purescript/prelude": "^3.0.0",
+     "elm": "0.16.0"
   }
 }
