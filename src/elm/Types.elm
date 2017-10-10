@@ -64,7 +64,7 @@ type Mode =
   | GetRouteFromGoogle
 
 
-type Action =
+type Msg =
     Idle
   | Receive IncomingMessage
   | Send OutgoingMessage

@@ -28,7 +28,7 @@ defaultState =
   }
 
 
-update : Action -> State -> (State, Effects Action)
+update : Msg -> State -> (State, Effects Msg)
 update action state =
   case action of
     Idle ->
@@ -92,7 +92,7 @@ decodeMode maybeEncoded =
           Debug.crash ("Invalid mode: " ++ toString encoded)
 
 
-decodeIncomingMessage : Maybe EncodedIncomingMessage -> Action
+decodeIncomingMessage : Maybe EncodedIncomingMessage -> Msg
 decodeIncomingMessage maybeEncoded =
   case maybeEncoded of
     Nothing ->
@@ -126,7 +126,7 @@ decodeIncomingMessage maybeEncoded =
 port incomingMessage : Signal (Maybe EncodedIncomingMessage)
 
 
-incomingAction : Signal Action
+incomingAction : Signal Msg
 incomingAction =
   Signal.map decodeIncomingMessage incomingMessage
 
@@ -207,7 +207,7 @@ outgoingMessageMailbox =
   Signal.mailbox Nothing
 
 
-send : OutgoingMessage -> Effects Action
+send : OutgoingMessage -> Effects Msg
 send message =
   let
     maybeEncoded = Just (encodeOutgoingMessage message)
@@ -228,7 +228,7 @@ encodeSpecialOutgoingMessage message =
       "SaveAdjustmentAsJSON"
 
 
-sendSpecial : SpecialOutgoingMessage -> Effects Action
+sendSpecial : SpecialOutgoingMessage -> Effects Msg
 sendSpecial message =
   let
     encoded = encodeSpecialOutgoingMessage message
@@ -245,7 +245,7 @@ port outgoingMessage =
   outgoingMessageMailbox.signal
 
 
-init : (State, Effects Action)
+init : (State, Effects Msg)
 init =
   (defaultState, Effects.task (Task.succeed Idle))
 

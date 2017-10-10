@@ -11,7 +11,7 @@ import Types exposing (..)
 
 
 type alias Trigger =
-    Signal.Address Action
+    Signal.Address Msg
 
 
 renderUI : Trigger -> State -> Html
@@ -571,12 +571,12 @@ renderButtons trigger actions =
     [div [class "ui-buttons"] (List.map (\action -> action trigger) actions)]
 
 
-renderAction : String -> Action -> Trigger -> Html
+renderAction : String -> Msg -> Trigger -> Html
 renderAction label action trigger =
     a [onClick trigger action] [text label]
 
 
-renderToggle : String -> Bool -> Action -> Trigger -> Html
+renderToggle : String -> Bool -> Msg -> Trigger -> Html
 renderToggle label isActive action trigger =
     let
       attrs =
@@ -587,7 +587,7 @@ renderToggle label isActive action trigger =
       a attrs [text label]
 
 
-renderToggle2 : String -> Bool -> Action -> Action -> Trigger -> Html
+renderToggle2 : String -> Bool -> Msg -> Msg -> Trigger -> Html
 renderToggle2 label isActive action activeAction trigger =
     let
       attrs =
