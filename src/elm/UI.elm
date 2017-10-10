@@ -1,4 +1,4 @@
-module UI where
+module UI exposing
 
 import Effects exposing (Effects, Never, none)
 import Html exposing (Html)

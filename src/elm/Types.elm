@@ -1,4 +1,4 @@
-module Types where
+module Types exposing
 
 
 type alias State =
