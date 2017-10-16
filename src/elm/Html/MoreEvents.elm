@@ -1,4 +1,4 @@
-module Html.MoreEvents where
+module Html.MoreEvents exposing (..)
 
 import Html exposing (Attribute)
 import Html.Events exposing (defaultOptions, on, onWithOptions)
@@ -22,8 +22,8 @@ modifierKeys =
     ("metaKey" := Json.bool)
 
 
-onClickWithModifiers : Signal.Address a -> a -> a -> a -> a -> a -> Attribute
-onClickWithModifiers addr plainMsg shiftMsg ctrlMsg altMsg metaMsg =
+onClickWithModifiers : a -> a -> a -> a -> a -> Attribute
+onClickWithModifiers plainMsg shiftMsg ctrlMsg altMsg metaMsg =
   on "click" modifierKeys
     ( \mods ->
         let
@@ -34,5 +34,5 @@ onClickWithModifiers addr plainMsg shiftMsg ctrlMsg altMsg metaMsg =
             else if mods.shiftKey then shiftMsg
             else plainMsg
         in
-          Signal.message addr msg
+          Signal.message msg
     )
