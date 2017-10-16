@@ -1,6 +1,6 @@
-module UI where
+module UI exposing (..)
 
-import Effects exposing (Effects, Never, none)
+import Platform.Cmd as Cmd exposing (Cmd, Never, none)
 import Html exposing (Html)
 import Signal exposing (Address, Mailbox)
 import StartApp exposing (App)
@@ -28,7 +28,7 @@ defaultState =
   }
 
 
-update : Action -> State -> (State, Effects Action)
+update : Msg -> State -> (State, Cmd Msg)
 update action state =
   case action of
     Idle ->
@@ -92,7 +92,7 @@ decodeMode maybeEncoded =
           Debug.crash ("Invalid mode: " ++ toString encoded)
 
 
-decodeIncomingMessage : Maybe EncodedIncomingMessage -> Action
+decodeIncomingMessage : Maybe EncodedIncomingMessage -> Msg
 decodeIncomingMessage maybeEncoded =
   case maybeEncoded of
     Nothing ->
@@ -123,10 +123,10 @@ decodeIncomingMessage maybeEncoded =
           Debug.crash ("Invalid incoming message: " ++ toString encoded)
 
 
-port incomingMessage : Signal (Maybe EncodedIncomingMessage)
+port incomingMessage : ((Maybe EncodedIncomingMessage) -> msg) -> Sub msg
 
 
-incomingAction : Signal Action
+incomingAction : Signal Msg
 incomingAction =
   Signal.map decodeIncomingMessage incomingMessage
 
@@ -207,12 +207,12 @@ outgoingMessageMailbox =
   Signal.mailbox Nothing
 
 
-send : OutgoingMessage -> Effects Action
+send : OutgoingMessage -> Cmd Msg
 send message =
   let
     maybeEncoded = Just (encodeOutgoingMessage message)
   in
-    Effects.task
+    Cmd.task
       ( Signal.send outgoingMessageMailbox.address maybeEncoded
         `andThen`
         \_ -> Task.succeed Idle
@@ -228,26 +228,24 @@ encodeSpecialOutgoingMessage message =
       "SaveAdjustmentAsJSON"
 
 
-sendSpecial : SpecialOutgoingMessage -> Effects Action
+sendSpecial : SpecialOutgoingMessage -> Cmd Msg
 sendSpecial message =
   let
     encoded = encodeSpecialOutgoingMessage message
   in
-    Effects.task
+    Cmd.task
       ( Special.send encoded
         `andThen`
         \_ -> Task.succeed Idle
       )
 
 
-port outgoingMessage : Signal (Maybe EncodedOutgoingMessage)
-port outgoingMessage =
-  outgoingMessageMailbox.signal
+port outgoingMessage : (Maybe EncodedOutgoingMessage) -> Cmd msg
 
 
-init : (State, Effects Action)
+init : (State, Cmd Msg)
 init =
-  (defaultState, Effects.task (Task.succeed Idle))
+  (defaultState, Cmd.task (Task.succeed Idle))
 
 
 ui : App State
@@ -260,9 +258,7 @@ ui =
     }
 
 
-port tasks : Signal (Task Never ())
-port tasks =
-  ui.tasks
+port tasks : (Task Never ()) -> Cmd msg
 
 
 main : Signal Html

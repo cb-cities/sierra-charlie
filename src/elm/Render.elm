@@ -1,4 +1,4 @@
-module Render where
+module Render exposing (..)
 
 import Html exposing (Html, a, code, div, hr, pre, text)
 import Html.Attributes exposing (class, id, style)
@@ -10,31 +10,27 @@ import Html.MoreEvents exposing (..)
 import Types exposing (..)
 
 
-type alias Trigger =
-    Signal.Address Action
-
-
-renderUI : Trigger -> State -> Html
-renderUI trigger state =
+renderUI : State -> Html Msg
+renderUI state =
     div []
       [ div []
           [ lazy renderLoadingProgress state.loadingProgress
           ]
       , div [id "ui-top-left"]
-          [ lazy3 (renderViewsWindow trigger) state.viewGroups state.activeViews state.viewInfoVisible
-          , lazy2 (renderViewInfoWindow trigger) state.activeViews state.viewInfoVisible
+          [ lazy3 (renderViewsWindow) state.viewGroups state.activeViews state.viewInfoVisible
+          , lazy2 (renderViewInfoWindow) state.activeViews state.viewInfoVisible
           ]
       , div [id "ui-top-right"]
-          [ lazy3 (renderModelsWindow trigger) state.modelGroups state.activeModel state.modelInfoVisible
-          , lazy2 (renderModelInfoWindow trigger) state.activeModel state.modelInfoVisible
-          , lazy (renderAdjustmentWindow trigger) state.adjustment
+          [ lazy3 (renderModelsWindow) state.modelGroups state.activeModel state.modelInfoVisible
+          , lazy2 (renderModelInfoWindow) state.activeModel state.modelInfoVisible
+          , lazy (renderAdjustmentWindow) state.adjustment
           ]
       , div [id "ui-bottom-left"]
-          [ lazy2 (renderFeature trigger "highlighted") state.mode state.highlightedFeature
+          [ lazy2 (renderFeature "highlighted") state.mode state.highlightedFeature
           ]
       , div [id "ui-bottom-right"]
-          [ lazy2 (renderFeature trigger "selected") state.mode state.selectedFeature
-          , lazy (renderRoutesWindow trigger) state.routes
+          [ lazy2 (renderFeature "selected") state.mode state.selectedFeature
+          , lazy (renderRoutesWindow) state.routes
           ]
       ]
 
@@ -56,8 +52,8 @@ renderLoadingProgress loadingProgress =
         ]
 
 
-renderFeature : Trigger -> String -> Maybe Mode -> Maybe Feature -> Html
-renderFeature trigger featureKind maybeMode maybeFeature =
+renderFeature : String -> Maybe Mode -> Maybe Feature -> Html Msg
+renderFeature featureKind maybeMode maybeFeature =
     let
       featureId =
         if featureKind == "highlighted"
@@ -78,21 +74,21 @@ renderFeature trigger featureKind maybeMode maybeFeature =
           Just feature ->
             case (feature.tag, feature.roadNode, feature.roadLink, feature.road, feature.route) of
               ("roadNode", Just roadNode, Nothing, Nothing, Nothing) ->
-                renderRoadNode trigger maybeMode titlePrefix roadNode
+                renderRoadNode maybeMode titlePrefix roadNode
               ("roadLink", Nothing, Just roadLink, Nothing, Nothing) ->
-                renderRoadLink trigger titlePrefix roadLink
+                renderRoadLink titlePrefix roadLink
               ("road", Nothing, Nothing, Just road, Nothing) ->
-                renderRoad trigger titlePrefix road
+                renderRoad titlePrefix road
               ("route", Nothing, Nothing, Nothing, Just route) ->
-                renderRoute trigger titlePrefix route
+                renderRoute titlePrefix route
               _ ->
                 []
     in
       div ([id featureId, class "ui-window"] ++ display) contents
 
 
-renderRoadNode : Trigger -> Maybe Mode -> String -> RoadNode -> List Html
-renderRoadNode trigger maybeMode titlePrefix roadNode =
+renderRoadNode : Maybe Mode -> String -> RoadNode -> List (Html Msg)
+renderRoadNode maybeMode titlePrefix roadNode =
     let
       title =
         [renderWindowTitle (titlePrefix ++ " Node")]
@@ -105,20 +101,20 @@ renderRoadNode trigger maybeMode titlePrefix roadNode =
       buttons =
         case (roadNode.isDeleted, roadNode.isUndeletable) of
           (False, _) ->
-            ( renderButtons trigger
+            ( renderButtons
                 [ renderToggle2 "Get Route" (maybeMode == Just GetRoute)
                     (Send (SetMode (Just GetRoute)))
                     (Send (SetMode Nothing))
                 , renderAction "Delete" (Send DeleteSelectedFeature)
                 ] ++
-              renderButtons trigger
+              renderButtons
                 [ renderToggle2 "Get Route from Google" (maybeMode == Just GetRouteFromGoogle)
                     (Send (SetMode (Just GetRouteFromGoogle)))
                     (Send (SetMode Nothing))
                 ]
             )
           (True, True) ->
-            renderButtons trigger
+            renderButtons
               [ renderAction "Undelete" (Send UndeleteSelectedFeature)
               ]
           _ ->
@@ -128,15 +124,15 @@ renderRoadNode trigger maybeMode titlePrefix roadNode =
           (x, y) ->
             renderLabeled "Location" [div [] [text (toString (round x) ++ " " ++ toString (round y))]]
       toid =
-        renderLabeled "Unique ID" [renderTOID trigger roadNode.toid]
+        renderLabeled "Unique ID" [renderTOID roadNode.toid]
       roadLinks =
-        renderLabeledList "Links" (renderTOIDItem trigger) roadNode.roadLinkTOIDs
+        renderLabeledList "Links" (renderTOIDItem) roadNode.roadLinkTOIDs
     in
       title ++ description ++ buttons ++ location ++ toid ++ roadLinks
 
 
-renderRoadLink : Trigger -> String -> RoadLink -> List Html
-renderRoadLink trigger titlePrefix roadLink =
+renderRoadLink : String -> RoadLink -> List (Html Msg)
+renderRoadLink titlePrefix roadLink =
     let
       title =
         [renderWindowTitle (titlePrefix ++ " Link")]
@@ -145,11 +141,11 @@ renderRoadLink trigger titlePrefix roadLink =
       buttons =
         case (roadLink.isDeleted, roadLink.isUndeletable) of
           (False, _) ->
-            renderButtons trigger
+            renderButtons
               [ renderAction "Delete" (Send DeleteSelectedFeature)
               ]
           (True, True) ->
-            renderButtons trigger
+            renderButtons
               [ renderAction "Undelete" (Send UndeleteSelectedFeature)
               ]
           _ ->
@@ -157,26 +153,26 @@ renderRoadLink trigger titlePrefix roadLink =
       cost =
         renderLabeled "Cost" [div [] [text (toString (round roadLink.length) ++ " × " ++ toString roadLink.penalty)]]
       toid =
-        renderLabeled "Unique ID" [renderTOID trigger roadLink.toid]
+        renderLabeled "Unique ID" [renderTOID roadLink.toid]
       roadNodes =
         case (roadLink.negativeNodeTOID, roadLink.positiveNodeTOID) of
           (Nothing, Nothing) ->
             []
           (Just negativeNodeTOID, Nothing) ->
             renderLabeled "Nodes"
-              [ div [] [text "− ", renderTOID trigger negativeNodeTOID]
+              [ div [] [text "− ", renderTOID negativeNodeTOID]
               ]
           (Nothing, Just positiveNodeTOID) ->
             renderLabeled "Nodes"
-              [ div [] [text "+ ", renderTOID trigger positiveNodeTOID]
+              [ div [] [text "+ ", renderTOID positiveNodeTOID]
               ]
           (Just negativeNodeTOID, Just positiveNodeTOID) ->
             renderLabeled "Nodes"
-              [ div [] [text "− ", renderTOID trigger negativeNodeTOID]
-              , div [] [text "+ ", renderTOID trigger positiveNodeTOID]
+              [ div [] [text "− ", renderTOID negativeNodeTOID]
+              , div [] [text "+ ", renderTOID positiveNodeTOID]
               ]
       roads =
-        renderLabeledList "Link Grouping" (renderRoadItem trigger) roadLink.roads
+        renderLabeledList "Link Grouping" (renderRoadItem) roadLink.roads
     in
       title ++ description ++ buttons ++ cost ++ toid ++ roadNodes ++ roads
 
@@ -186,19 +182,19 @@ renderRoadLinkDescription roadLink =
     roadLink.term ++ ", " ++ roadLink.nature
 
 
-renderRoadItem : Trigger -> Road -> Html
-renderRoadItem trigger road =
+renderRoadItem : Road -> Html
+renderRoadItem road =
     let
       toid =
-        [renderTOIDItem trigger road.toid]
+        [renderTOIDItem road.toid]
       description =
         [div [] [text (renderRoadDescription road)]]
     in
       div [] (toid ++ description)
 
 
-renderRoad : Trigger -> String -> Road -> List Html
-renderRoad trigger titlePrefix road =
+renderRoad : String -> Road -> List (Html Msg)
+renderRoad titlePrefix road =
     let
       title =
         [renderWindowTitle (titlePrefix ++ " Road")]
@@ -207,39 +203,39 @@ renderRoad trigger titlePrefix road =
       buttons =
         case road.isDeleted of
           False ->
-            renderButtons trigger
+            renderButtons
               [ renderAction "Delete" (Send DeleteSelectedFeature)
               ]
           True ->
-            renderButtons trigger
+            renderButtons
               [ renderAction "Undelete" (Send UndeleteSelectedFeature)
               ]
       toid =
-        renderLabeled "Unique ID" [renderTOID trigger road.toid]
+        renderLabeled "Unique ID" [renderTOID road.toid]
       roadLinks =
-        renderLabeledList "Road Links" (renderTOIDItem trigger) road.roadLinkTOIDs
+        renderLabeledList "Road Links" (renderTOIDItem) road.roadLinkTOIDs
     in
       title ++ description ++ buttons ++ toid ++ roadLinks
 
 
-renderRoute : Trigger -> String -> Route -> List Html
-renderRoute trigger titlePrefix route =
+renderRoute : String -> Route -> List (Html Msg)
+renderRoute titlePrefix route =
     let
       title =
         [renderWindowTitle (titlePrefix ++ " Route")]
       buttons =
-        renderButtons trigger
+        renderButtons
           [ renderAction "Delete" (Send DeleteSelectedFeature)
           ]
       toid =
-        renderLabeled "Unique ID" [renderTOID trigger route.toid]
+        renderLabeled "Unique ID" [renderTOID route.toid]
       roadNodes =
         renderLabeled "Nodes"
-          [ div [] [text "< ", renderTOID trigger route.startNodeTOID]
-          , div [] [text "> ", renderTOID trigger route.endNodeTOID]
+          [ div [] [text "< ", renderTOID route.startNodeTOID]
+          , div [] [text "> ", renderTOID route.endNodeTOID]
           ]
       roadLinks =
-        renderLabeledList "Links" (renderTOIDItem trigger) route.roadLinkTOIDs
+        renderLabeledList "Links" (renderTOIDItem) route.roadLinkTOIDs
     in
       title ++ buttons ++ toid ++ roadNodes ++ roadLinks
 
@@ -253,8 +249,8 @@ renderRoadDescription road =
         road.name ++ ", " ++ road.group ++ ", " ++ term
 
 
-renderViewsWindow : Trigger -> List ViewGroup -> List View -> Bool -> Html
-renderViewsWindow trigger viewGroups activeViews viewInfoVisible =
+renderViewsWindow : List ViewGroup -> List View -> Bool -> Html Msg
+renderViewsWindow viewGroups activeViews viewInfoVisible =
     let
       allViews = List.concatMap .views viewGroups
       findActiveIndex = List.findIndex (\view -> List.member view activeViews)
@@ -272,7 +268,7 @@ renderViewsWindow trigger viewGroups activeViews viewInfoVisible =
                 List.map .name (List.take targetCount (List.drop targetStart allViews))
             _ ->
               [view.name]
-      renderViewGroupItem groupIndex index view trigger =
+      renderViewGroupItem groupIndex index view =
           let
             isActive = List.member view activeViews
             choose names = Send (ChooseViews names)
@@ -282,7 +278,7 @@ renderViewsWindow trigger viewGroups activeViews viewInfoVisible =
               if isActive
                 then choose (List.filter ((/=) view.name) (List.map .name activeViews))
                 else choose (view.name :: (List.map .name activeViews))
-            handler = onClickWithModifiers trigger alone extended toggled alone toggled
+            handler = onClickWithModifiers alone extended toggled alone toggled
             active =
               if isActive
                 then [class "ui-active"]
@@ -294,7 +290,7 @@ renderViewsWindow trigger viewGroups activeViews viewInfoVisible =
             (view0 :: _) ->
               case List.findIndex ((==) view0) allViews of
                 Just groupIndex ->
-                  renderLabeledChoices trigger viewGroup.name
+                  renderLabeledChoices viewGroup.name
                     (List.indexedMap (renderViewGroupItem groupIndex) viewGroup.views)
                 _ ->
                   []
@@ -302,7 +298,7 @@ renderViewsWindow trigger viewGroups activeViews viewInfoVisible =
               []
       contents =
         [renderWindowTitle "Views"] ++
-        renderButtons trigger
+        renderButtons
           [ renderToggle "Show Info" viewInfoVisible ToggleViewInfo
           ] ++
         (List.concatMap renderViewGroup viewGroups)
@@ -310,10 +306,10 @@ renderViewsWindow trigger viewGroups activeViews viewInfoVisible =
       div [class "ui-window"] contents
 
 
-renderModelsWindow : Trigger -> List ModelGroup -> Maybe Model -> Bool -> Html
-renderModelsWindow trigger modelGroups activeModel modelInfoVisible =
+renderModelsWindow : List ModelGroup -> Maybe Model -> Bool -> Html Msg
+renderModelsWindow modelGroups activeModel modelInfoVisible =
     let
-      renderModelGroupItem model trigger =
+      renderModelGroupItem model =
           let
             isActive = activeModel == Just model
             active =
@@ -321,13 +317,13 @@ renderModelsWindow trigger modelGroups activeModel modelInfoVisible =
                 then [class "ui-active"]
                 else []
           in
-            a ([onClick trigger (Send (ChooseModel model.name))] ++ active) [text model.name]
+            a ([onClick (Send (ChooseModel model.name))] ++ active) [text model.name]
       renderModelGroup modelGroup =
-          renderLabeledChoices trigger modelGroup.name
+          renderLabeledChoices modelGroup.name
             (List.map renderModelGroupItem modelGroup.models)
       contents =
         [renderWindowTitle "Models"] ++
-        renderButtons trigger
+        renderButtons
           [ renderToggle "Show Info" modelInfoVisible ToggleModelInfo
           ] ++
         (List.concatMap renderModelGroup modelGroups)
@@ -341,8 +337,8 @@ renderDefinition lambda =
       [pre [] [code [] [text lambda]]]
 
 
-renderViewInfoWindow : Trigger -> List View -> Bool -> Html
-renderViewInfoWindow trigger activeViews visible =
+renderViewInfoWindow : List View -> Bool -> Html Msg
+renderViewInfoWindow activeViews visible =
     let
       renderViewInfo view =
         [renderWindowSubtitle view.name] ++
@@ -402,8 +398,8 @@ renderModelRange maybeRange =
         []
 
 
-renderModelInfoWindow : Trigger -> Maybe Model -> Bool -> Html
-renderModelInfoWindow trigger activeModel visible =
+renderModelInfoWindow : Maybe Model -> Bool -> Html Msg
+renderModelInfoWindow activeModel visible =
     let
       renderModelInfo =
         case activeModel of
@@ -425,8 +421,8 @@ renderModelInfoWindow trigger activeModel visible =
       div ([class "ui-window wide"] ++ display) contents
 
 
-renderRoutesWindow : Trigger -> List Route -> Html
-renderRoutesWindow trigger routes =
+renderRoutesWindow : Msg -> List Route -> Html Msg
+renderRoutesWindow routes =
     let
       display =
         if routes == []
@@ -442,16 +438,16 @@ renderRoutesWindow trigger routes =
                   [] ->
                     []
                   validList ->
-                    renderRoutes trigger "Valid" validList
+                    renderRoutes "Valid" validList
               invalidRoutes =
                 case List.filter (\route -> route.roadLinkTOIDs == []) routes of
                   [] ->
                     []
                   invalidList ->
-                    renderRoutes trigger "Invalid" invalidList
+                    renderRoutes "Invalid" invalidList
             in
               [renderWindowTitle "Routes"] ++
-              renderButtons trigger
+              renderButtons
                 [ renderAction "Clear" (Send ClearRoutes)
                 , renderAction "Save as JSON" (SendSpecial SaveRoutesAsJSON)
                 ] ++
@@ -461,13 +457,13 @@ renderRoutesWindow trigger routes =
       div ([class "ui-window"] ++ display) contents
 
 
-renderRoutes : Trigger -> String -> List Route -> List Html
-renderRoutes trigger label routes =
-    renderLabeledList label (renderTOIDItem trigger) (List.map .toid routes)
+renderRoutes : String -> List Route -> List (Html Msg)
+renderRoutes label routes =
+    renderLabeledList label (renderTOIDItem) (List.map .toid routes)
 
 
-renderAdjustmentWindow : Trigger -> Maybe Adjustment -> Html
-renderAdjustmentWindow trigger maybeAdjustment =
+renderAdjustmentWindow : Maybe Adjustment -> Html Msg
+renderAdjustmentWindow maybeAdjustment =
     let
       isEmpty =
         case maybeAdjustment of
@@ -487,14 +483,14 @@ renderAdjustmentWindow trigger maybeAdjustment =
             []
           Just adjustment ->
             [renderWindowTitle "Adjustment"] ++
-            renderButtons trigger
+            renderButtons
               [ renderAction "Clear" (Send ClearAdjustment)
               , renderAction "Save as JSON" (SendSpecial SaveAdjustmentAsJSON)
               ] ++
             [ div []
-                ( renderLabeledList "Deleted Nodes" (renderTOIDItem trigger) adjustment.deletedFeatures.roadNodeTOIDs ++
-                  renderLabeledList "Deleted Links" (renderTOIDItem trigger) adjustment.deletedFeatures.roadLinkTOIDs ++
-                  renderLabeledList "Deleted Roads" (renderTOIDItem trigger) adjustment.deletedFeatures.roadTOIDs
+                ( renderLabeledList "Deleted Nodes" (renderTOIDItem) adjustment.deletedFeatures.roadNodeTOIDs ++
+                  renderLabeledList "Deleted Links" (renderTOIDItem) adjustment.deletedFeatures.roadLinkTOIDs ++
+                  renderLabeledList "Deleted Roads" (renderTOIDItem) adjustment.deletedFeatures.roadTOIDs
                 )
             ]
     in
@@ -511,17 +507,17 @@ renderWindowSubtitle subtitle =
     div [class "ui-window-subtitle"] [text subtitle]
 
 
-renderTOIDItem : Trigger -> String -> Html
-renderTOIDItem trigger toid =
-    div [] [renderTOID trigger toid]
+renderTOIDItem : String -> Html Msg
+renderTOIDItem toid =
+    div [] [renderTOID toid]
 
 
-renderTOID : Trigger -> String -> Html
-renderTOID trigger toid =
+renderTOID : String -> Html Msg
+renderTOID toid =
     a
-      [ onClick trigger (Send (SelectFeatureByTOID (Just toid)))
-      , onMouseEnter trigger (Send (HighlightFeatureByTOID (Just toid)))
-      , onMouseLeave trigger (Send (HighlightFeatureByTOID Nothing))
+      [ onClick (Send (SelectFeatureByTOID (Just toid)))
+      , onMouseEnter (Send (HighlightFeatureByTOID (Just toid)))
+      , onMouseLeave (Send (HighlightFeatureByTOID Nothing))
       ]
       [text toid]
 
@@ -552,47 +548,47 @@ renderLabel label =
     div [class "ui-label"] [text label]
 
 
-renderLabeledChoices : Trigger -> String -> List (Trigger -> Html) -> List Html
-renderLabeledChoices trigger label actions =
+renderLabeledChoices : String -> List (Html Msg) -> List (Html Msg)
+renderLabeledChoices label actions =
     case actions of
       [] ->
         []
       _ ->
-        renderLabeled label (renderChoices trigger actions)
+        renderLabeled label (renderChoices actions)
 
 
-renderChoices : Trigger -> List (Trigger -> Html) -> List Html
-renderChoices trigger actions =
-    [div [class "ui-choices"] (List.map (\action -> action trigger) actions)]
+renderChoices : List (Html Msg) -> List (Html Msg)
+renderChoices actions =
+    [div [class "ui-choices"] (List.map (\action -> action) actions)]
 
 
-renderButtons : Trigger -> List (Trigger -> Html) -> List Html
-renderButtons trigger actions =
-    [div [class "ui-buttons"] (List.map (\action -> action trigger) actions)]
+renderButtons : List (Html Msg) -> List (Html Msg)
+renderButtons actions =
+    [div [class "ui-buttons"] (List.map (\action -> action) actions)]
 
 
-renderAction : String -> Action -> Trigger -> Html
-renderAction label action trigger =
-    a [onClick trigger action] [text label]
+renderAction : String -> Msg -> Html Msg
+renderAction label action =
+    a [onClick action] [text label]
 
 
-renderToggle : String -> Bool -> Action -> Trigger -> Html
-renderToggle label isActive action trigger =
+renderToggle : String -> Bool -> Msg -> Html Msg
+renderToggle label isActive action =
     let
       attrs =
         if isActive
-          then [onClick trigger action, class "ui-active"]
-          else [onClick trigger action]
+          then [onClick action, class "ui-active"]
+          else [onClick action]
     in
       a attrs [text label]
 
 
-renderToggle2 : String -> Bool -> Action -> Action -> Trigger -> Html
-renderToggle2 label isActive action activeAction trigger =
+renderToggle2 : String -> Bool -> Msg -> Msg -> Html Msg
+renderToggle2 label isActive action activeAction =
     let
       attrs =
         if isActive
-          then [onClick trigger activeAction, class "ui-active"]
-          else [onClick trigger action]
+          then [onClick activeAction, class "ui-active"]
+          else [onClick action]
     in
       a attrs [text label]

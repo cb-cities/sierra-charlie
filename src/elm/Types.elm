@@ -1,4 +1,4 @@
-module Types where
+module Types exposing (..)
 
 
 type alias State =
@@ -64,7 +64,7 @@ type Mode =
   | GetRouteFromGoogle
 
 
-type Action =
+type Msg =
     Idle
   | Receive IncomingMessage
   | Send OutgoingMessage
