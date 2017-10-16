@@ -22,7 +22,7 @@ modifierKeys =
     ("metaKey" := Json.bool)
 
 
-onClickWithModifiers : a -> a -> a -> a -> a -> Attribute
+onClickWithModifiers : a -> a -> a -> a -> a -> Attribute Msg
 onClickWithModifiers plainMsg shiftMsg ctrlMsg altMsg metaMsg =
   on "click" modifierKeys
     ( \mods ->
