@@ -1,4 +1,4 @@
-module Special exposing
+module Special exposing (..)
 
 import Task exposing (Task)
 
