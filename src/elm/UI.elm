@@ -123,7 +123,7 @@ decodeIncomingMessage maybeEncoded =
           Debug.crash ("Invalid incoming message: " ++ toString encoded)
 
 
-port incomingMessage : Signal (Maybe EncodedIncomingMessage)
+port incomingMessage : ((Maybe EncodedIncomingMessage) -> msg) -> Sub msg
 
 
 incomingAction : Signal Msg
@@ -240,9 +240,7 @@ sendSpecial message =
       )
 
 
-port outgoingMessage : Signal (Maybe EncodedOutgoingMessage)
-port outgoingMessage =
-  outgoingMessageMailbox.signal
+port outgoingMessage : (Maybe EncodedOutgoingMessage) -> Cmd msg
 
 
 init : (State, Cmd Msg)
@@ -260,9 +258,7 @@ ui =
     }
 
 
-port tasks : Signal (Task Never ())
-port tasks =
-  ui.tasks
+port tasks : (Task Never ()) -> Cmd msg
 
 
 main : Signal Html
