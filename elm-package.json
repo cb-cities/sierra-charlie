@@ -1,6 +1,6 @@
 {
     "version": "1.0.0",
-    "summary": "TODO",
+    "summary": "Sierra-Charlie city scale visualiser",
     "repository": "https://github.com/mietek/sierra-charlie.git",
     "license": "MIT",
     "source-directories": [
