@@ -1,6 +1,6 @@
 module UI exposing (..)
 
-import Effects exposing (Effects, Never, none)
+import Platform.Cmd as Cmd exposing (Cmd, Never, none)
 import Html exposing (Html)
 import Signal exposing (Address, Mailbox)
 import StartApp exposing (App)
@@ -28,7 +28,7 @@ defaultState =
   }
 
 
-update : Msg -> State -> (State, Effects Msg)
+update : Msg -> State -> (State, Cmd Msg)
 update action state =
   case action of
     Idle ->
@@ -207,12 +207,12 @@ outgoingMessageMailbox =
   Signal.mailbox Nothing
 
 
-send : OutgoingMessage -> Effects Msg
+send : OutgoingMessage -> Cmd Msg
 send message =
   let
     maybeEncoded = Just (encodeOutgoingMessage message)
   in
-    Effects.task
+    Cmd.task
       ( Signal.send outgoingMessageMailbox.address maybeEncoded
         `andThen`
         \_ -> Task.succeed Idle
@@ -228,12 +228,12 @@ encodeSpecialOutgoingMessage message =
       "SaveAdjustmentAsJSON"
 
 
-sendSpecial : SpecialOutgoingMessage -> Effects Msg
+sendSpecial : SpecialOutgoingMessage -> Cmd Msg
 sendSpecial message =
   let
     encoded = encodeSpecialOutgoingMessage message
   in
-    Effects.task
+    Cmd.task
       ( Special.send encoded
         `andThen`
         \_ -> Task.succeed Idle
@@ -245,9 +245,9 @@ port outgoingMessage =
   outgoingMessageMailbox.signal
 
 
-init : (State, Effects Msg)
+init : (State, Cmd Msg)
 init =
-  (defaultState, Effects.task (Task.succeed Idle))
+  (defaultState, Cmd.task (Task.succeed Idle))
 
 
 ui : App State
