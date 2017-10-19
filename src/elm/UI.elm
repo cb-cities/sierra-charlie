@@ -2,8 +2,8 @@ module UI exposing (..)
 
 import Platform.Cmd as Cmd exposing (Cmd, Never, none)
 import Html exposing (Html)
-import Signal exposing (Address, Mailbox)
-import StartApp exposing (App)
+-- import Signal exposing (Address, Mailbox)
+-- import StartApp exposing (App)
 import Task exposing (Task, andThen)
 import Special
 import Types exposing (..)
@@ -150,12 +150,25 @@ decodeIncomingMessage maybeEncoded =
                     Debug.crash ("Invalid incoming message: " ++ toString encoded)
 
 
-port incomingMessage : (Maybe EncodedIncomingMessage -> msg) -> Sub msg
+-- -- Elm 0.16
+-- port incomingMessage : Signal (Maybe EncodedIncomingMessage)
 
 
-incomingAction : Signal Msg
-incomingAction =
-    Signal.map decodeIncomingMessage incomingMessage
+-- incomingAction : Signal Action
+-- incomingAction =
+--   Signal.map decodeIncomingMessage incomingMessage
+
+
+-- Elm 0.18
+port incomingMessage : ((Maybe EncodedIncomingMessage) -> msg) -> Sub msg
+
+
+incomingAction : Sub Msg
+incomingAction = incomingMessage decodeIncomingMessage
+
+handleSubs : Model -> Sub Action
+handleSubs model =
+    incomingAction
 
 
 type alias EncodedOutgoingMessage =
@@ -241,21 +254,22 @@ encodeOutgoingMessage message =
             encodeStringMessage "ChooseModel" (Just name)
 
 
-outgoingMessageMailbox : Mailbox (Maybe EncodedOutgoingMessage)
-outgoingMessageMailbox =
-    Signal.mailbox Nothing
+-- #### Gambling on the port call later in this script making this Elm 0.16 section unnecessary ####
+-- outgoingMessageMailbox : Mailbox (Maybe EncodedOutgoingMessage)
+-- outgoingMessageMailbox =
+--     Signal.mailbox Nothing
 
 
-send : OutgoingMessage -> Cmd Msg
-send message =
-    let
-        maybeEncoded =
-            Just (encodeOutgoingMessage message)
-    in
-        Cmd.task
-            (Signal.send outgoingMessageMailbox.address maybeEncoded
-                |> andThen (\_ -> Task.succeed Idle)
-            )
+-- send : OutgoingMessage -> Cmd Msg
+-- send message =
+--     let
+--         maybeEncoded =
+--             Just (encodeOutgoingMessage message)
+--     in
+--         Cmd.task
+--             (Signal.send outgoingMessageMailbox.address maybeEncoded
+--                 |> andThen (\_ -> Task.succeed Idle)
+--             )
 
 
 encodeSpecialOutgoingMessage : SpecialOutgoingMessage -> String
@@ -288,19 +302,31 @@ init =
     ( defaultState, Cmd.task (Task.succeed Idle) )
 
 
-ui : App State
-ui =
-    StartApp.start
+-- -- Elm 0.16
+-- ui : App State
+-- ui =
+--     StartApp.start
+--         { init = init
+--         , update = update
+--         , view = renderUI
+--         , inputs = [ incomingAction ]
+--         }
+-- 
+-- 
+-- port tasks : Task Never () -> Cmd msg
+-- 
+-- 
+-- main : Signal Html
+-- main =
+--     ui.html
+
+
+-- Elm 0.18
+main : Program Never
+main =
+    Html.program
         { init = init
         , update = update
         , view = renderUI
-        , inputs = [ incomingAction ]
+        , subscriptions = incomingAction
         }
-
-
-port tasks : Task Never () -> Cmd msg
-
-
-main : Signal Html
-main =
-    ui.html
