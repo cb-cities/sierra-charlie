@@ -1,6 +1,26 @@
 module Types exposing (..)
 
 
+type alias EncodedOutgoingMessage =
+    { tag : String
+    , strings : List String
+    }
+
+
+type alias EncodedIncomingMessage =
+    { tag : String
+    , mode : Maybe String
+    , loadingProgress : Float
+    , feature : Maybe Feature
+    , routes : List Route
+    , adjustment : Maybe Adjustment
+    , viewGroups : List ViewGroup
+    , activeViews : List View
+    , modelGroups : List ModelGroup
+    , activeModel : Maybe Model
+    }
+
+
 type alias State =
     { mode : Maybe Mode
     , loadingProgress : Float

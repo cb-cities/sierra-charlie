@@ -1,13 +1,14 @@
 module UI exposing (..)
 
-import Platform.Cmd as Cmd exposing (Cmd, Never, none)
-import Html exposing (Html)
 -- import Signal exposing (Address, Mailbox)
 -- import StartApp exposing (App)
-import Task exposing (Task, andThen)
-import Special
-import Types exposing (..)
+
+import Html exposing (Html)
+import Platform.Cmd as Cmd exposing (Cmd, none)
 import Render exposing (renderUI)
+import Special
+import Task exposing (Task, andThen)
+import Types exposing (..)
 
 
 defaultState : State
@@ -76,20 +77,6 @@ update action state =
             ( { state | modelInfoVisible = not state.modelInfoVisible }, none )
 
 
-type alias EncodedIncomingMessage =
-    { tag : String
-    , mode : Maybe String
-    , loadingProgress : Float
-    , feature : Maybe Feature
-    , routes : List Route
-    , adjustment : Maybe Adjustment
-    , viewGroups : List ViewGroup
-    , activeViews : List View
-    , modelGroups : List ModelGroup
-    , activeModel : Maybe Model
-    }
-
-
 decodeMode : Maybe String -> Maybe Mode
 decodeMode maybeEncoded =
     case maybeEncoded of
@@ -150,31 +137,23 @@ decodeIncomingMessage maybeEncoded =
                     Debug.crash ("Invalid incoming message: " ++ toString encoded)
 
 
+
 -- -- Elm 0.16
 -- port incomingMessage : Signal (Maybe EncodedIncomingMessage)
-
-
 -- incomingAction : Signal Action
 -- incomingAction =
 --   Signal.map decodeIncomingMessage incomingMessage
-
-
 -- Elm 0.18
-port incomingMessage : ((Maybe EncodedIncomingMessage) -> msg) -> Sub msg
 
 
 incomingAction : Sub Msg
-incomingAction = incomingMessage decodeIncomingMessage
+incomingAction =
+    incomingMessage decodeIncomingMessage
+
 
 handleSubs : Model -> Sub Action
 handleSubs model =
     incomingAction
-
-
-type alias EncodedOutgoingMessage =
-    { tag : String
-    , strings : List String
-    }
 
 
 encodeMode : Maybe Mode -> Maybe String
@@ -205,7 +184,7 @@ encodeStringsMessage tag strings =
         base =
             encodeMessage tag
     in
-        { base | strings = strings }
+    { base | strings = strings }
 
 
 encodeStringMessage : String -> Maybe String -> EncodedOutgoingMessage
@@ -254,12 +233,11 @@ encodeOutgoingMessage message =
             encodeStringMessage "ChooseModel" (Just name)
 
 
+
 -- #### Gambling on the port call later in this script making this Elm 0.16 section unnecessary ####
 -- outgoingMessageMailbox : Mailbox (Maybe EncodedOutgoingMessage)
 -- outgoingMessageMailbox =
 --     Signal.mailbox Nothing
-
-
 -- send : OutgoingMessage -> Cmd Msg
 -- send message =
 --     let
@@ -288,18 +266,16 @@ sendSpecial message =
         encoded =
             encodeSpecialOutgoingMessage message
     in
-        Cmd.task
-            (Special.send encoded
-                |> andThen (\_ -> Task.succeed Idle)
-            )
-
-
-port outgoingMessage : Maybe EncodedOutgoingMessage -> Cmd msg
+    Cmd.task
+        (Special.send encoded
+            |> andThen (\_ -> Task.succeed Idle)
+        )
 
 
 init : ( State, Cmd Msg )
 init =
     ( defaultState, Cmd.task (Task.succeed Idle) )
+
 
 
 -- -- Elm 0.16
@@ -311,17 +287,17 @@ init =
 --         , view = renderUI
 --         , inputs = [ incomingAction ]
 --         }
--- 
--- 
+--
+--
 -- port tasks : Task Never () -> Cmd msg
--- 
--- 
+--
+--
 -- main : Signal Html
 -- main =
 --     ui.html
-
-
 -- Elm 0.18
+
+
 main : Program Never
 main =
     Html.program

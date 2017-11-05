@@ -4,8 +4,8 @@ import Html exposing (Html, a, code, div, hr, pre, text)
 import Html.Attributes exposing (class, id, style)
 import Html.Events exposing (onClick, onMouseEnter, onMouseLeave)
 import Html.Lazy exposing (lazy, lazy2, lazy3)
-import List.Extra as List
 import Html.MoreEvents exposing (..)
+import List.Extra as List
 import Types exposing (..)
 
 
@@ -16,25 +16,25 @@ renderUI state =
             [ lazy renderLoadingProgress state.loadingProgress
             ]
         , div [ id "ui-top-left" ]
-            [ lazy3 (renderViewsWindow) state.viewGroups state.activeViews state.viewInfoVisible
-            , lazy2 (renderViewInfoWindow) state.activeViews state.viewInfoVisible
+            [ lazy3 renderViewsWindow state.viewGroups state.activeViews state.viewInfoVisible
+            , lazy2 renderViewInfoWindow state.activeViews state.viewInfoVisible
             ]
         , div [ id "ui-top-right" ]
-            [ lazy3 (renderModelsWindow) state.modelGroups state.activeModel state.modelInfoVisible
-            , lazy2 (renderModelInfoWindow) state.activeModel state.modelInfoVisible
-            , lazy (renderAdjustmentWindow) state.adjustment
+            [ lazy3 renderModelsWindow state.modelGroups state.activeModel state.modelInfoVisible
+            , lazy2 renderModelInfoWindow state.activeModel state.modelInfoVisible
+            , lazy renderAdjustmentWindow state.adjustment
             ]
         , div [ id "ui-bottom-left" ]
             [ lazy2 (renderFeature "highlighted") state.mode state.highlightedFeature
             ]
         , div [ id "ui-bottom-right" ]
             [ lazy2 (renderFeature "selected") state.mode state.selectedFeature
-            , lazy (renderRoutesWindow) state.routes
+            , lazy renderRoutesWindow state.routes
             ]
         ]
 
 
-renderLoadingProgress : Float -> Html
+renderLoadingProgress : Float -> Html Msg
 renderLoadingProgress loadingProgress =
     let
         opacity =
@@ -43,13 +43,13 @@ renderLoadingProgress loadingProgress =
             else
                 []
     in
-        div ([ id "ui-loading-progress-track" ] ++ opacity)
-            [ div
-                [ id "ui-loading-progress-bar"
-                , style [ ( "width", toString loadingProgress ++ "%" ) ]
-                ]
-                []
+    div ([ id "ui-loading-progress-track" ] ++ opacity)
+        [ div
+            [ id "ui-loading-progress-bar"
+            , style [ ( "width", toString loadingProgress ++ "%" ) ]
             ]
+            []
+        ]
 
 
 renderFeature : String -> Maybe Mode -> Maybe Feature -> Html Msg
@@ -95,7 +95,7 @@ renderFeature featureKind maybeMode maybeFeature =
                         _ ->
                             []
     in
-        div ([ id featureId, class "ui-window" ] ++ display) contents
+    div ([ id featureId, class "ui-window" ] ++ display) contents
 
 
 renderRoadNode : Maybe Mode -> String -> RoadNode -> List (Html Msg)
@@ -115,7 +115,7 @@ renderRoadNode maybeMode titlePrefix roadNode =
         buttons =
             case ( roadNode.isDeleted, roadNode.isUndeletable ) of
                 ( False, _ ) ->
-                    (renderButtons
+                    renderButtons
                         [ renderToggle2 "Get Route"
                             (maybeMode == Just GetRoute)
                             (Send (SetMode (Just GetRoute)))
@@ -128,7 +128,6 @@ renderRoadNode maybeMode titlePrefix roadNode =
                                 (Send (SetMode (Just GetRouteFromGoogle)))
                                 (Send (SetMode Nothing))
                             ]
-                    )
 
                 ( True, True ) ->
                     renderButtons
@@ -147,9 +146,9 @@ renderRoadNode maybeMode titlePrefix roadNode =
             renderLabeled "Unique ID" [ renderTOID roadNode.toid ]
 
         roadLinks =
-            renderLabeledList "Links" (renderTOIDItem) roadNode.roadLinkTOIDs
+            renderLabeledList "Links" renderTOIDItem roadNode.roadLinkTOIDs
     in
-        title ++ description ++ buttons ++ location ++ toid ++ roadLinks
+    title ++ description ++ buttons ++ location ++ toid ++ roadLinks
 
 
 renderRoadLink : String -> RoadLink -> List (Html Msg)
@@ -204,9 +203,9 @@ renderRoadLink titlePrefix roadLink =
                         ]
 
         roads =
-            renderLabeledList "Link Grouping" (renderRoadItem) roadLink.roads
+            renderLabeledList "Link Grouping" renderRoadItem roadLink.roads
     in
-        title ++ description ++ buttons ++ cost ++ toid ++ roadNodes ++ roads
+    title ++ description ++ buttons ++ cost ++ toid ++ roadNodes ++ roads
 
 
 renderRoadLinkDescription : RoadLink -> String
@@ -214,7 +213,7 @@ renderRoadLinkDescription roadLink =
     roadLink.term ++ ", " ++ roadLink.nature
 
 
-renderRoadItem : Road -> Html
+renderRoadItem : Road -> Html Msg
 renderRoadItem road =
     let
         toid =
@@ -223,7 +222,7 @@ renderRoadItem road =
         description =
             [ div [] [ text (renderRoadDescription road) ] ]
     in
-        div [] (toid ++ description)
+    div [] (toid ++ description)
 
 
 renderRoad : String -> Road -> List (Html Msg)
@@ -251,9 +250,9 @@ renderRoad titlePrefix road =
             renderLabeled "Unique ID" [ renderTOID road.toid ]
 
         roadLinks =
-            renderLabeledList "Road Links" (renderTOIDItem) road.roadLinkTOIDs
+            renderLabeledList "Road Links" renderTOIDItem road.roadLinkTOIDs
     in
-        title ++ description ++ buttons ++ toid ++ roadLinks
+    title ++ description ++ buttons ++ toid ++ roadLinks
 
 
 renderRoute : String -> Route -> List (Html Msg)
@@ -277,9 +276,9 @@ renderRoute titlePrefix route =
                 ]
 
         roadLinks =
-            renderLabeledList "Links" (renderTOIDItem) route.roadLinkTOIDs
+            renderLabeledList "Links" renderTOIDItem route.roadLinkTOIDs
     in
-        title ++ buttons ++ toid ++ roadNodes ++ roadLinks
+    title ++ buttons ++ toid ++ roadNodes ++ roadLinks
 
 
 renderRoadDescription : Road -> String
@@ -323,7 +322,7 @@ renderViewsWindow viewGroups activeViews viewInfoVisible =
                         targetCount =
                             targetEnd - targetStart + 1
                     in
-                        List.map .name (List.take targetCount (List.drop targetStart allViews))
+                    List.map .name (List.take targetCount (List.drop targetStart allViews))
 
                 _ ->
                     [ view.name ]
@@ -346,7 +345,7 @@ renderViewsWindow viewGroups activeViews viewInfoVisible =
                     if isActive then
                         choose (List.filter ((/=) view.name) (List.map .name activeViews))
                     else
-                        choose (view.name :: (List.map .name activeViews))
+                        choose (view.name :: List.map .name activeViews)
 
                 handler =
                     onClickWithModifiers alone extended toggled alone toggled
@@ -357,7 +356,7 @@ renderViewsWindow viewGroups activeViews viewInfoVisible =
                     else
                         []
             in
-                a ([ handler ] ++ active) [ text view.name ]
+            a ([ handler ] ++ active) [ text view.name ]
 
         renderViewGroup viewGroup =
             case viewGroup.views of
@@ -378,9 +377,9 @@ renderViewsWindow viewGroups activeViews viewInfoVisible =
                 ++ renderButtons
                     [ renderToggle "Show Info" viewInfoVisible ToggleViewInfo
                     ]
-                ++ (List.concatMap renderViewGroup viewGroups)
+                ++ List.concatMap renderViewGroup viewGroups
     in
-        div [ class "ui-window" ] contents
+    div [ class "ui-window" ] contents
 
 
 renderModelsWindow : List ModelGroup -> Maybe Model -> Bool -> Html Msg
@@ -397,7 +396,7 @@ renderModelsWindow modelGroups activeModel modelInfoVisible =
                     else
                         []
             in
-                a ([ onClick (Send (ChooseModel model.name)) ] ++ active) [ text model.name ]
+            a ([ onClick (Send (ChooseModel model.name)) ] ++ active) [ text model.name ]
 
         renderModelGroup modelGroup =
             renderLabeledChoices modelGroup.name
@@ -408,12 +407,12 @@ renderModelsWindow modelGroups activeModel modelInfoVisible =
                 ++ renderButtons
                     [ renderToggle "Show Info" modelInfoVisible ToggleModelInfo
                     ]
-                ++ (List.concatMap renderModelGroup modelGroups)
+                ++ List.concatMap renderModelGroup modelGroups
     in
-        div [ class "ui-window" ] contents
+    div [ class "ui-window" ] contents
 
 
-renderDefinition : String -> List Html
+renderDefinition : String -> List (Html Msg)
 renderDefinition lambda =
     renderLabeled "Definition"
         [ pre [] [ code [] [ text lambda ] ] ]
@@ -434,12 +433,12 @@ renderViewInfoWindow activeViews visible =
 
         contents =
             [ renderWindowTitle "View Info" ]
-                ++ (List.concatMap renderViewInfo activeViews)
+                ++ List.concatMap renderViewInfo activeViews
     in
-        div ([ class "ui-window wide" ] ++ display) contents
+    div ([ class "ui-window wide" ] ++ display) contents
 
 
-renderColor : Maybe RGBA -> String -> List Html
+renderColor : Maybe RGBA -> String -> List (Html Msg)
 renderColor maybeRGBA name =
     case maybeRGBA of
         Just ( r, g, b, a ) ->
@@ -455,17 +454,17 @@ renderColor maybeRGBA name =
                         ++ toString a
                         ++ ")"
             in
-                [ div []
-                    [ div [ class ("ui-color " ++ rgba), style [ ( "background-color", rgba ) ] ] []
-                    , text name
-                    ]
+            [ div []
+                [ div [ class ("ui-color " ++ rgba), style [ ( "background-color", rgba ) ] ] []
+                , text name
                 ]
+            ]
 
         _ ->
             []
 
 
-renderModelColors : Maybe ModelColors -> List Html
+renderModelColors : Maybe ModelColors -> List (Html Msg)
 renderModelColors maybeColors =
     case maybeColors of
         Just colors ->
@@ -479,7 +478,7 @@ renderModelColors maybeColors =
             []
 
 
-renderModelRange : Maybe ModelRange -> List Html
+renderModelRange : Maybe ModelRange -> List (Html Msg)
 renderModelRange maybeRange =
     case maybeRange of
         Just range ->
@@ -514,10 +513,10 @@ renderModelInfoWindow activeModel visible =
             [ renderWindowTitle "Model Info" ]
                 ++ renderModelInfo
     in
-        div ([ class "ui-window wide" ] ++ display) contents
+    div ([ class "ui-window wide" ] ++ display) contents
 
 
-renderRoutesWindow : Msg -> List Route -> Html Msg
+renderRoutesWindow : List Route -> Html Msg
 renderRoutesWindow routes =
     let
         display =
@@ -547,20 +546,20 @@ renderRoutesWindow routes =
                             invalidList ->
                                 renderRoutes "Invalid" invalidList
                 in
-                    [ renderWindowTitle "Routes" ]
-                        ++ renderButtons
-                            [ renderAction "Clear" (Send ClearRoutes)
-                            , renderAction "Save as JSON" (SendSpecial SaveRoutesAsJSON)
-                            ]
-                        ++ validRoutes
-                        ++ invalidRoutes
+                [ renderWindowTitle "Routes" ]
+                    ++ renderButtons
+                        [ renderAction "Clear" (Send ClearRoutes)
+                        , renderAction "Save as JSON" (SendSpecial SaveRoutesAsJSON)
+                        ]
+                    ++ validRoutes
+                    ++ invalidRoutes
     in
-        div ([ class "ui-window" ] ++ display) contents
+    div ([ class "ui-window" ] ++ display) contents
 
 
 renderRoutes : String -> List Route -> List (Html Msg)
 renderRoutes label routes =
-    renderLabeledList label (renderTOIDItem) (List.map .toid routes)
+    renderLabeledList label renderTOIDItem (List.map .toid routes)
 
 
 renderAdjustmentWindow : Maybe Adjustment -> Html Msg
@@ -595,21 +594,21 @@ renderAdjustmentWindow maybeAdjustment =
                             , renderAction "Save as JSON" (SendSpecial SaveAdjustmentAsJSON)
                             ]
                         ++ [ div []
-                                (renderLabeledList "Deleted Nodes" (renderTOIDItem) adjustment.deletedFeatures.roadNodeTOIDs
-                                    ++ renderLabeledList "Deleted Links" (renderTOIDItem) adjustment.deletedFeatures.roadLinkTOIDs
-                                    ++ renderLabeledList "Deleted Roads" (renderTOIDItem) adjustment.deletedFeatures.roadTOIDs
+                                (renderLabeledList "Deleted Nodes" renderTOIDItem adjustment.deletedFeatures.roadNodeTOIDs
+                                    ++ renderLabeledList "Deleted Links" renderTOIDItem adjustment.deletedFeatures.roadLinkTOIDs
+                                    ++ renderLabeledList "Deleted Roads" renderTOIDItem adjustment.deletedFeatures.roadTOIDs
                                 )
                            ]
     in
-        div ([ class "ui-window" ] ++ display) contents
+    div ([ class "ui-window" ] ++ display) contents
 
 
-renderWindowTitle : String -> Html
+renderWindowTitle : String -> Html Msg
 renderWindowTitle title =
     div [ class "ui-window-title" ] [ text title ]
 
 
-renderWindowSubtitle : String -> Html
+renderWindowSubtitle : String -> Html Msg
 renderWindowSubtitle subtitle =
     div [ class "ui-window-subtitle" ] [ text subtitle ]
 
@@ -629,7 +628,7 @@ renderTOID toid =
         [ text toid ]
 
 
-renderLabeledList : String -> (a -> Html) -> List a -> List Html
+renderLabeledList : String -> (a -> Html Msg) -> List a -> List (Html Msg)
 renderLabeledList label render items =
     let
         itemCount =
@@ -637,24 +636,24 @@ renderLabeledList label render items =
 
         fullLabel =
             if itemCount > 2 then
-                label ++ " (" ++ toString (itemCount) ++ ")"
+                label ++ " (" ++ toString itemCount ++ ")"
             else
                 label
     in
-        case items of
-            [] ->
-                []
+    case items of
+        [] ->
+            []
 
-            _ ->
-                renderLabeled fullLabel [ div [] (List.map render items) ]
+        _ ->
+            renderLabeled fullLabel [ div [] (List.map render items) ]
 
 
-renderLabeled : String -> List Html -> List Html
+renderLabeled : String -> List (Html Msg) -> List (Html Msg)
 renderLabeled label contents =
     [ renderLabel label ] ++ contents
 
 
-renderLabel : String -> Html
+renderLabel : String -> Html Msg
 renderLabel label =
     div [ class "ui-label" ] [ text label ]
 
@@ -693,7 +692,7 @@ renderToggle label isActive action =
             else
                 [ onClick action ]
     in
-        a attrs [ text label ]
+    a attrs [ text label ]
 
 
 renderToggle2 : String -> Bool -> Msg -> Msg -> Html Msg
@@ -705,4 +704,4 @@ renderToggle2 label isActive action activeAction =
             else
                 [ onClick action ]
     in
-        a attrs [ text label ]
+    a attrs [ text label ]
