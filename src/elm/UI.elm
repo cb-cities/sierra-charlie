@@ -1,10 +1,8 @@
 module UI exposing (..)
 
--- import Signal exposing (Address, Mailbox)
--- import StartApp exposing (App)
-
 import Html exposing (Html)
 import Platform.Cmd as Cmd exposing (Cmd, none)
+import Ports exposing (incomingMessage, outgoingMessage)
 import Render exposing (renderUI)
 import Special
 import Task exposing (Task, andThen)
@@ -65,7 +63,8 @@ update action state =
             ( { state | activeModel = activeModel }, none )
 
         Send message ->
-            ( state, send message )
+            -- ( state, send message )
+            ( state, none )
 
         SendSpecial tag ->
             ( state, sendSpecial tag )
@@ -151,7 +150,7 @@ incomingAction =
     incomingMessage decodeIncomingMessage
 
 
-handleSubs : Model -> Sub Action
+handleSubs : Model -> Sub Msg
 handleSubs model =
     incomingAction
 
@@ -244,10 +243,10 @@ encodeOutgoingMessage message =
 --         maybeEncoded =
 --             Just (encodeOutgoingMessage message)
 --     in
---         Cmd.task
---             (Signal.send outgoingMessageMailbox.address maybeEncoded
---                 |> andThen (\_ -> Task.succeed Idle)
---             )
+--     Cmd.task
+--         (Signal.send outgoingMessageMailbox.address maybeEncoded
+--             |> andThen (\_ -> Task.succeed Idle)
+--         )
 
 
 encodeSpecialOutgoingMessage : SpecialOutgoingMessage -> String
@@ -262,19 +261,20 @@ encodeSpecialOutgoingMessage message =
 
 sendSpecial : SpecialOutgoingMessage -> Cmd Msg
 sendSpecial message =
-    let
-        encoded =
-            encodeSpecialOutgoingMessage message
-    in
-    Cmd.task
-        (Special.send encoded
-            |> andThen (\_ -> Task.succeed Idle)
-        )
+    -- let
+    --     encoded =
+    --         encodeSpecialOutgoingMessage message
+    -- in
+    -- Cmd.task
+    --     (Special.send encoded
+    --         |> andThen (\_ -> Task.succeed Idle)
+    --     )
+    Cmd.none
 
 
 init : ( State, Cmd Msg )
 init =
-    ( defaultState, Cmd.task (Task.succeed Idle) )
+    ( defaultState, Idle )
 
 
 
@@ -304,5 +304,5 @@ main =
         { init = init
         , update = update
         , view = renderUI
-        , subscriptions = incomingAction
+        , subscriptions = handleSubs
         }
