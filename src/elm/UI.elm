@@ -150,7 +150,7 @@ incomingAction =
     incomingMessage decodeIncomingMessage
 
 
-handleSubs : Model -> Sub Msg
+handleSubs : State -> Sub Msg
 handleSubs model =
     incomingAction
 
@@ -274,7 +274,7 @@ sendSpecial message =
 
 init : ( State, Cmd Msg )
 init =
-    ( defaultState, Idle )
+    ( defaultState, Cmd.none )
 
 
 
@@ -298,7 +298,7 @@ init =
 -- Elm 0.18
 
 
-main : Program Never
+main : Program Never State Msg
 main =
     Html.program
         { init = init
