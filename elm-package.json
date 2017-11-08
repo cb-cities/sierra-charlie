@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "Sierra-Charlie city scale visualiser",
-    "repository": "https://github.com/mietek/sierra-charlie.git",
+    "repository": "https://github.com/cb-cities/sierra-charlie.git",
     "license": "MIT",
     "source-directories": [
         "src/elm"
