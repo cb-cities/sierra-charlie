@@ -4,9 +4,7 @@ const Elm = require("../elm/UI.elm");
 
 
 function UI(props) {
-  const localRuntime = Elm.embed(Elm.UI, document.getElementById("ui"), {
-    incomingMessage: null
-  });
+  const localRuntime = Elm.UI.embed(document.getElementById("ui"));
 
   function send(message) {
     localRuntime.ports.incomingMessage.send(Object.assign({
