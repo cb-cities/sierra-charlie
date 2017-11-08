@@ -4,8 +4,8 @@ import Html exposing (Html)
 import Platform.Cmd as Cmd exposing (Cmd, none)
 import Ports exposing (incomingMessage, outgoingMessage)
 import Render exposing (renderUI)
-import Special
-import Task exposing (Task, andThen)
+-- import Special
+-- import Task exposing (Task, andThen)
 import Types exposing (..)
 
 
@@ -63,7 +63,7 @@ update action state =
             ( { state | activeModel = activeModel }, none )
 
         Send message ->
-            -- ( state, send message )
+            -- ( state, send message ) -- TODO: check if this is necessary
             ( state, none )
 
         SendSpecial tag ->
@@ -150,7 +150,7 @@ incomingAction =
     incomingMessage decodeIncomingMessage
 
 
-handleSubs : Model -> Sub Msg
+handleSubs : State -> Sub Msg
 handleSubs model =
     incomingAction
 
@@ -274,7 +274,8 @@ sendSpecial message =
 
 init : ( State, Cmd Msg )
 init =
-    ( defaultState, Idle )
+    -- ( defaultState, Idle )
+    ( defaultState, none )
 
 
 
@@ -298,7 +299,7 @@ init =
 -- Elm 0.18
 
 
-main : Program Never
+main : Program Never State Msg
 main =
     Html.program
         { init = init
