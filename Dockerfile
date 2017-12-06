@@ -1,10 +1,16 @@
-FROM fedora:latest
+FROM ubuntu:latest
 
-MAINTAINER Gerry Casey <gerard.casey@arup.com>
+RUN apt-get update -y
+RUN apt-get install git curl npm nodejs wget -y
+RUN npm install -g yarn && yarn global add n && n stable
+
+# FROM fedora:latest
+
+# MAINTAINER Gerry Casey <gerard.casey@arup.com>
 
 # Libraries
-RUN dnf update -y && dnf install -y git curl npm nodejs wget
-RUN  npm install -g yarn && yarn global add n && n stable
+# RUN dnf update -y && dnf install -y git curl npm nodejs wget
+# RUN  npm install -g yarn && yarn global add n && n stable
 
 # purescript and elm
 RUN yarn global add purescript elm@0.16
